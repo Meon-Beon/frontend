@@ -1,3 +1,4 @@
+import { useEffect, useRef, type CSSProperties, type RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import DnaHelix from '../../components/dna-helix/DnaHelix'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
@@ -21,11 +22,6 @@ const partners = [
     name: '한국유전자정보센터',
     quote:
       '“공인 연구기관에 연구를 직접 의뢰하여 12,480개 유전자 마커를 객관적으로 판독하고 정밀 프로파일링을 확립합니다.”',
-    specs: [
-      ['판독 표준', 'K-NGS Clinical Class I'],
-      ['검사 대상', '12,480 Loci SNP'],
-    ],
-    featured: false,
   },
   {
     no: '02',
@@ -34,11 +30,6 @@ const partners = [
     name: '내진(GENE)설계단',
     quote:
       '“보험설계사, 의료자문부서, 전문경영자 등으로 구성됐습니다. 다학제 전문 분석단이 모여 과보장 없이 최적의 구조를 만듭니다.”',
-    specs: [
-      ['전문 구성인력', '의료자문의 + 계리사'],
-      ['알고리즘 원칙', '중복 특약 100% 소멸'],
-    ],
-    featured: true,
   },
   {
     no: '03',
@@ -47,11 +38,6 @@ const partners = [
     name: '32개 제휴 보험사',
     quote:
       '“보험 상품 정보들을 한눈에 비교 분석합니다. 국내 주요 생·손보사 보장 상품들을 매칭하여 내 유전 취약점 대비 최대 혜택을 선별합니다.”',
-    specs: [
-      ['연계사 커버리지', '생보 16개 / 손보 16개'],
-      ['선별 기준', '가성비 최대 보장 특약'],
-    ],
-    featured: false,
   },
 ] as const
 
@@ -75,26 +61,24 @@ const steps = [
 
 type IconName =
   | 'arrow'
-  | 'check'
+  | 'checkCircle'
   | 'db'
   | 'user'
   | 'lab'
   | 'team'
   | 'building'
-  | 'doc'
   | 'upload'
   | 'chevronLeft'
   | 'chevronRight'
 
 const iconPaths: Record<IconName, string> = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
-  check: 'M6 12.5l4 4 8-9',
+  checkCircle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.2 12.3l2.6 2.6 5-5.6',
   db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6 8-6s8 2 8 6',
   lab: 'M6 21h12M9 21v-3a5 5 0 0 0 0-10M10 4l4 4-3 3-4-4zM14 18a6 6 0 0 0 4-6',
   team: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.7-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3.3 0 6 2 6 5',
   building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4',
-  doc: 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM9 8h6M9 12h6M9 16h4',
   upload: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 17v-6M9.5 13.5L12 11l2.5 2.5',
   chevronLeft: 'M15 6l-6 6 6 6',
   chevronRight: 'M9 6l6 6-6 6',
@@ -119,9 +103,63 @@ function Icon({ name, className }: { name: IconName; className?: string }) {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
+/** 스크롤 진행도(첫 화면 기준 0~1)를 --scroll 변수로 넘기고, 섹션이 보이면 나타나게 함 */
+function useIntroMotion(pageRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const page = pageRef.current
+    if (!page) return
+
+    let frame = 0
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const progress = Math.min(window.scrollY / window.innerHeight, 1)
+        page.style.setProperty('--scroll', progress.toFixed(3))
+      })
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    const targets = page.querySelectorAll<HTMLElement>('[data-reveal]')
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          // 화면에 들어왔거나, 빠르게 지나쳐 이미 위로 올라간 요소도 보이게 함
+          if (entry.isIntersecting || entry.boundingClientRect.top < 0) {
+            entry.target.classList.add(styles.revealed)
+            observer.unobserve(entry.target)
+          }
+        }
+      },
+      { threshold: 0.15 },
+    )
+    targets.forEach((el) => observer.observe(el))
+
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
+      observer.disconnect()
+    }
+  }, [pageRef])
+}
+
 function Intro() {
+  const pageRef = useRef<HTMLDivElement>(null)
+  useIntroMotion(pageRef)
+
   return (
-    <div className={styles.page}>
+    <div ref={pageRef} className={styles.page}>
+      {/* 배경: 별빛, 오로라, 페이지 전체에 걸친 유전자 나선 */}
+      <div className={styles.cosmos} aria-hidden="true">
+        <span className={styles.aurora} />
+        <span className={styles.stars} />
+      </div>
+      <div className={styles.helixStage} role="img" aria-label="회전하는 3D 유전자 나선">
+        <span className={styles.helixGlow} />
+        {/* 한 화면 내릴 때마다 나선이 반 바퀴 더 돌아 본문과 함께 움직임 */}
+        <DnaHelix background="transparent" scrollSpin={Math.PI} />
+      </div>
+
       <header className={styles.header}>
         <Link to="/" className={styles.brand}>
           <GeneLogo className={styles.brandMark} title="" />
@@ -141,7 +179,7 @@ function Intro() {
         </nav>
 
         <div className={styles.headerActions}>
-          <Link to="/dna-apply" className={styles.headerCta}>
+          <Link to="/login" className={styles.headerCta}>
             내 보험 설계 GENE행하기 <Icon name="arrow" />
           </Link>
           <Link to="/login" className={styles.userBtn} aria-label="내 계정">
@@ -150,183 +188,150 @@ function Intro() {
         </div>
       </header>
 
-      <div className={styles.layout}>
-        {/* 좌측 28%: 페이지 끝까지 이어지는 패널, 나선은 스크롤을 따라 내려옴 */}
-        <aside className={styles.side}>
-          <div className={styles.geneSlot} aria-label="3D 유전자 나선 애니메이션" role="img">
-            <div className={styles.geneSticky}>
-              <DnaHelix background="transparent" />
-            </div>
-          </div>
-          <div className={styles.protocol}>
-            <div>
-              <p className={styles.protocolLabel}>DTC ENGINE PROTOCOL</p>
-              <p className={styles.protocolText}>정밀 분석 모니터링 대기</p>
-            </div>
-            <span className={styles.protocolCount}>
-              {pad(CURRENT_SLIDE)}/{pad(TOTAL_SLIDES)}
-            </span>
-          </div>
-        </aside>
-
-        <main className={styles.content}>
-          <section className={`${styles.card} ${styles.stageBar}`}>
-            <div className={styles.stageLeft}>
-              <span className={styles.stageTag}>
-                <i className={styles.dot} />
-                PRECISION INSURTECH ARCHITECTURE
-              </span>
-            </div>
-            <div className={styles.stageRight}>
-              <span className={styles.slideLabel}>
-                SLIDE {pad(CURRENT_SLIDE)}
-                <span className={styles.slideTotal}> / {pad(TOTAL_SLIDES)}</span>
-              </span>
-              <span className={styles.progress}>
-                <span style={{ width: `${(CURRENT_SLIDE / TOTAL_SLIDES) * 100}%` }} />
-              </span>
-            </div>
-          </section>
-
-          <section className={`${styles.card} ${styles.hero}`}>
+      <main className={styles.main}>
+        <section className={styles.hero}>
+          {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>
+              <i className={styles.pulse} />
+              PRECISION INSURTECH ARCHITECTURE
+            </p>
             <h1 className={styles.heroTitle}>
-              “찾아가는 보험에서 <span className={styles.heroHighlight}>찾아오는 보험으로</span>”
+              찾아가는 보험에서
+              <br />
+              <span className={styles.gradientText}>찾아오는 보험으로</span>
             </h1>
             <p className={styles.heroDesc}>
-              <b>내진(GENE)설계</b>는 유전적 위험도에 꼭 맞는 필수 보장만 정밀하게 담아냅니다.
-              <br />
-              중복되거나 불필요한 특약에 새어나가던 보험료를 투명하게 바로잡습니다.
+              <span>
+                <b>내진(GENE)설계</b>는 유전적 위험도에 꼭 맞는 필수 보장만 정밀하게 담아냅니다.
+              </span>
+              <span>중복되거나 불필요한 특약에 새어나가던 보험료를 투명하게 바로잡습니다.</span>
             </p>
 
-            <ul className={styles.stats}>
-              {stats.map((s) => (
-                <li key={s.label} className={styles.stat}>
-                  <span className={styles.statLabel}>{s.label}</span>
-                  <strong className={styles.statValue}>{s.value}</strong>
-                  <span className={styles.statDesc}>{s.desc}</span>
-                </li>
-              ))}
+            <ul className={styles.trust}>
+              <li>
+                <Icon name="checkCircle" /> 보건복지부 DTC 4.0 인증 완료
+              </li>
+              <li>
+                <Icon name="checkCircle" /> 유전정보보호 가이드라인 100% 준수
+              </li>
+              <li>
+                <Icon name="db" /> 누적 42,000건+ 유전체 분석 포트폴리오
+              </li>
             </ul>
+          </div>
 
-            <div className={styles.heroFooter}>
-              <ul className={styles.trust}>
-                <li>
-                  <span className={styles.checkBadge}>
-                    <Icon name="check" />
+          <a href="#numbers" className={styles.scrollCue} aria-label="아래로 이동">
+            <span />
+          </a>
+        </section>
+
+        <section id="numbers" className={`${styles.glass} ${styles.stats}`} data-reveal>
+          {stats.map((s) => (
+            <div key={s.label} className={styles.stat}>
+              <span className={styles.statLabel}>{s.label}</span>
+              <strong className={styles.statValue}>{s.value}</strong>
+              <span className={styles.statDesc}>{s.desc}</span>
+            </div>
+          ))}
+        </section>
+
+        <section id="partners" className={styles.section}>
+          <h2 className={styles.sectionTitle} data-reveal>
+            3대 핵심 협력 구조
+            <span className={styles.sectionSub}>데이터 객관성과 설계 신뢰도</span>
+          </h2>
+
+          <div className={styles.partners}>
+            {partners.map((p, i) => (
+              <article
+                key={p.no}
+                className={`${styles.glass} ${styles.partner}`}
+                style={{ '--delay': `${i * 120}ms` } as CSSProperties}
+                data-reveal
+              >
+                <div className={styles.partnerTop}>
+                  <span className={styles.partnerIcon}>
+                    <Icon name={p.icon} />
                   </span>
-                  보건복지부 DTC 4.0 인증 완료
-                </li>
-                <li>
-                  <span className={styles.checkBadge}>
-                    <Icon name="check" />
-                  </span>
-                  유전정보보호 가이드라인 100% 준수
-                </li>
-                <li>
-                  <Icon name="db" /> 누적 42,000건+ 유전체 분석 포트폴리오
-                </li>
-              </ul>
-              <Link to="/dna-apply" className={styles.primaryBtn}>
-                내 보험 설계 GENE행하기
-                <Icon name="arrow" />
-              </Link>
-            </div>
-          </section>
+                  <span className={styles.partnerNo}>PARTNER {p.no}</span>
+                </div>
+                <p className={styles.partnerCategory}>{p.category}</p>
+                <h3 className={styles.partnerName}>{p.name}</h3>
+                <p className={styles.partnerQuote}>{p.quote}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
-          <section id="partners" className={styles.partnersSection}>
-            <h2 className={styles.sectionTitle}>
-              3대 핵심 협력 구조:
-              <br />
-              데이터 객관성과 설계 신뢰도
-            </h2>
+        <section id="process" className={styles.section}>
+          <h2 className={styles.sectionTitle} data-reveal>
+            내진설계 3단계 간이 프로세스
+          </h2>
 
-            <div className={styles.partners}>
-              {partners.map((p) => (
-                <article
-                  key={p.no}
-                  className={`${styles.partner} ${p.featured ? styles.partnerFeatured : ''}`}
-                >
-                  <div className={styles.partnerTop}>
-                    <span className={styles.partnerIcon}>
-                      <Icon name={p.icon} />
-                    </span>
-                    <span className={styles.partnerNo}>PARTNER {p.no}</span>
-                  </div>
-                  <p className={styles.partnerCategory}>{p.category}</p>
-                  <h3 className={styles.partnerName}>{p.name}</h3>
-                  <p className={styles.partnerQuote}>{p.quote}</p>
-                  <dl className={styles.partnerSpecs}>
-                    {p.specs.map(([k, v]) => (
-                      <div key={k}>
-                        <dt>{k}</dt>
-                        <dd>{v}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </article>
-              ))}
-            </div>
-          </section>
+          {/* 단계 사이를 염기쌍처럼 잇는 빛줄기 */}
+          <ol className={styles.steps}>
+            {steps.map((s, i) => (
+              <li
+                key={s.no}
+                className={`${styles.glass} ${styles.step}`}
+                style={{ '--delay': `${i * 140}ms` } as CSSProperties}
+                data-reveal
+              >
+                <span className={styles.stepNode} aria-hidden="true" />
+                <span className={styles.stepNo}>STEP {s.no}</span>
+                <h3 className={styles.stepTitle}>{s.title}</h3>
+                <p className={styles.stepDesc}>{s.desc}</p>
+                <span className={styles.stepArrow}>
+                  <Icon name="arrow" />
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-          <section id="process" className={`${styles.card} ${styles.process}`}>
-            <div className={styles.processHead}>
-              <h2 className={styles.processTitle}>
-                <i className={styles.dot} />
-                내진설계 <b>3단계</b> 간이 프로세스
-              </h2>
-            </div>
-            <ol className={styles.steps}>
-              {steps.map((s) => (
-                <li key={s.no} className={styles.step}>
-                  <span className={styles.stepNo}>STEP {s.no}</span>
-                  <h3 className={styles.stepTitle}>{s.title}</h3>
-                  <p className={styles.stepDesc}>{s.desc}</p>
-                  <span className={styles.stepArrow}>
-                    <Icon name="arrow" />
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </section>
-
-          <section className={styles.fastPass}>
-            <span className={styles.fastIcon}>
-              <Icon name="doc" />
-            </span>
-            <div className={styles.fastBody}>
-              <p className={styles.fastMeta}>
-                <span className={styles.fastTag}>FAST PASS</span> 소요 시간 단 1분
-              </p>
-              <h3 className={styles.fastTitle}>유전자 검사 결과지가 이미 있으신가요?</h3>
-              <p className={styles.fastDesc}>
-                타 기관(마크로젠, 테라젠, 녹십자 등) 검사지 사진이나 PDF를 업로드하시면 실시간
-                OCR로 분석해 무료 진단해 드립니다.
-              </p>
-            </div>
-            <Link to="/dna-apply" className={styles.fastBtn}>
-              <Icon name="upload" /> 결과지 등록하고 무료 진단 <Icon name="arrow" />
+        {/* 마지막 행동 유도: 설계 시작 / 결과지 등록 */}
+        <div className={styles.ctaStack}>
+          <section className={`${styles.glass} ${styles.cta}`} data-reveal>
+            <h3 className={styles.ctaTitle}>내 유전자에 꼭 맞는 보험, 지금 설계해 보세요</h3>
+            <Link to="/login" className={`${styles.primaryBtn} ${styles.ctaMainBtn}`}>
+              내 보험 설계 GENE행하기
+              <Icon name="arrow" />
             </Link>
           </section>
 
-          <div className={styles.statusBar}>
-            <p className={styles.engine}>
-              <i className={styles.dot} /> ENGINE STATUS : READY
-              <span>· LATENCY : 24ms</span>
-            </p>
-            <div className={styles.pager}>
-              <button type="button" className={styles.pagerBtn} disabled aria-label="이전">
-                <Icon name="chevronLeft" />
-              </button>
-              <span className={styles.pagerText}>
-                {pad(CURRENT_SLIDE)} / {pad(TOTAL_SLIDES)}
-              </span>
-              <Link to="/main" className={styles.pagerBtn} aria-label="다음">
-                <Icon name="chevronRight" />
-              </Link>
-            </div>
+          <section
+            className={`${styles.glass} ${styles.cta}`}
+            style={{ '--delay': '120ms' } as CSSProperties}
+            data-reveal
+          >
+            <h3 className={`${styles.ctaTitle} ${styles.ctaTitleSmall}`}>
+              유전자 검사 결과지가 이미 있으신가요?
+            </h3>
+            <Link to="/dna-apply" className={styles.resultBtn}>
+              <Icon name="upload" /> 결과지 등록하고 무료 진단 <Icon name="arrow" />
+            </Link>
+          </section>
+        </div>
+
+        <div className={styles.statusBar}>
+          <p className={styles.engine}>
+            <i className={styles.pulse} /> ENGINE STATUS : READY
+            <span>· LATENCY : 24ms</span>
+          </p>
+          <div className={styles.pager}>
+            <button type="button" className={styles.pagerBtn} disabled aria-label="이전">
+              <Icon name="chevronLeft" />
+            </button>
+            <span className={styles.pagerText}>
+              {pad(CURRENT_SLIDE)} / {pad(TOTAL_SLIDES)}
+            </span>
+            <Link to="/main" className={styles.pagerBtn} aria-label="다음">
+              <Icon name="chevronRight" />
+            </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
       <footer className={styles.footer}>
         <div>

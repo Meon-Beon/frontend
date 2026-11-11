@@ -4,6 +4,8 @@ import PointDNAHelix from './point-dna-helix-custom-style'
 type DnaHelixProps = {
   /** Page colour behind the helix. */
   background?: string
+  /** Extra spin (radians) per viewport height the page scrolls. 0 = off. */
+  scrollSpin?: number
   className?: string
   style?: CSSProperties
 }
@@ -14,6 +16,7 @@ type DnaHelixProps = {
  */
 export default function DnaHelix({
   background = '#0C2342',
+  scrollSpin = 0,
   className,
   style,
 }: DnaHelixProps) {
@@ -33,6 +36,7 @@ export default function DnaHelix({
         speed={50}
         zoom={30}
         hover={0}
+        scrollSpin={scrollSpin}
         tilt={{ x: -5, y: 87 }}
         helix={{ turns: 1, thickness: 11, pulse: 39 }}
         // Neon halo that follows the helix's shape (the canvas is transparent).

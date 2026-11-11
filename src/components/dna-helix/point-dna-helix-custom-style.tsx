@@ -390,6 +390,8 @@ export interface PointDNAHelixProps {
     speed?: number
     zoom?: number
     hover?: number
+    /** Radians of extra spin per viewport height the page scrolls. 0 = off. */
+    scrollSpin?: number
     tilt?: {
         x?: number
         y?: number
@@ -413,6 +415,7 @@ function __OriginkitBase_PointDNAHelix({
     speed = 70,
     zoom = 30,
     hover = 80,
+    scrollSpin = 0,
     tilt = { x: 0, y: 90 },
     helix = { turns: 1.5, thickness: 16, pulse: 50 },
     style,
@@ -439,6 +442,7 @@ function __OriginkitBase_PointDNAHelix({
         speed,
         zoom,
         hover,
+        scrollSpin,
         tiltX,
         tiltY,
         turns,
@@ -455,6 +459,7 @@ function __OriginkitBase_PointDNAHelix({
         speed,
         zoom,
         hover,
+        scrollSpin,
         tiltX,
         tiltY,
         turns,
@@ -687,11 +692,22 @@ function __OriginkitBase_PointDNAHelix({
             stateRef.current.isDragging = false
         }
 
+        // Page scroll feeds the same spin target as a drag, so the low-pass
+        // chase smooths it the same way.
+        let lastScrollY = window.scrollY
+        const onScroll = () => {
+            const dy = window.scrollY - lastScrollY
+            lastScrollY = window.scrollY
+            stateRef.current.targetSpin +=
+                (dy / Math.max(window.innerHeight, 1)) * paramsRef.current.scrollSpin
+        }
+
         host.addEventListener("pointermove", onPointerMove)
         host.addEventListener("pointerenter", onPointerEnter)
         host.addEventListener("pointerleave", onPointerLeave)
         host.addEventListener("pointerdown", onPointerDown)
         window.addEventListener("pointerup", onPointerUp)
+        window.addEventListener("scroll", onScroll, { passive: true })
 
         let raf = 0
         let lastT: number | null = null
@@ -771,6 +787,7 @@ function __OriginkitBase_PointDNAHelix({
             host.removeEventListener("pointerleave", onPointerLeave)
             host.removeEventListener("pointerdown", onPointerDown)
             window.removeEventListener("pointerup", onPointerUp)
+            window.removeEventListener("scroll", onScroll)
             // Never call gl.getExtension("WEBGL_lose_context")?.loseContext() — rule 6.
         }
     }, [])
