@@ -22,10 +22,6 @@ const partners = [
     name: '한국유전자정보센터',
     quote:
       '“공인 연구기관에 연구를 직접 의뢰하여 12,480개 유전자 마커를 객관적으로 판독하고 정밀 프로파일링을 확립합니다.”',
-    specs: [
-      ['판독 표준', 'K-NGS Clinical Class I'],
-      ['검사 대상', '12,480 Loci SNP'],
-    ],
   },
   {
     no: '02',
@@ -34,10 +30,6 @@ const partners = [
     name: '내진(GENE)설계단',
     quote:
       '“보험설계사, 의료자문부서, 전문경영자 등으로 구성됐습니다. 다학제 전문 분석단이 모여 과보장 없이 최적의 구조를 만듭니다.”',
-    specs: [
-      ['전문 구성인력', '의료자문의 + 계리사'],
-      ['알고리즘 원칙', '중복 특약 100% 소멸'],
-    ],
   },
   {
     no: '03',
@@ -46,10 +38,6 @@ const partners = [
     name: '32개 제휴 보험사',
     quote:
       '“보험 상품 정보들을 한눈에 비교 분석합니다. 국내 주요 생·손보사 보장 상품들을 매칭하여 내 유전 취약점 대비 최대 혜택을 선별합니다.”',
-    specs: [
-      ['연계사 커버리지', '생보 16개 / 손보 16개'],
-      ['선별 기준', '가성비 최대 보장 특약'],
-    ],
   },
 ] as const
 
@@ -79,7 +67,6 @@ type IconName =
   | 'lab'
   | 'team'
   | 'building'
-  | 'doc'
   | 'upload'
   | 'chevronLeft'
   | 'chevronRight'
@@ -92,7 +79,6 @@ const iconPaths: Record<IconName, string> = {
   lab: 'M6 21h12M9 21v-3a5 5 0 0 0 0-10M10 4l4 4-3 3-4-4zM14 18a6 6 0 0 0 4-6',
   team: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.7-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3.3 0 6 2 6 5',
   building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4',
-  doc: 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM9 8h6M9 12h6M9 16h4',
   upload: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 17v-6M9.5 13.5L12 11l2.5 2.5',
   chevronLeft: 'M15 6l-6 6 6 6',
   chevronRight: 'M9 6l6 6-6 6',
@@ -204,21 +190,7 @@ function Intro() {
 
       <main className={styles.main}>
         <section className={styles.hero}>
-          {/* 나선 옆에 떠 있는 판독 표시 */}
-          <div className={styles.hud} aria-hidden="true">
-            <p className={`${styles.hudTag} ${styles.hudTop}`}>
-              <i className={styles.pulse} />
-              DTC ENGINE PROTOCOL
-              <span>정밀 분석 모니터링 대기</span>
-            </p>
-            <p className={`${styles.hudTag} ${styles.hudBottom}`}>
-              SEQUENCE
-              <span>
-                {pad(CURRENT_SLIDE)} / {pad(TOTAL_SLIDES)}
-              </span>
-            </p>
-          </div>
-
+          {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>
               <i className={styles.pulse} />
@@ -235,13 +207,6 @@ function Intro() {
               </span>
               <span>중복되거나 불필요한 특약에 새어나가던 보험료를 투명하게 바로잡습니다.</span>
             </p>
-
-            <div className={styles.heroActions}>
-              <Link to="/dna-apply" className={styles.primaryBtn}>
-                내 보험 설계 GENE행하기
-                <Icon name="arrow" />
-              </Link>
-            </div>
 
             <ul className={styles.trust}>
               <li>
@@ -294,14 +259,6 @@ function Intro() {
                 <p className={styles.partnerCategory}>{p.category}</p>
                 <h3 className={styles.partnerName}>{p.name}</h3>
                 <p className={styles.partnerQuote}>{p.quote}</p>
-                <dl className={styles.partnerSpecs}>
-                  {p.specs.map(([k, v]) => (
-                    <div key={k}>
-                      <dt>{k}</dt>
-                      <dd>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
               </article>
             ))}
           </div>
@@ -333,24 +290,29 @@ function Intro() {
           </ol>
         </section>
 
-        <section className={`${styles.glass} ${styles.fastPass}`} data-reveal>
-          <span className={styles.fastIcon}>
-            <Icon name="doc" />
-          </span>
-          <div className={styles.fastBody}>
-            <p className={styles.fastMeta}>
-              <span className={styles.fastTag}>FAST PASS</span> 소요 시간 단 1분
-            </p>
-            <h3 className={styles.fastTitle}>유전자 검사 결과지가 이미 있으신가요?</h3>
-            <p className={styles.fastDesc}>
-              타 기관(마크로젠, 테라젠, 녹십자 등) 검사지 사진이나 PDF를 업로드하시면 실시간
-              OCR로 분석해 무료 진단해 드립니다.
-            </p>
-          </div>
-          <Link to="/dna-apply" className={styles.fastBtn}>
-            <Icon name="upload" /> 결과지 등록하고 무료 진단 <Icon name="arrow" />
-          </Link>
-        </section>
+        {/* 마지막 행동 유도: 설계 시작 / 결과지 등록 */}
+        <div className={styles.ctaStack}>
+          <section className={`${styles.glass} ${styles.cta}`} data-reveal>
+            <h3 className={styles.ctaTitle}>내 유전자에 꼭 맞는 보험, 지금 설계해 보세요</h3>
+            <Link to="/dna-apply" className={`${styles.primaryBtn} ${styles.ctaMainBtn}`}>
+              내 보험 설계 GENE행하기
+              <Icon name="arrow" />
+            </Link>
+          </section>
+
+          <section
+            className={`${styles.glass} ${styles.cta}`}
+            style={{ '--delay': '120ms' } as CSSProperties}
+            data-reveal
+          >
+            <h3 className={`${styles.ctaTitle} ${styles.ctaTitleSmall}`}>
+              유전자 검사 결과지가 이미 있으신가요?
+            </h3>
+            <Link to="/dna-apply" className={styles.resultBtn}>
+              <Icon name="upload" /> 결과지 등록하고 무료 진단 <Icon name="arrow" />
+            </Link>
+          </section>
+        </div>
 
         <div className={styles.statusBar}>
           <p className={styles.engine}>
