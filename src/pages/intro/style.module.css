@@ -132,7 +132,8 @@
   width: 56vw;
   height: 100vh;
   pointer-events: none;
-  opacity: calc(1 - var(--scroll, 0) * 0.45);
+  /* 너무 환하지 않게 전체 밝기를 70%로 */
+  opacity: calc((1 - var(--scroll, 0) * 0.45) * 0.7);
   transform: translateX(calc(var(--scroll, 0) * -4vw));
   /* 위쪽 메뉴와 겹치지 않게 위아래를 흐리게 */
   -webkit-mask-image: linear-gradient(180deg, transparent 4%, #000 24%, #000 80%, transparent 100%);
@@ -153,21 +154,22 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgba(94, 242, 230, 0.2) 0%,
-    rgba(180, 140, 255, 0.12) 45%,
+    rgba(94, 242, 230, 0.12) 0%,
+    rgba(180, 140, 255, 0.07) 45%,
     transparent 72%
   );
   filter: blur(30px);
-  animation: breathe 6s ease-in-out infinite;
+  animation: breathe 9s ease-in-out infinite;
 }
 
+/* 빛이 은은하게만 숨 쉬도록 밝기 폭을 좁힘 */
 @keyframes breathe {
   0%,
   100% {
-    opacity: 0.7;
+    opacity: 0.75;
   }
   50% {
-    opacity: 1;
+    opacity: 0.9;
   }
 }
 
@@ -314,53 +316,11 @@
   padding-bottom: 64px;
 }
 
-.pulse {
-  position: relative;
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--teal);
-  box-shadow: 0 0 10px var(--teal);
-}
-
-.pulse::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border: 1px solid var(--teal);
-  animation: ring 2.4s ease-out infinite;
-}
-
-@keyframes ring {
-  from {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  to {
-    transform: scale(3.2);
-    opacity: 0;
-  }
-}
-
 .heroCopy {
   grid-column: 2;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--teal);
-}
-
 .heroTitle {
-  margin-top: 24px !important;
   font-size: clamp(40px, 4.6vw, 64px);
   font-weight: 800;
   line-height: 1.15;
@@ -827,73 +787,6 @@
     0 18px 50px -10px rgba(94, 242, 230, 0.55);
 }
 
-/* ---------- Status bar ---------- */
-.statusBar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 56px;
-}
-
-.engine {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.engine .pulse {
-  background: #3fd28a;
-  box-shadow: 0 0 10px #3fd28a;
-}
-
-.engine .pulse::after {
-  border-color: #3fd28a;
-}
-
-.engine span {
-  margin-left: 16px;
-}
-
-.pager {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.pagerBtn {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--glass);
-  box-shadow: inset 0 0 0 1px var(--glass-line);
-  color: var(--ink);
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.pagerBtn:hover {
-  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.5);
-}
-
-.pagerBtn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.pagerText {
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
 /* ---------- Footer ---------- */
 .footer {
   position: relative;
@@ -957,7 +850,7 @@
   /* 좁은 화면에서는 나선이 글자 뒤로 은은하게 깔림 */
   .helixStage {
     width: 100vw;
-    opacity: calc(0.4 - var(--scroll, 0) * 0.15);
+    opacity: calc(0.3 - var(--scroll, 0) * 0.12);
     transform: none;
   }
 
@@ -1066,10 +959,6 @@
     font-size: 18px;
   }
 
-  .statusBar {
-    flex-direction: column;
-    gap: 16px;
-  }
 }
 
 /* 움직임을 줄이도록 설정한 사용자 */
@@ -1077,7 +966,6 @@
   .aurora,
   .stars,
   .helixGlow,
-  .pulse::after,
   .scrollCue span {
     animation: none;
   }
