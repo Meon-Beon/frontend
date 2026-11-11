@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { isAxiosError } from 'axios'
+import { client } from '../../api/client'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
@@ -39,8 +41,11 @@ function Login() {
   const [userId, setUserId] = useState(readSavedId)
   const [password, setPassword] = useState('')
   const [rememberId, setRememberId] = useState(() => readSavedId() !== '')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     try {
@@ -50,7 +55,21 @@ function Login() {
       // 저장소를 쓸 수 없는 환경(사파리 비공개 모드 등)에서는 저장만 건너뜀
     }
 
-    // TODO: 로그인 API(src/api/client.ts) 연결
+    setError('')
+    setLoading(true)
+    try {
+      // 서버가 200을 주면 성공, 401이면 axios가 에러를 던져 catch로 간다
+      await client.post('/api/login', { login_id: userId, password })
+      navigate('/main')
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 401) {
+        setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+      } else {
+        setError('서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -114,8 +133,14 @@ function Login() {
             </label>
           </div>
 
-          <button type="submit" className={styles.submit}>
-            로그인
+          {error && (
+            <p role="alert" style={{ margin: '16px 0 0', fontSize: 14, color: '#ff7a8a' }}>
+              {error}
+            </p>
+          )}
+
+          <button type="submit" className={styles.submit} disabled={loading}>
+            {loading ? '로그인 중…' : '로그인'}
             <Icon d={ICON.arrow} />
           </button>
 

@@ -8,6 +8,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
+        {/* TODO: pages/main/Main.tsx가 완성되면 element={<Main />}으로 교체 */}
+        <Route path="/main" element={<h1>메인 화면 (임시)</h1>} />
       </Routes>
     </BrowserRouter>
   )
