@@ -179,7 +179,7 @@ function Intro() {
         </nav>
 
         <div className={styles.headerActions}>
-          <Link to="/dna-apply" className={styles.headerCta}>
+          <Link to="/login" className={styles.headerCta}>
             내 보험 설계 GENE행하기 <Icon name="arrow" />
           </Link>
           <Link to="/login" className={styles.userBtn} aria-label="내 계정">
@@ -294,7 +294,7 @@ function Intro() {
         <div className={styles.ctaStack}>
           <section className={`${styles.glass} ${styles.cta}`} data-reveal>
             <h3 className={styles.ctaTitle}>내 유전자에 꼭 맞는 보험, 지금 설계해 보세요</h3>
-            <Link to="/dna-apply" className={`${styles.primaryBtn} ${styles.ctaMainBtn}`}>
+            <Link to="/login" className={`${styles.primaryBtn} ${styles.ctaMainBtn}`}>
               내 보험 설계 GENE행하기
               <Icon name="arrow" />
             </Link>
