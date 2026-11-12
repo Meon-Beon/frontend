@@ -114,11 +114,12 @@ function Main() {
     <div className={styles.page}>
       <main className={styles.main}>
         <section className={styles.hero}>
-          <h1 className={styles.title}>신뢰를 바탕으로 합니다</h1>
+          <h1 className={styles.title}>신뢰를 바탕으로</h1>
           <p className={styles.subtitle}>유전자 데이터로 완성하는 초개인화 보험</p>
           <p className={styles.desc}>
-            비대면 타액(DNA) 검사 결과와 건보공단 마이데이터 검진 이력을 결합하여 불필요한 보장은
-            덜어내고 꼭 필요한 질병 보장만 정밀 설계합니다.
+            비대면 타액(DNA) 검사와 건보공단 마이데이터 검진 이력을 결합해
+            <br />
+            불필요한 보장은 덜고, 꼭 필요한 질병 보장만 정밀 설계합니다.
           </p>
         </section>
 

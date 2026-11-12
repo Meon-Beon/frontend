@@ -89,10 +89,12 @@
   color: transparent;
 }
 
+/* 넓은 화면에서는 <br> 기준으로 딱 두 줄 */
 .desc {
-  max-width: 480px;
+  white-space: nowrap;
   margin-top: 24px !important;
-  font-size: 18px;
+  /* 두 열 화면이 좁아져도 두 줄이 칸을 넘지 않도록 글자를 살짝 줄임 */
+  font-size: clamp(15px, 1.5vw, 18px);
   line-height: 1.8;
   color: var(--body);
 }
@@ -244,7 +246,12 @@
   }
 
   .desc {
-    max-width: none;
+    white-space: normal;
+    font-size: 18px;
+  }
+
+  .desc br {
+    display: none;
   }
 }
 
