@@ -1,9 +1,12 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
+import Insurance from './pages/insurance/Insurance'
 import Intro from './pages/intro/Intro'
+import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
+import ServiceCenter from './pages/service_center/service_center'
 import Signup from './pages/signup/Signup'
 
 function App() {
@@ -18,6 +21,9 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/main" element={<Main />} />
           <Route path="/company" element={<Company />} />
+          <Route path="/lab" element={<Laboratory />} />
+          <Route path="/insurance" element={<Insurance />} />
+          <Route path="/support" element={<ServiceCenter />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,0 +1,714 @@
+/* 연구소소개 — 회사소개와 같은 남색 테마. 일반 CSS라서 모든 이름에 lab- 접두사를 붙여 다른 페이지와 겹치지 않게 함 */
+.lab-page {
+  --surface: #101b35;
+  --surface-soft: #16244a;
+  --line: rgba(255, 255, 255, 0.08);
+  --glass-line: rgba(170, 195, 255, 0.12);
+  --ink: #e4e8ef;
+  --body: #b3bccb;
+  --muted: #8892a5;
+  --teal: #5ef2e6;
+  --violet: #b48cff;
+
+  /* #root 너비 제한을 넘어 화면 전체를 채움 */
+  width: 100vw;
+  min-height: calc(100svh - 96px);
+  margin-inline: calc(50% - 50vw);
+  background:
+    radial-gradient(45% 30% at 85% 10%, rgba(94, 242, 230, 0.08), transparent 70%),
+    radial-gradient(40% 30% at 10% 70%, rgba(180, 140, 255, 0.1), transparent 70%),
+    linear-gradient(180deg, #0b1530 0%, #070d1f 100%);
+  color: var(--body);
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+body:has(.lab-page) {
+  overflow-x: hidden;
+  background: #070d1f;
+}
+
+.lab-page h1,
+.lab-page h2,
+.lab-page h3,
+.lab-page p,
+.lab-page ul,
+.lab-page ol,
+.lab-page dl,
+.lab-page dd {
+  margin: 0;
+  padding: 0;
+}
+
+.lab-page ul,
+.lab-page ol {
+  list-style: none;
+}
+
+.lab-page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lab-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.lab-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 40px 96px;
+  box-sizing: border-box;
+}
+
+/* ---------- 카드 공통 ---------- */
+.lab-card {
+  padding: 32px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-line),
+    0 30px 60px -32px rgba(0, 0, 0, 0.7);
+}
+
+.lab-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.lab-card-sub {
+  margin-top: 8px !important;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.lab-grid-wide {
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+}
+
+/* ---------- 소개 ---------- */
+.lab-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.lab-title {
+  margin-top: 12px !important;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.lab-title em {
+  font-style: normal;
+  background: linear-gradient(100deg, var(--teal), #9fd8ff 50%, var(--violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lab-lead {
+  max-width: 680px;
+  margin-top: 12px !important;
+  font-size: 15px;
+  color: var(--body);
+}
+
+/* ---------- 핵심 수치 + 시설 + 물류 (한 줄, 세로로 긴 카드) ---------- */
+.lab-top {
+  display: grid;
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.lab-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lab-stats .lab-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 28px;
+}
+
+.lab-stats span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.lab-stat-num {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.lab-stat-num small {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.lab-tall {
+  display: flex;
+  flex-direction: column;
+}
+
+.lab-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin-top: 20px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+}
+
+.lab-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px !important;
+}
+
+.lab-facts li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.lab-facts small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.lab-facts strong {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lab-facts span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- 물류 지도 ---------- */
+.lab-map {
+  position: relative;
+  margin-top: 20px;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(170, 195, 255, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(170, 195, 255, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(135deg, #12264f 0%, #0b1530 100%);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+}
+
+.lab-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 점선이 중앙 분석소 쪽으로 흐르는 이송 경로 */
+.lab-map-route {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 6;
+  opacity: 0.7;
+  animation: lab-flow 1.6s linear infinite;
+}
+
+@keyframes lab-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+.lab-map-node {
+  fill: var(--violet);
+}
+
+.lab-map-hub {
+  fill: var(--teal);
+  stroke: rgba(94, 242, 230, 0.3);
+  stroke-width: 8;
+}
+
+.lab-map-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(7, 13, 31, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lab-map-label .lab-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--teal);
+}
+
+.lab-logistics {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 10px;
+  margin-top: 16px !important;
+  padding: 16px !important;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 13px;
+}
+
+.lab-logistics div {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+}
+
+.lab-logistics dt {
+  color: var(--muted);
+}
+
+.lab-logistics dd {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------- 연구 프로세스 ---------- */
+.lab-process {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px !important;
+}
+
+.lab-process li {
+  position: relative;
+  padding: 24px 18px 20px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+  overflow: visible;
+}
+
+/* 단계마다 위쪽 빛줄기가 청록 → 보라로 이어짐 */
+.lab-process li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--teal), var(--violet));
+  opacity: 0.7;
+}
+
+.lab-step {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+/* 다음 단계로 이어지는 화살표 */
+.lab-step-next {
+  position: absolute;
+  top: 50%;
+  right: -15px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.lab-process p {
+  margin-top: 14px !important;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ---------- 장비 표 ---------- */
+.lab-table-wrap {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.lab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.lab-table th {
+  padding: 12px 16px;
+  background: #0a1430;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--muted);
+}
+
+.lab-table th:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+.lab-table th:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+.lab-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  color: var(--body);
+}
+
+.lab-table td:first-child {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lab-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---------- 인증 ---------- */
+.lab-certs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px !important;
+}
+
+.lab-certs li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 16px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* 은은한 청록 원 안의 청록 체크 (빛 번짐 없이 차분하게) */
+.lab-check {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(94, 242, 230, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
+}
+
+.lab-check svg {
+  width: 12px;
+  height: 12px;
+  stroke: #7fd6cc;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- 연구진 ---------- */
+.lab-team-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.lab-team-head .lab-card-sub {
+  max-width: 420px;
+  text-align: right;
+}
+
+.lab-team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px !important;
+}
+
+.lab-team > li {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.lab-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lab-avatar {
+  display: block;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 2px var(--surface-soft),
+    0 0 0 3px rgba(94, 242, 230, 0.4);
+}
+
+.lab-role {
+  font-size: 13px;
+  color: var(--teal);
+}
+
+.lab-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lab-school {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.lab-career {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px !important;
+}
+
+.lab-career li {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.lab-career .lab-check {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.lab-field {
+  margin-top: 18px !important;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- 연결 배너 ---------- */
+.lab-cta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 20px;
+  background:
+    linear-gradient(120deg, rgba(47, 143, 134, 0.28) 0%, rgba(61, 111, 214, 0.2) 55%, rgba(123, 92, 224, 0.28) 100%),
+    var(--surface);
+  box-shadow:
+    inset 0 0 0 1px rgba(180, 140, 255, 0.25),
+    0 30px 60px -30px rgba(0, 0, 0, 0.7);
+}
+
+.lab-cta-body {
+  flex: 1;
+}
+
+.lab-cta-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--teal);
+}
+
+.lab-cta h2 {
+  margin-top: 4px !important;
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.lab-cta-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #2f8f86 0%, #3d6fd6 60%, #7b5ce0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 12px 32px -12px rgba(94, 242, 230, 0.5);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff !important;
+  transition: transform 0.25s;
+}
+
+.lab-cta-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------- 순차 등장 ---------- */
+.lab-reveal {
+  opacity: 0;
+}
+
+.lab-reveal.lab-in {
+  opacity: 1;
+  animation: lab-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms) backwards;
+}
+
+@keyframes lab-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-reveal,
+  .lab-reveal.lab-in {
+    opacity: 1;
+    animation: none;
+  }
+
+  .lab-map-route {
+    animation: none;
+  }
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1024px) {
+  .lab-main {
+    padding: 40px 24px 72px;
+  }
+
+  .lab-top {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-stats {
+    flex-direction: row;
+  }
+
+  .lab-grid,
+  .lab-grid-wide {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-process {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lab-team {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-team-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lab-team-head .lab-card-sub {
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .lab-main {
+    padding: 28px 16px 56px;
+  }
+
+  .lab-card {
+    padding: 22px 18px;
+  }
+
+  .lab-stat-num {
+    font-size: 36px;
+  }
+
+  .lab-process {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-step-next {
+    display: none;
+  }
+
+  .lab-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lab-cta-btn {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
