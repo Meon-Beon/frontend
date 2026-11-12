@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import './insurance_setting.css'
 
 /* ------------------------------------------------------------------ 왼쪽: 건강정보 요약 */
@@ -60,8 +60,36 @@ const SUMMARIES: HealthSummary[] = [
   },
 ]
 
+/** 그래프가 그려지는 시간(ms). 막대·숫자·레이더가 함께 맞춤 */
+const GROW_MS = 1600
+
+/** 0에서 목표 숫자까지 게이지 차듯 올라가는 숫자 */
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function CountUp({ value, delay }: { value: number; delay: number }) {
+  const [shown, setShown] = useState(() => (reduceMotion() ? value : 0))
+
+  useEffect(() => {
+    if (reduceMotion()) return
+    let frame = 0
+    const start = performance.now() + delay
+    const tick = (now: number) => {
+      const t = Math.min(Math.max((now - start) / GROW_MS, 0), 1)
+      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [value, delay])
+
+  return <>{shown}</>
+}
+
+/** 카드마다 조금씩 늦게 그려지도록 넘기는 지연 시간 */
+const growDelay = (ms: number) => ({ '--grow-delay': `${ms}ms` }) as CSSProperties
+
 /** 5각 레이더 차트(모양만). 항목별 수치는 옆 막대 목록에서 읽음 */
-function Radar({ axes, color }: { axes: [string, number][]; color: string }) {
+function Radar({ axes, color, delay }: { axes: [string, number][]; color: string; delay: number }) {
   const c = 60
   const r = 50
   const point = (i: number, ratio: number) => {
@@ -80,26 +108,31 @@ function Radar({ axes, color }: { axes: [string, number][]; color: string }) {
         const [x, y] = point(i, 1)
         return <line key={i} x1={c} y1={c} x2={x} y2={y} className="is-radar-ring" />
       })}
-      <polygon points={shape} fill={color} fillOpacity="0.55" stroke={color} strokeWidth="2" />
-      {axes.map(([, v], i) => {
-        const [x, y] = point(i, v / 100)
-        return <circle key={i} cx={x} cy={y} r="1.5" fill={color} />
-      })}
+      {/* 가운데에서 바깥으로 슉 펼쳐짐 */}
+      <g className="is-radar-shape" style={growDelay(delay)}>
+        <polygon points={shape} fill={color} fillOpacity="0.55" stroke={color} strokeWidth="2" />
+        {axes.map(([, v], i) => {
+          const [x, y] = point(i, v / 100)
+          return <circle key={i} cx={x} cy={y} r="1.5" fill={color} />
+        })}
+      </g>
     </svg>
   )
 }
 
 /** 항목 이름 · 막대 · 점수를 한 줄씩 보여줌 */
-function Bars({ axes, color }: { axes: [string, number][]; color: string }) {
+function Bars({ axes, color, delay }: { axes: [string, number][]; color: string; delay: number }) {
   return (
     <ul className="is-bars">
-      {axes.map(([label, v]) => (
+      {axes.map(([label, v], i) => (
         <li key={label}>
           <span className="is-bar-label">{label}</span>
           <span className="is-bar-track">
-            <span style={{ width: `${v}%`, background: color }} />
+            <span style={{ width: `${v}%`, background: color, ...growDelay(delay + i * 60) }} />
           </span>
-          <b>{v}</b>
+          <b>
+            <CountUp value={v} delay={delay + i * 60} />
+          </b>
         </li>
       ))}
     </ul>
@@ -277,8 +310,8 @@ function InsuranceSetting() {
                   </div>
                   <p>{s.desc}</p>
                   <div className="is-summary-body">
-                    <Radar axes={s.axes} color={s.color} />
-                    <Bars axes={s.axes} color={s.color} />
+                    <Radar axes={s.axes} color={s.color} delay={700 + i * 150} />
+                    <Bars axes={s.axes} color={s.color} delay={700 + i * 150} />
                   </div>
                 </li>
               ))}

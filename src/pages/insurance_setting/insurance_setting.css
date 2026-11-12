@@ -268,6 +268,29 @@ body:has(.is-page) {
   display: block;
   height: 100%;
   border-radius: inherit;
+  transform-origin: left center;
+  animation: is-fill 1.6s cubic-bezier(0.22, 1, 0.36, 1) var(--grow-delay, 0ms) backwards;
+}
+
+/* 막대가 왼쪽부터 게이지 차듯 채워짐 */
+@keyframes is-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* 레이더 모양이 가운데(60,60)에서 바깥으로 펼쳐짐 */
+.is-radar-shape {
+  transform-box: view-box;
+  transform-origin: 60px 60px;
+  animation: is-spread 1.6s cubic-bezier(0.22, 1.2, 0.36, 1) var(--grow-delay, 0ms) backwards;
+}
+
+@keyframes is-spread {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-25deg);
+  }
 }
 
 .is-bars b {
@@ -505,7 +528,9 @@ body:has(.is-page) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .is-product {
+  .is-product,
+  .is-bar-track span,
+  .is-radar-shape {
     animation: none;
   }
 }

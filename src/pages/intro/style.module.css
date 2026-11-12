@@ -279,26 +279,6 @@
   height: 17px;
 }
 
-.userBtn {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #b9d3f5;
-  color: #000 !important;
-  transition: background 0.2s;
-}
-
-.userBtn:hover {
-  background: #a5c5f0;
-}
-
-.userBtn .icon {
-  width: 21px;
-  height: 21px;
-}
-
 /* ---------- Hero ---------- */
 .main {
   position: relative;
