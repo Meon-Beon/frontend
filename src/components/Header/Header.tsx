@@ -11,12 +11,15 @@ const NAV_ITEMS = [
   { label: '마이페이지', to: '/mypage' },
 ]
 
+// 로고·메뉴를 누르면 이동하면서 맨 위로 부드럽게 올라감
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
 /** 서비스 메인부터 쓰는 공통 헤더. 스크롤해도 화면 위에 붙어 있음 */
 function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link to="/main" className={styles.brand}>
+        <Link to="/main" className={styles.brand} aria-label="메인으로" onClick={scrollToTop}>
           <GeneLogo className={styles.mark} background="#0b1530" title="" />
           <span className={styles.name}>
             내진<em>(GENE)</em>설계
@@ -29,6 +32,7 @@ function Header() {
               key={item.to}
               to={item.to}
               className={({ isActive }) => (isActive ? styles.active : undefined)}
+              onClick={scrollToTop}
             >
               {item.label}
             </NavLink>
