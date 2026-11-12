@@ -101,7 +101,7 @@ const STEPS: {
   },
   {
     icon: <ShieldIcon />,
-    title: '보험설계',
+    title: 'GENE 보험설계',
     desc: '불필요한 과다 보장은 배제하고 내 유전체 맞춤 보장만 약 50개사 비교 설계',
     footer: 'GENE 맞춤 포트폴리오',
     to: '/insurance',

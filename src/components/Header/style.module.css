@@ -115,13 +115,13 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #b9d3f5;
+  background: #9fb9dc;
   color: #000 !important;
   transition: background 0.2s;
 }
 
 .userBtn:hover {
-  background: #a5c5f0;
+  background: #b0c8e8;
 }
 
 .userBtn svg {

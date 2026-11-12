@@ -5,9 +5,8 @@ import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
 const stats = [
-  { label: '불필요 보험료 절감', value: '38.4%', desc: '평균 납입료 다이어트' },
   { label: '질환 커버리지 적중', value: '96.2%', desc: '유전 취약군 정밀 타겟' },
-  { label: '비교 연계 보험사', value: '32개 사', desc: '생·손보 통합 데이터' },
+  { label: '비교 연계 보험사', value: '50 사', desc: '생·손보 통합 데이터' },
   { label: '정밀 진단 소요시간', value: '3분', desc: '실시간 다차원 스캔' },
 ]
 
