@@ -4,9 +4,6 @@ import DnaHelix from '../../components/dna-helix/DnaHelix'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
-const TOTAL_SLIDES = 6
-const CURRENT_SLIDE = 1
-
 const stats = [
   { label: '불필요 보험료 절감', value: '38.4%', desc: '평균 납입료 다이어트' },
   { label: '질환 커버리지 적중', value: '96.2%', desc: '유전 취약군 정밀 타겟' },
@@ -68,8 +65,6 @@ type IconName =
   | 'team'
   | 'building'
   | 'upload'
-  | 'chevronLeft'
-  | 'chevronRight'
 
 const iconPaths: Record<IconName, string> = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
@@ -80,8 +75,6 @@ const iconPaths: Record<IconName, string> = {
   team: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.7-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3.3 0 6 2 6 5',
   building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4',
   upload: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 17v-6M9.5 13.5L12 11l2.5 2.5',
-  chevronLeft: 'M15 6l-6 6 6 6',
-  chevronRight: 'M9 6l6 6-6 6',
 }
 
 function Icon({ name, className }: { name: IconName; className?: string }) {
@@ -100,8 +93,6 @@ function Icon({ name, className }: { name: IconName; className?: string }) {
     </svg>
   )
 }
-
-const pad = (n: number) => String(n).padStart(2, '0')
 
 /** 스크롤 진행도(첫 화면 기준 0~1)를 --scroll 변수로 넘기고, 섹션이 보이면 나타나게 함 */
 function useIntroMotion(pageRef: RefObject<HTMLDivElement | null>) {
@@ -192,14 +183,10 @@ function Intro() {
         <section className={styles.hero}>
           {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>
-              <i className={styles.pulse} />
-              PRECISION INSURTECH ARCHITECTURE
-            </p>
             <h1 className={styles.heroTitle}>
-              찾아가는 보험에서
+              보험에 나를 맞추지 마세요.
               <br />
-              <span className={styles.gradientText}>찾아오는 보험으로</span>
+              <span className={styles.gradientText}>보험을 나에게 맞추세요.</span>
             </h1>
             <p className={styles.heroDesc}>
               <span>
@@ -314,23 +301,6 @@ function Intro() {
           </section>
         </div>
 
-        <div className={styles.statusBar}>
-          <p className={styles.engine}>
-            <i className={styles.pulse} /> ENGINE STATUS : READY
-            <span>· LATENCY : 24ms</span>
-          </p>
-          <div className={styles.pager}>
-            <button type="button" className={styles.pagerBtn} disabled aria-label="이전">
-              <Icon name="chevronLeft" />
-            </button>
-            <span className={styles.pagerText}>
-              {pad(CURRENT_SLIDE)} / {pad(TOTAL_SLIDES)}
-            </span>
-            <Link to="/main" className={styles.pagerBtn} aria-label="다음">
-              <Icon name="chevronRight" />
-            </Link>
-          </div>
-        </div>
       </main>
 
       <footer className={styles.footer}>

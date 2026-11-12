@@ -1,0 +1,184 @@
+/* 공통 헤더 — 인트로와 같은 남색·청록 테마 */
+.header {
+  /* 로고 가닥 사이 틈 색과 맞추려고 불투명 남색 */
+  --bg: #0b1530;
+  --line: rgba(255, 255, 255, 0.08);
+  --ink: #e4e8ef;
+  --teal: #5ef2e6;
+
+  /* #root 너비 제한을 넘어 화면 전체 폭을 씀 */
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  background: var(--bg);
+  box-shadow:
+    0 1px 0 var(--line),
+    0 12px 30px -18px rgba(0, 0, 0, 0.6);
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+.header a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  max-width: 1280px;
+  min-height: 96px;
+  margin: 0 auto;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+/* ---------- 브랜드 ---------- */
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 14px;
+}
+
+/* 세로형 GENE 로고 (가로:세로 = 420:770) */
+.mark {
+  display: block;
+  height: 60px;
+  width: auto;
+  aspect-ratio: 420 / 770;
+}
+
+.name {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.name em {
+  font-style: normal;
+  color: var(--teal);
+}
+
+/* ---------- 메뉴 ---------- */
+.nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 68px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.nav a {
+  position: relative;
+  padding: 8px 0;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.78);
+  transition: color 0.2s;
+}
+
+.nav a:hover,
+.nav .active {
+  color: #fff;
+}
+
+/* 지금 보고 있는 메뉴 밑줄 */
+.nav .active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--teal), #b48cff);
+}
+
+/* ---------- 오른쪽 ---------- */
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+.userBtn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #b9d3f5;
+  color: #000 !important;
+  transition: background 0.2s;
+}
+
+.userBtn:hover {
+  background: #a5c5f0;
+}
+
+.userBtn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav a:focus-visible,
+.brand:focus-visible,
+.userBtn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1100px) {
+  .inner {
+    gap: 28px;
+    padding: 0 24px;
+  }
+
+  .nav {
+    gap: 40px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .inner {
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    min-height: 0;
+    padding: 14px 16px 0;
+  }
+
+  .mark {
+    height: 48px;
+  }
+
+  .name {
+    font-size: 22px;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+
+  /* 메뉴는 둘째 줄에서 가로로 밀어 보기 */
+  .nav {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    gap: 30px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    font-size: 15px;
+    scrollbar-width: none;
+  }
+}

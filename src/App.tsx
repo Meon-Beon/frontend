@@ -1,6 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Layout from './components/Layout/Layout'
 import Intro from './pages/intro/Intro'
 import Login from './pages/login/Login'
+import Main from './pages/main/Main'
+import Signup from './pages/signup/Signup'
 
 function App() {
   return (
@@ -8,8 +11,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
-        {/* TODO: pages/main/Main.tsx가 완성되면 element={<Main />}으로 교체 */}
-        <Route path="/main" element={<h1>메인 화면 (임시)</h1>} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* 서비스 메인부터는 공통 헤더 아래에 표시. 새 페이지는 여기에 추가 */}
+        <Route element={<Layout />}>
+          <Route path="/main" element={<Main />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

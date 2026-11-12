@@ -31,18 +31,20 @@ export default function DnaHelix({
         accentColor="#B48CFF"
         accentMix={90}
         glow=""
-        density={100}
+        // 130 ≈ 128,700 points, just under the component's 130,000 cap.
+        density={130}
         dotSize={212}
         speed={50}
         zoom={30}
         hover={0}
         scrollSpin={scrollSpin}
         tilt={{ x: -5, y: 87 }}
-        helix={{ turns: 1, thickness: 11, pulse: 39 }}
+        // Low pulse and a faint halo keep the shimmer calm.
+        helix={{ turns: 1, thickness: 11, pulse: 12 }}
         // Neon halo that follows the helix's shape (the canvas is transparent).
         style={{
           filter:
-            'drop-shadow(0 0 2px rgba(94, 242, 230, 0.35)) drop-shadow(0 0 6px rgba(180, 140, 255, 0.18))',
+            'drop-shadow(0 0 2px rgba(94, 242, 230, 0.18)) drop-shadow(0 0 6px rgba(180, 140, 255, 0.08))',
         }}
       />
     </div>
