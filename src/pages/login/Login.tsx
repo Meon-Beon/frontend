@@ -9,7 +9,7 @@ const SAVED_ID_KEY = 'gene:savedId'
 
 // TODO: 로그인 서버(/api/login)가 준비되면 false로 바꾸기.
 // true인 동안은 서버를 부르지 않고, 아이디·비밀번호만 입력하면 로그인 성공으로 처리함
-const MOCK_LOGIN = true
+const MOCK_LOGIN = false
 
 function readSavedId() {
   try {
