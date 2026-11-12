@@ -184,9 +184,9 @@ function Intro() {
           {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
           <div className={styles.heroCopy}>
             <h1 className={styles.heroTitle}>
-              찾아가는 보험에서
+              보험에 나를 맞추지 마세요.
               <br />
-              <span className={styles.gradientText}>찾아오는 보험으로</span>
+              <span className={styles.gradientText}>보험을 나에게 맞추세요.</span>
             </h1>
             <p className={styles.heroDesc}>
               <span>

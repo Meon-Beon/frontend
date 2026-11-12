@@ -1,0 +1,581 @@
+/* 내진(GENE)설계 회원가입 — 로그인과 같은 남색 테마 */
+.page {
+  --surface: #101b35;
+  --field: #16244a;
+  --field-line: rgba(170, 195, 255, 0.14);
+  --line: rgba(255, 255, 255, 0.08);
+  --ink: #e4e8ef;
+  --body: #b3bccb;
+  --muted: #8892a5;
+  --teal: #5ef2e6;
+  /* 입력칸 안내 글씨: 밝은 청록 */
+  --hint: #7fd6cc;
+  --violet: #b48cff;
+  --sans: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+
+  /* #root 너비 제한을 넘어 화면 전체를 채움 */
+  position: relative;
+  isolation: isolate;
+  width: 100vw;
+  min-height: 100svh;
+  margin-inline: calc(50% - 50vw);
+  padding: 48px 16px 80px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background:
+    radial-gradient(45% 30% at 20% 10%, rgba(94, 242, 230, 0.1), transparent 70%),
+    radial-gradient(45% 30% at 80% 85%, rgba(180, 140, 255, 0.12), transparent 70%),
+    linear-gradient(180deg, #070d1f 0%, #0b1530 50%, #070d1f 100%);
+  color: var(--body);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+:global(body):has(.page) {
+  overflow-x: hidden;
+  background: #070d1f;
+}
+
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page h1,
+.page h2,
+.page p,
+.page ul {
+  margin: 0;
+  padding: 0;
+}
+
+.page ul {
+  list-style: none;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.glow {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  z-index: -1;
+  width: 720px;
+  height: 720px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(94, 242, 230, 0.08) 0%, rgba(180, 140, 255, 0.06) 40%, transparent 70%);
+  filter: blur(40px);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ---------- 상단: 브랜드 마크 + 회원가입 ---------- */
+.top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mark {
+  display: block;
+  border-radius: 8px;
+}
+
+.logo {
+  display: block;
+  height: 64px;
+  width: auto;
+  aspect-ratio: 420 / 770;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+/* ---------- 카드 ---------- */
+.card {
+  display: flex;
+  flex-direction: column;
+  margin-top: 32px;
+  padding: 40px 40px 32px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 40px 80px -40px rgba(0, 0, 0, 0.7);
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.section + .section {
+  margin-top: 48px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.sectionTitle span {
+  color: var(--teal);
+}
+
+.sectionTitle small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ---------- 입력 ---------- */
+.field {
+  margin-top: 22px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.required {
+  font-style: normal;
+  color: #ff7a8a;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 12px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 1px var(--field-line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+
+.input::placeholder {
+  color: var(--hint);
+}
+
+.input:focus,
+.rrnBack:focus-within {
+  box-shadow:
+    inset 0 0 0 1px rgba(94, 242, 230, 0.6),
+    0 0 0 4px rgba(94, 242, 230, 0.12);
+}
+
+.input[readonly] {
+  color: var(--hint);
+}
+
+/* 입력칸 + 버튼 한 줄 */
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.row .zipcode {
+  flex: 0 0 140px;
+}
+
+.stack {
+  margin-top: 10px;
+}
+
+/* 주민등록번호: 앞 6자리 - 뒤 1자리 + 가림 */
+.rrn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rrn > .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash {
+  color: var(--muted);
+}
+
+.rrnBack {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+}
+
+.rrnDigit {
+  width: 28px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--muted);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+}
+
+.rrnDigit::placeholder {
+  color: var(--hint);
+}
+
+.rrnMask {
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--hint);
+}
+
+/* ---------- 보조 버튼 ---------- */
+.ghostBtn,
+.solidBtn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 52px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.ghostBtn {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(170, 195, 255, 0.28);
+  color: var(--ink);
+}
+
+.ghostBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ghostBtn .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.solidBtn {
+  background: rgba(94, 242, 230, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.4);
+  color: var(--teal);
+}
+
+.solidBtn:hover {
+  background: rgba(94, 242, 230, 0.2);
+}
+
+.ghostBtn:focus-visible,
+.solidBtn:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* ---------- 약관 ---------- */
+.terms {
+  margin-top: 22px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 1px var(--field-line);
+}
+
+.terms ul {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.terms li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.check {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--body);
+  cursor: pointer;
+}
+
+.check input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.check b {
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.checkLarge {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.checkLarge small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--teal);
+}
+
+/* 실제 체크박스처럼: 테두리 박스 → 체크하면 색이 차오르고 체크가 그려짐 */
+.checkbox {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1.5px rgba(170, 195, 255, 0.38);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.checkLarge .checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.check:hover .checkbox {
+  box-shadow: inset 0 0 0 1.5px rgba(94, 242, 230, 0.7);
+}
+
+.check:active .checkbox {
+  transform: scale(0.9);
+}
+
+.checkMark {
+  width: 72%;
+  height: 72%;
+  stroke: #fff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.25s ease-out 0.05s;
+}
+
+.check input:checked + .checkbox {
+  background: linear-gradient(135deg, #3fd6c8 0%, #3d8bd6 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 0 3px rgba(94, 242, 230, 0.14),
+    0 4px 12px -4px rgba(63, 214, 200, 0.6);
+  animation: pop 0.25s ease-out;
+}
+
+.check input:checked + .checkbox .checkMark {
+  stroke-dashoffset: 0;
+}
+
+@keyframes pop {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.check input:focus-visible + .checkbox {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.viewTerms {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.viewTerms:hover {
+  color: var(--ink) !important;
+}
+
+/* ---------- 제출 ---------- */
+.error {
+  margin-top: 24px !important;
+  font-size: 14px;
+  color: #ff7a8a;
+}
+
+.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 60px;
+  margin-top: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #2f8f86 0%, #3d6fd6 60%, #7b5ce0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 14px 40px -12px rgba(94, 242, 230, 0.45);
+  color: #fff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s;
+}
+
+.submit:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 18px 50px -10px rgba(180, 140, 255, 0.55);
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.toLogin {
+  margin-top: 20px !important;
+  font-size: 14px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.toLogin a {
+  margin-left: 6px;
+  font-weight: 600;
+  color: var(--teal) !important;
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 600px) {
+  .page {
+    padding: 32px 12px 56px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .card {
+    padding: 28px 20px 24px;
+  }
+
+  .row {
+    flex-wrap: wrap;
+  }
+
+  .row .zipcode {
+    flex: 1 1 auto;
+  }
+
+  .row .ghostBtn,
+  .row .solidBtn {
+    flex: 1 0 100%;
+  }
+
+  .rrn {
+    gap: 6px;
+  }
+
+  .rrn > .input,
+  .rrnBack {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+  .rrnBack {
+    gap: 8px;
+  }
+
+  .rrnMask {
+    letter-spacing: 0.1em;
+  }
+
+  .terms {
+    padding: 16px;
+  }
+
+  .checkLarge {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .check input:checked + .checkbox {
+    animation: none;
+  }
+
+  .checkMark {
+    transition: none;
+  }
+}

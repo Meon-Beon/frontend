@@ -3,6 +3,7 @@ import Layout from './components/Layout/Layout'
 import Intro from './pages/intro/Intro'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
+import Signup from './pages/signup/Signup'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         {/* 서비스 메인부터는 공통 헤더 아래에 표시. 새 페이지는 여기에 추가 */}
         <Route element={<Layout />}>

@@ -7,6 +7,10 @@ import styles from './style.module.css'
 
 const SAVED_ID_KEY = 'gene:savedId'
 
+// TODO: 로그인 서버(/api/login)가 준비되면 false로 바꾸기.
+// true인 동안은 서버를 부르지 않고, 아이디·비밀번호만 입력하면 로그인 성공으로 처리함
+const MOCK_LOGIN = true
+
 function readSavedId() {
   try {
     return localStorage.getItem(SAVED_ID_KEY) ?? ''
@@ -56,6 +60,12 @@ function Login() {
     }
 
     setError('')
+
+    if (MOCK_LOGIN) {
+      navigate('/main')
+      return
+    }
+
     setLoading(true)
     try {
       // 서버가 200을 주면 성공, 401이면 axios가 에러를 던져 catch로 간다
