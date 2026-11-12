@@ -1,5 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { isAxiosError } from 'axios'
+import { client } from '../../api/client'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
@@ -30,6 +32,76 @@ type FormState = typeof INITIAL_FORM
 // 영문, 숫자, 특수문자를 모두 포함한 8자 이상
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/
 const LOGIN_ID_RULE = /^[A-Za-z0-9]{6,16}$/
+// 010, 011, 016~019 로 시작하는 숫자 10~11자리
+const PHONE_RULE = /^01[016789]\d{7,8}$/
+
+// TODO: 실제 문자 발송(SMS) 서비스를 붙이면 지우기.
+// 지금은 문자를 보내지 않고, 이 번호를 입력하면 인증된 것으로 처리함
+const MOCK_VERIFY_CODE = '123456'
+
+/** 주민등록번호 형식 검사: 앞 6자리가 실제 있는 날짜인지 + 뒷자리 첫 숫자가 1~8인지 */
+function isValidRrn(front: string, back: string) {
+  if (!/^\d{6}$/.test(front) || !/^[1-8]$/.test(back)) return false
+  // 뒷자리 첫 숫자 1·2·5·6은 1900년대생, 3·4·7·8은 2000년대생
+  const year = ('1256'.includes(back) ? 1900 : 2000) + Number(front.slice(0, 2))
+  const month = Number(front.slice(2, 4))
+  const day = Number(front.slice(4, 6))
+  // 13월, 2월 30일 같은 없는 날짜는 Date가 다른 날짜로 바꿔 버리므로 그대로인지 비교
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+}
+
+// ---------- 카카오(다음) 우편번호 서비스 ----------
+const POSTCODE_SCRIPT = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+
+type PostcodeData = { zonecode: string; roadAddress: string; jibunAddress: string }
+type PostcodeConstructor = new (options: { oncomplete: (data: PostcodeData) => void }) => {
+  open: () => void
+}
+
+declare global {
+  interface Window {
+    kakao?: { Postcode?: PostcodeConstructor }
+    daum?: { Postcode?: PostcodeConstructor }
+  }
+}
+
+let postcodeLoading: Promise<PostcodeConstructor> | null = null
+
+/** 우편번호 스크립트를 처음 필요할 때 한 번만 불러옴 */
+function loadPostcode() {
+  const find = () => window.kakao?.Postcode ?? window.daum?.Postcode
+  const loaded = find()
+  if (loaded) return Promise.resolve(loaded)
+
+  postcodeLoading ??= new Promise<PostcodeConstructor>((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = POSTCODE_SCRIPT
+    script.onload = () => {
+      const Postcode = find()
+      if (Postcode) resolve(Postcode)
+      else reject(new Error('우편번호 서비스를 찾을 수 없습니다.'))
+    }
+    script.onerror = () => {
+      postcodeLoading = null // 다음에 누르면 다시 시도
+      reject(new Error('우편번호 스크립트를 불러오지 못했습니다.'))
+    }
+    document.head.appendChild(script)
+  })
+  return postcodeLoading
+}
+
+/** 입력칸 아래에 보여 주는 안내 문구. ok면 초록, 아니면 빨강 */
+type Hint = { ok: boolean; text: string } | null
+
+function HintText({ hint }: { hint: Hint }) {
+  if (!hint) return null
+  return (
+    <p role="status" className={hint.ok ? `${styles.hint} ${styles.hintOk}` : styles.hint}>
+      {hint.text}
+    </p>
+  )
+}
 
 function Icon({ d, className }: { d: string; className?: string }) {
   return (
@@ -88,6 +160,17 @@ function Signup() {
     privacy: false,
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // 중복확인을 통과한 아이디. 아이디를 고치면 다시 확인해야 함
+  const [checkedId, setCheckedId] = useState('')
+  const [idHint, setIdHint] = useState<Hint>(null)
+
+  // 휴대폰 인증 상태
+  const [codeSent, setCodeSent] = useState(false)
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [phoneHint, setPhoneHint] = useState<Hint>(null)
+  const [codeHint, setCodeHint] = useState<Hint>(null)
 
   const allAgreed = TERMS.every((t) => terms[t.key])
 
@@ -96,16 +179,116 @@ function Signup() {
     (e: ChangeEvent<HTMLInputElement>) => {
       const value = digitsOnly ? e.target.value.replace(/\D/g, '') : e.target.value
       setForm((prev) => ({ ...prev, [key]: value }))
+
+      // 확인이 끝난 값을 고치면 확인을 다시 받게 함
+      if (key === 'loginId') {
+        setCheckedId('')
+        setIdHint(null)
+      }
+      if (key === 'phone') {
+        setCodeSent(false)
+        setPhoneVerified(false)
+        setPhoneHint(null)
+        setCodeHint(null)
+      }
     }
 
   const setAllTerms = (checked: boolean) =>
     setTerms({ service: checked, genetic: checked, privacy: checked })
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSearchZipcode = async () => {
+    try {
+      const Postcode = await loadPostcode()
+      new Postcode({
+        oncomplete: (data) => {
+          setForm((prev) => ({
+            ...prev,
+            zipcode: data.zonecode,
+            // 도로명 주소가 비어 있는 주소는 지번 주소를 대신 씀
+            address: data.roadAddress || data.jibunAddress,
+          }))
+        },
+      }).open()
+    } catch {
+      setError('우편번호 검색을 열 수 없습니다. 인터넷 연결을 확인해 주세요.')
+    }
+  }
+
+  // 가짜 인증: 문자를 실제로 보내지 않고 번호 형식만 검사함
+  const handleSendCode = () => {
+    if (!PHONE_RULE.test(form.phone)) {
+      setPhoneHint({ ok: false, text: '휴대폰 번호 형식이 올바르지 않습니다. (예: 01012345678)' })
+      return
+    }
+    setCodeSent(true)
+    setPhoneVerified(false)
+    setCodeHint(null)
+    setPhoneHint({
+      ok: true,
+      text: `인증번호를 발송했습니다. (테스트용 인증번호: ${MOCK_VERIFY_CODE})`,
+    })
+  }
+
+  const handleVerifyCode = () => {
+    if (!codeSent) {
+      setCodeHint({ ok: false, text: '먼저 인증번호 발송을 눌러 주세요.' })
+      return
+    }
+    if (form.verifyCode !== MOCK_VERIFY_CODE) {
+      setPhoneVerified(false)
+      setCodeHint({ ok: false, text: '인증번호가 일치하지 않습니다.' })
+      return
+    }
+    setPhoneVerified(true)
+    setCodeHint({ ok: true, text: '휴대폰 인증이 완료되었습니다.' })
+  }
+
+  const handleCheckId = async () => {
+    if (!LOGIN_ID_RULE.test(form.loginId)) {
+      setIdHint({ ok: false, text: '아이디는 영문, 숫자 6~16자로 입력해 주세요.' })
+      return
+    }
+    try {
+      const { data } = await client.get<{ available: boolean }>('/api/check-id', {
+        params: { login_id: form.loginId },
+      })
+      if (data.available) {
+        setCheckedId(form.loginId)
+        setIdHint({ ok: true, text: '사용할 수 있는 아이디입니다.' })
+      } else {
+        setCheckedId('')
+        setIdHint({ ok: false, text: '이미 사용 중인 아이디입니다.' })
+      }
+    } catch {
+      setIdHint({ ok: false, text: '서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.' })
+    }
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    if (!isValidRrn(form.rrnFront, form.rrnBack)) {
+      setError('주민등록번호 형식이 올바르지 않습니다.')
+      return
+    }
+    if (!form.zipcode) {
+      setError('우편번호 검색으로 주소를 입력해 주세요.')
+      return
+    }
+    if (!PHONE_RULE.test(form.phone)) {
+      setError('휴대폰 번호 형식이 올바르지 않습니다.')
+      return
+    }
+    if (!phoneVerified) {
+      setError('휴대폰 인증을 완료해 주세요.')
+      return
+    }
     if (!LOGIN_ID_RULE.test(form.loginId)) {
       setError('아이디는 영문, 숫자 6~16자로 입력해 주세요.')
+      return
+    }
+    if (checkedId !== form.loginId) {
+      setError('아이디 중복확인을 해 주세요.')
       return
     }
     if (!PASSWORD_RULE.test(form.password)) {
@@ -122,8 +305,36 @@ function Signup() {
     }
 
     setError('')
-    // TODO: 회원가입 API(src/api/client.ts) 연결 후 성공했을 때만 이동
-    navigate('/login')
+    setLoading(true)
+    try {
+      // 서버가 201을 주면 성공. 그 외에는 axios가 에러를 던져 catch로 간다
+      // 주민등록번호는 서버에서 생년월일·성별만 뽑아 쓰고 저장하지 않음
+      await client.post('/api/signup', {
+        name: form.name,
+        rrn_front: form.rrnFront,
+        rrn_back: form.rrnBack,
+        zipcode: form.zipcode,
+        address: form.address,
+        address_detail: form.addressDetail,
+        phone: form.phone,
+        login_id: form.loginId,
+        password: form.password,
+      })
+      navigate('/login')
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 409) {
+        setCheckedId('')
+        setError('이미 사용 중인 아이디입니다. 다른 아이디로 다시 중복확인해 주세요.')
+      } else if (isAxiosError(err) && err.response) {
+        // 400(주민등록번호 형식), 422(서버 형식 검사 실패) 등
+        const detail = err.response.data?.detail
+        setError(typeof detail === 'string' ? detail : '입력한 정보를 다시 확인해 주세요.')
+      } else {
+        setError('서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -209,8 +420,7 @@ function Signup() {
                   value={form.zipcode}
                   readOnly
                 />
-                {/* TODO: 우편번호 검색 서비스(예: 다음 우편번호) 연결 */}
-                <button type="button" className={styles.ghostBtn}>
+                <button type="button" className={styles.ghostBtn} onClick={handleSearchZipcode}>
                   <Icon d={ICON.search} />
                   우편번호 검색
                 </button>
@@ -251,11 +461,12 @@ function Signup() {
                   onChange={update('phone', true)}
                   required
                 />
-                {/* TODO: 인증번호 발송 API 연결 */}
-                <button type="button" className={styles.solidBtn}>
-                  인증번호 발송
+                {/* TODO: 인증번호 발송 API 연결 (지금은 가짜 인증) */}
+                <button type="button" className={styles.solidBtn} onClick={handleSendCode}>
+                  {codeSent ? '재발송' : '인증번호 발송'}
                 </button>
               </div>
+              <HintText hint={phoneHint} />
             </div>
 
             <div className={styles.field}>
@@ -274,11 +485,12 @@ function Signup() {
                   onChange={update('verifyCode', true)}
                   required
                 />
-                {/* TODO: 인증번호 확인 API 연결 */}
-                <button type="button" className={styles.ghostBtn}>
+                {/* TODO: 인증번호 확인 API 연결 (지금은 가짜 인증) */}
+                <button type="button" className={styles.ghostBtn} onClick={handleVerifyCode}>
                   확인
                 </button>
               </div>
+              <HintText hint={codeHint} />
             </div>
           </section>
 
@@ -303,11 +515,11 @@ function Signup() {
                   onChange={update('loginId')}
                   required
                 />
-                {/* TODO: 아이디 중복확인 API 연결 */}
-                <button type="button" className={styles.ghostBtn}>
+                <button type="button" className={styles.ghostBtn} onClick={handleCheckId}>
                   중복확인
                 </button>
               </div>
+              <HintText hint={idHint} />
             </div>
 
             <div className={styles.field}>
@@ -378,8 +590,8 @@ function Signup() {
             </p>
           )}
 
-          <button type="submit" className={styles.submit}>
-            회원가입 완료하기
+          <button type="submit" className={styles.submit} disabled={loading}>
+            {loading ? '가입 처리 중…' : '회원가입 완료하기'}
             <Icon d={ICON.arrow} />
           </button>
 

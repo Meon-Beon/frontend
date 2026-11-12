@@ -467,6 +467,16 @@
   color: #ff7a8a;
 }
 
+/* 입력칸 아래 안내 문구 (중복확인, 인증 결과) */
+.hint {
+  margin-top: 8px !important;
+  font-size: 13px;
+  color: #ff7a8a;
+}
+.hintOk {
+  color: var(--teal);
+}
+
 .submit {
   display: flex;
   align-items: center;

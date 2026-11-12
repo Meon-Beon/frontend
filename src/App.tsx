@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout/Layout'
+import Company from './pages/company/company'
 import Intro from './pages/intro/Intro'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
@@ -16,6 +17,7 @@ function App() {
         {/* 서비스 메인부터는 공통 헤더 아래에 표시. 새 페이지는 여기에 추가 */}
         <Route element={<Layout />}>
           <Route path="/main" element={<Main />} />
+          <Route path="/company" element={<Company />} />
         </Route>
       </Routes>
     </BrowserRouter>
