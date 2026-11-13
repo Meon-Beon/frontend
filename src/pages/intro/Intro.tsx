@@ -5,7 +5,7 @@ import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
 const stats = [
-  { label: '질환 커버리지 적중', value: '96.2%', desc: '유전 취약군 정밀 타겟' },
+  { label: '식별률 향상', value: '+47.7%', desc: '유전정보 추가 결과' },
   { label: '비교 연계 보험사', value: '50 사', desc: '생·손보 통합 데이터' },
   { label: '정밀 진단 소요시간', value: '3분', desc: '실시간 다차원 스캔' },
 ]
