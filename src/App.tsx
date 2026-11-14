@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
-import Insurance from './pages/insurance/Insurance'
+import DnaApply from './pages/dna-apply/DnaApply'
+import InsuranceSetting from './pages/insurance_setting/insurance_setting'
 import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
@@ -22,8 +23,9 @@ function App() {
           <Route path="/main" element={<Main />} />
           <Route path="/company" element={<Company />} />
           <Route path="/lab" element={<Laboratory />} />
-          <Route path="/insurance" element={<Insurance />} />
+          <Route path="/insurance" element={<InsuranceSetting />} />
           <Route path="/support" element={<ServiceCenter />} />
+          <Route path="/dna-apply" element={<DnaApply />} />
         </Route>
       </Routes>
     </BrowserRouter>

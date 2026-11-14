@@ -5,9 +5,8 @@ import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
 const stats = [
-  { label: '불필요 보험료 절감', value: '38.4%', desc: '평균 납입료 다이어트' },
-  { label: '질환 커버리지 적중', value: '96.2%', desc: '유전 취약군 정밀 타겟' },
-  { label: '비교 연계 보험사', value: '32개 사', desc: '생·손보 통합 데이터' },
+  { label: '식별률 향상', value: '+47.7%', desc: '유전정보 추가 결과' },
+  { label: '비교 연계 보험사', value: '50 사', desc: '생·손보 통합 데이터' },
   { label: '정밀 진단 소요시간', value: '3분', desc: '실시간 다차원 스캔' },
 ]
 
@@ -60,7 +59,6 @@ type IconName =
   | 'arrow'
   | 'checkCircle'
   | 'db'
-  | 'user'
   | 'lab'
   | 'team'
   | 'building'
@@ -70,7 +68,6 @@ const iconPaths: Record<IconName, string> = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
   checkCircle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.2 12.3l2.6 2.6 5-5.6',
   db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
-  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-6 8-6s8 2 8 6',
   lab: 'M6 21h12M9 21v-3a5 5 0 0 0 0-10M10 4l4 4-3 3-4-4zM14 18a6 6 0 0 0 4-6',
   team: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.7-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3.3 0 6 2 6 5',
   building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4',
@@ -172,9 +169,6 @@ function Intro() {
         <div className={styles.headerActions}>
           <Link to="/login" className={styles.headerCta}>
             내 보험 설계 GENE행하기 <Icon name="arrow" />
-          </Link>
-          <Link to="/login" className={styles.userBtn} aria-label="내 계정">
-            <Icon name="user" />
           </Link>
         </div>
       </header>

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { client } from '../../api/client'
+import { saveUser, type SessionUser } from '../../auth/session'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
@@ -62,6 +63,7 @@ function Login() {
     setError('')
 
     if (MOCK_LOGIN) {
+      saveUser({ id: 0, login_id: userId, name: null })
       navigate('/main')
       return
     }
@@ -69,7 +71,8 @@ function Login() {
     setLoading(true)
     try {
       // 서버가 200을 주면 성공, 401이면 axios가 에러를 던져 catch로 간다
-      await client.post('/api/login', { login_id: userId, password })
+      const { data } = await client.post<SessionUser>('/api/login', { login_id: userId, password })
+      saveUser(data)
       navigate('/main')
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {

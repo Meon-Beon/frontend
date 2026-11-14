@@ -1,0 +1,310 @@
+/* 4-1 약관동의 팝업 — 남색 테마. 일반 CSS라서 모든 이름에 dc- 접두사 */
+.dc-backdrop {
+  --surface: #101b35;
+  --surface-soft: #16244a;
+  --line: rgba(255, 255, 255, 0.08);
+  --glass-line: rgba(170, 195, 255, 0.12);
+  --ink: #e4e8ef;
+  --body: #d6dbe3;
+  --muted: #9aa3b5;
+  --teal: #5ef2e6;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 8, 20, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: dc-fade 0.3s ease both;
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+@keyframes dc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.dc-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(88svh, 900px);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-line),
+    0 40px 90px -30px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  animation: dc-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dc-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+}
+
+.dc-modal h2,
+.dc-modal p,
+.dc-modal ul,
+.dc-modal ol {
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- 제목 ---------- */
+.dc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 34px 44px 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dc-head h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.dc-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.dc-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.dc-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- 본문 (넘치면 이 안에서만 스크롤) ---------- */
+.dc-body {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 44px 32px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(170, 195, 255, 0.25) transparent;
+}
+
+.dc-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px !important;
+  list-style: none;
+}
+
+.dc-term {
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+  transition: box-shadow 0.25s;
+}
+
+.dc-term.is-on {
+  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
+}
+
+.dc-text {
+  margin-top: 12px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--body);
+}
+
+.dc-text b {
+  font-weight: 700;
+  color: #fff;
+}
+
+.dc-text ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px !important;
+  padding-left: 18px !important;
+  list-style: disc;
+}
+
+.dc-text li::marker {
+  color: var(--teal);
+}
+
+/* ---------- 체크박스 ---------- */
+.dc-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dc-check b {
+  font-weight: 700;
+  color: #fff;
+}
+
+.dc-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dc-box {
+  position: relative;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1.5px rgba(170, 195, 255, 0.35);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.dc-box::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 11px;
+  border-right: 2.5px solid #06121f;
+  border-bottom: 2.5px solid #06121f;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dc-check input:checked + .dc-box {
+  background: var(--teal);
+  box-shadow: none;
+}
+
+.dc-check input:checked + .dc-box::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.dc-check input:focus-visible + .dc-box {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.dc-all {
+  justify-content: flex-end;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ---------- 결제 버튼: 처음엔 비활성, 전부 체크 시 청록색으로 활성 ---------- */
+.dc-foot {
+  padding: 20px 44px 28px;
+  border-top: 1px solid var(--line);
+}
+
+.dc-pay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 20px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--teal);
+  color: #06121f;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter 0.35s,
+    opacity 0.35s,
+    box-shadow 0.25s;
+}
+
+.dc-pay:not(:disabled):hover {
+  filter: brightness(1.05);
+  box-shadow: 0 12px 30px -12px rgba(94, 242, 230, 0.6);
+}
+
+.dc-pay:disabled {
+  filter: grayscale(0.85) brightness(0.55);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dc-pay svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 640px) {
+  .dc-backdrop {
+    padding: 12px;
+  }
+
+  .dc-head {
+    padding: 24px 22px 18px;
+  }
+
+  .dc-head h2 {
+    font-size: 22px;
+  }
+
+  .dc-body {
+    padding: 18px 22px 24px;
+  }
+
+  .dc-term {
+    padding: 14px 14px 16px;
+  }
+
+  .dc-check {
+    align-items: flex-start;
+    font-size: 15px;
+  }
+
+  .dc-foot {
+    padding: 16px 22px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-backdrop,
+  .dc-modal {
+    animation: none;
+  }
+}
