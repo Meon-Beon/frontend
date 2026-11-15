@@ -353,6 +353,31 @@
   color: #fff;
 }
 
+/* 배경음악 켜기/끄기 버튼 — 오른쪽 위 */
+.sound {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 5;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.sound:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .counterCaption {
     font-size: 13px;
@@ -361,5 +386,10 @@
   .skip {
     right: 16px;
     bottom: 16px;
+  }
+
+  .sound {
+    top: 16px;
+    right: 16px;
   }
 }

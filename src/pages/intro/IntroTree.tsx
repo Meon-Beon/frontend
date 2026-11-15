@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import bgmSrc from '../../assets/intro-bgm.mp3'
 import styles from './IntroTree.module.css'
 
 /**
@@ -11,25 +12,32 @@ const GENS = 13 // 2^13 = 8,192명
 const YEAR_NOW = 2026
 const YEARS_PER_GEN = 27
 
+// 음악 박자 맞춤 — 배경음악(Hensonn "Sahara")을 분석한 값
+const BEAT_MS = 521.4 // 한 박 길이 (약 115 BPM)
+const BEATS_PER_GEN = 2 // 2박마다 한 세대씩 올라감
+const GEN_MS = BEAT_MS * BEATS_PER_GEN
+const SHOOT = 0.5 // 박이 시작되면 세대 시간의 앞 50% 동안 가지가 뻗고, 나머지는 멈춰서 다음 박을 기다림
+const MUSIC_START = 21.97 // 곡의 이 지점(초)부터 재생 → 13세대째가 끝나는 순간이 곡의 드롭(35.53초)
+
 // 타임라인 (ms)
-const GROW = 6000 // 가지가 아래(당신)에서 위(조상)로 타고 올라가는 시간
+const GROW = GENS * GEN_MS // 가지가 아래(당신)에서 위(조상)로 타고 올라가는 시간 (≈ 13.6초)
 const BLOOM = 2800 // 다 올라간 뒤 나무 전체가 빛나는 시간 → 이후 DNA가 솟아 클릭을 기다림
 const LAST_CAPTION_HOLD = 1300 // 마지막 자막을 다 올라간 뒤에도 더 보여주는 시간
 
-// 자막: 가지가 올라가는 시간(GROW) 중 몇 % 지점에서 바뀌는지
-// 4번째 자막은 숫자가 1,024(10세대)를 넘는 순간과 맞춤
+// 자막: 위쪽 숫자가 몇 세대에 도달했을 때 바뀌는지
 const CAPTIONS = [
-  { at: 0, text: '내가 태어나기까지 얼마나 많은 조상이 있었을까?' },
-  { at: 0.22, text: '한세대씩 거슬러 올라갈 때마다' },
-  { at: 0.42, text: '숫자가 두배씩 늘어가고' },
-  { at: 0.62, text: '10세대 전에는 1천명이 넘고' },
-  { at: 0.84, text: '20세대 전에는 100만명' },
+  { gen: 0, text: '내가 태어나기까지 얼마나 많은 조상이 있었을까?' },
+  { gen: 3, text: '한세대씩 거슬러 올라갈 때마다' },
+  { gen: 6, text: '숫자가 두배씩 늘어가고' },
+  { gen: 10, text: '10세대 전에는 1천명이 넘고' }, // 숫자가 1,024가 되는 순간
+  { gen: 13, text: '13세대, 약 350년 전에는 8,192명' }, // 나무 끝(8,192)에 닿는 순간
 ]
 const GHOST_ALPHA = 0.16 // 처음부터 보이는 나무 전체 윤곽의 밝기
 const MAX_ZOOM = 5 // 처음 클로즈업 배율 — 가지가 올라갈수록 1배(전체 모습)까지 물러남
 const LIVE_LEVELS = 9 // 이 세대까지는 매 프레임 확대 배율에 맞춰 선명하게 다시 그림
 const LEAVE = 900 // 클릭 후 화면이 열리며 사라지는 시간
 const RUNGS = 14 // DNA 염기쌍 수
+const BGM_VOLUME = 0.5 // 배경음악 볼륨 (0 ~ 1)
 
 const TOP_RGB = [180, 140, 255] // 보라 (먼 조상)
 const BOTTOM_RGB = [94, 242, 230] // 청록 (당신)
@@ -134,11 +142,16 @@ function drawLevel(
   }
 }
 
-const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2)
 const easeOut = (t: number) => 1 - (1 - t) ** 3
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t))
 
 type Phase = 'grow' | 'bloom' | 'ready' | 'leave'
+
+/** 애니메이션 진행 위치(el ms)에 맞는 곡 위치로 옮긴 뒤 재생 — 늦게 켜도 박자가 어긋나지 않게 */
+function playSynced(audio: HTMLAudioElement, el: number) {
+  audio.currentTime = MUSIC_START + el / 1000
+  return audio.play()
+}
 
 export default function IntroTree({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -147,6 +160,75 @@ export default function IntroTree({ onDone }: { onDone: () => void }) {
   const leaveRef = useRef<() => void>(() => {})
   const [phase, setPhase] = useState<Phase>('grow')
   const [caption, setCaption] = useState(0) // -1 이면 자막 숨김
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const userMutedRef = useRef(false) // 사용자가 직접 소리를 껐는지
+  const leavingRef = useRef(false)
+  const elRef = useRef(0) // 애니메이션이 지금 몇 ms 진행됐는지 (음악 위치를 맞출 때 사용)
+  const [soundOn, setSoundOn] = useState(false)
+
+  // 배경음악: 애니메이션이 시작되면 재생
+  useEffect(() => {
+    const audio = new Audio(bgmSrc)
+    audio.loop = true
+    audio.volume = BGM_VOLUME
+    audioRef.current = audio
+
+    const tryPlay = () =>
+      playSynced(audio, elRef.current)
+        .then(() => setSoundOn(true))
+        .catch(() => setSoundOn(false)) // 브라우저 자동재생 정책에 막힘
+
+    tryPlay()
+
+    // 자동재생이 막혔다면 사용자의 첫 클릭/키 입력 때 재생
+    const unlock = () => {
+      if (audio.paused && !userMutedRef.current && !leavingRef.current) tryPlay()
+    }
+    window.addEventListener('pointerdown', unlock)
+    window.addEventListener('keydown', unlock)
+
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+      audio.pause()
+      audio.src = ''
+      audioRef.current = null
+    }
+  }, [])
+
+  // 인트로 페이지로 넘어갈 때 음악을 서서히 줄임
+  useEffect(() => {
+    if (phase !== 'leave') return
+    leavingRef.current = true
+    const audio = audioRef.current
+    if (!audio || audio.paused) return
+    const from = audio.volume
+    const t0 = performance.now()
+    let raf = 0
+    const step = (now: number) => {
+      const p = clamp01((now - t0) / LEAVE)
+      audio.volume = from * (1 - p)
+      if (p < 1) raf = requestAnimationFrame(step)
+      else audio.pause()
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [phase])
+
+  const toggleSound = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) {
+      userMutedRef.current = false
+      playSynced(audio, elRef.current)
+        .then(() => setSoundOn(true))
+        .catch(() => {})
+    } else {
+      userMutedRef.current = true
+      audio.pause()
+      setSoundOn(false)
+    }
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -191,7 +273,7 @@ export default function IntroTree({ onDone }: { onDone: () => void }) {
     html.style.overflow = 'hidden'
     window.scrollTo(0, 0)
 
-    const start = performance.now()
+    let start = performance.now()
     let raf = 0
     let current: Phase = 'grow'
     let lastCount = -1
@@ -214,23 +296,34 @@ export default function IntroTree({ onDone }: { onDone: () => void }) {
     const yearLabel = (k: number) => (k === 0 ? '지금, 당신' : `${YEAR_NOW - k * YEARS_PER_GEN}년 · ${k}세대 전`)
 
     const frame = (now: number) => {
-      const el = now - start
-      const g = clamp01(el / GROW)
+      let el = now - start
+      // 음악이 재생 중이면 음악 시계를 기준으로 맞춤 (40ms 이상 어긋났을 때만 보정해 떨림 방지)
+      const audio = audioRef.current
+      if (audio && !audio.paused && !audio.seeking && current !== 'leave') {
+        const ae = (audio.currentTime - MUSIC_START) * 1000
+        if (Math.abs(ae - el) > 40) {
+          start = now - ae
+          el = ae
+        }
+      }
+      elRef.current = el
 
-      // 자막 바꾸기
+      // 올라간 세대 수 (0 ~ GENS): 박마다 '툭' 뻗고 멈췄다가 다음 박에 또 뻗음
+      const step = Math.max(0, el / GEN_MS)
+      const beatGen = Math.floor(step)
+      const f = beatGen >= GENS ? GENS : beatGen + clamp01((step - beatGen) / SHOOT)
+      const done = Math.floor(f)
+      const frac = f - done
+
+      // 자막 바꾸기 (숫자가 그 세대로 바뀌는 순간에 맞춤)
       let cap = -1
       if (el < GROW + LAST_CAPTION_HOLD) {
-        for (let n = 0; n < CAPTIONS.length; n++) if (g >= CAPTIONS[n].at) cap = n
+        for (let n = 0; n < CAPTIONS.length; n++) if (Math.round(f) >= CAPTIONS[n].gen) cap = n
       }
       if (cap !== lastCaption) {
         lastCaption = cap
         setCaption(cap)
       }
-
-      // 올라간 세대 수 (0 ~ GENS)
-      const f = easeInOut(g) * GENS
-      const done = Math.floor(f)
-      const frac = f - done
 
       // 위쪽 세대는 캐시에 누적 (이때쯤이면 거의 전체 화면이라 확대해도 흐려지지 않음)
       while (cached < Math.min(done, GENS)) {
@@ -405,6 +498,19 @@ export default function IntroTree({ onDone }: { onDone: () => void }) {
         </p>
         <p className={styles.hint}>DNA를 눌러 시작하기</p>
       </div>
+
+      {phase !== 'leave' && (
+        <button
+          type="button"
+          className={styles.sound}
+          // 이 버튼을 누를 때는 위의 '첫 클릭 시 재생' 로직이 끼어들지 않게 막음
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={toggleSound}
+          aria-label={soundOn ? '배경음악 끄기' : '배경음악 켜기'}
+        >
+          {soundOn ? '🔊 소리 끄기' : '🔇 소리 켜기'}
+        </button>
+      )}
 
       {phase !== 'ready' && phase !== 'leave' && (
         <button type="button" className={styles.skip} onClick={() => leaveRef.current()}>
