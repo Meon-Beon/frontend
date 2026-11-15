@@ -1,4 +1,5 @@
-import { useEffect, useRef, type CSSProperties, type RefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
+import IntroTree from './IntroTree'
 import { Link } from 'react-router-dom'
 import DnaHelix from '../../components/dna-helix/DnaHelix'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
@@ -131,12 +132,48 @@ function useIntroMotion(pageRef: RefObject<HTMLDivElement | null>) {
   }, [pageRef])
 }
 
+// 움직임 줄이기 설정이면 진입 애니메이션을 생략
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+const INTRO_SEEN_KEY = 'gene-intro-seen'
+
+const introSeen = () => {
+  try {
+    return sessionStorage.getItem(INTRO_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+const markIntroSeen = () => {
+  try {
+    sessionStorage.setItem(INTRO_SEEN_KEY, '1')
+  } catch {
+    // 저장이 막힌 환경이면 다음 진입 때 다시 재생될 뿐
+  }
+}
+
 function Intro() {
   const pageRef = useRef<HTMLDivElement>(null)
   useIntroMotion(pageRef)
 
+  // 방문(브라우저 탭 세션)당 한 번만 재생
+  // 주소 끝에 ?intro 를 붙이면 설정과 상관없이 항상 다시 재생 (테스트·시연용)
+  const [treePlayed] = useState(
+    () =>
+      new URLSearchParams(window.location.search).has('intro') ||
+      (!prefersReducedMotion() && !introSeen()),
+  )
+  const [treeDone, setTreeDone] = useState(() => !treePlayed)
+  const handleTreeDone = useCallback(() => {
+    markIntroSeen()
+    setTreeDone(true)
+  }, [])
+
   return (
     <div ref={pageRef} className={styles.page}>
+      {!treeDone && <IntroTree onDone={handleTreeDone} />}
       {/* 배경: 별빛, 오로라, 페이지 전체에 걸친 유전자 나선 */}
       <div className={styles.cosmos} aria-hidden="true">
         <span className={styles.aurora} />
@@ -176,7 +213,9 @@ function Intro() {
       <main className={styles.main}>
         <section className={styles.hero}>
           {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
-          <div className={styles.heroCopy}>
+          <div
+            className={`${styles.heroCopy} ${treePlayed && treeDone ? styles.heroEnter : ''}`}
+          >
             <h1 className={styles.heroTitle}>
               보험에 나를 맞추지 마세요.
               <br />

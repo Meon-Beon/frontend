@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import RequireAuth from './auth/RequireAuth'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
 import DnaApply from './pages/dna-apply/DnaApply'
@@ -20,7 +21,15 @@ function App() {
 
         {/* 서비스 메인부터는 공통 헤더 아래에 표시. 새 페이지는 여기에 추가 */}
         <Route element={<Layout />}>
-          <Route path="/main" element={<Main />} />
+          {/* 로그인했을 때만 접근 가능 */}
+          <Route
+            path="/main"
+            element={
+              <RequireAuth>
+                <Main />
+              </RequireAuth>
+            }
+          />
           <Route path="/company" element={<Company />} />
           <Route path="/lab" element={<Laboratory />} />
           <Route path="/insurance" element={<InsuranceSetting />} />
