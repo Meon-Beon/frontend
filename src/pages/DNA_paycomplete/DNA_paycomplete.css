@@ -1,0 +1,151 @@
+/* 4-3 결제완료 팝업 — 틀은 DNA_check.css(dc-*), 여기는 결제완료 전용(pc-*) */
+.pc-modal {
+  width: min(520px, 100%);
+}
+
+.pc-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 44px 32px;
+  text-align: center;
+}
+
+.pc-body h2 {
+  margin-top: 20px !important;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.pc-sub {
+  margin-top: 8px !important;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ---------- 아이콘 ---------- */
+.pc-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(94, 242, 230, 0.12);
+  color: var(--teal);
+  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
+  animation: pc-pop 0.5s 0.15s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+.pc-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.pc-icon--error {
+  background: rgba(255, 120, 120, 0.12);
+  color: #ff8a8a;
+  box-shadow: inset 0 0 0 1px rgba(255, 138, 138, 0.35);
+}
+
+@keyframes pc-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.pc-spinner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid rgba(170, 195, 255, 0.15);
+  border-top-color: var(--teal);
+  animation: pc-spin 0.9s linear infinite;
+}
+
+@keyframes pc-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 결제 정보 ---------- */
+.pc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 28px 0 0;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+  text-align: left;
+}
+
+.pc-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.pc-info dt {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.pc-info dd {
+  margin: 0;
+  color: var(--ink);
+  text-align: right;
+  word-break: break-all;
+}
+
+.pc-amount {
+  font-weight: 700;
+  color: var(--teal) !important;
+}
+
+.pc-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+/* ---------- 버튼 ---------- */
+.pc-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pc-receipt {
+  align-self: center;
+  font-size: 14px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pc-receipt:hover {
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .pc-body {
+    padding: 32px 22px 24px;
+  }
+
+  .pc-body h2 {
+    font-size: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-icon {
+    animation: none;
+  }
+}
