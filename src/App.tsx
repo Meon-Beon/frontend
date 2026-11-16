@@ -3,6 +3,7 @@ import RequireAuth from './auth/RequireAuth'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
 import DnaApply from './pages/dna-apply/DnaApply'
+import HealthHistory from './pages/health-history/HealthHistory'
 import InsuranceSetting from './pages/insurance_setting/insurance_setting'
 import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
@@ -35,6 +36,7 @@ function App() {
           <Route path="/insurance" element={<InsuranceSetting />} />
           <Route path="/support" element={<ServiceCenter />} />
           <Route path="/dna-apply" element={<DnaApply />} />
+          <Route path="/health-history" element={<HealthHistory />} />
         </Route>
       </Routes>
     </BrowserRouter>

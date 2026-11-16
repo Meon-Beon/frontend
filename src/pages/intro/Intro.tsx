@@ -6,7 +6,7 @@ import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
 const stats = [
-  { label: '식별률 향상', value: '+47.7%', desc: '유전정보 추가 결과' },
+  { label: '유전정보 추가 결과 식별률 향상', value: '+47.7%', desc: 'European Heart Journal 연구 결과 | 심혈관질환' },
   { label: '비교 연계 보험사', value: '50 사', desc: '생·손보 통합 데이터' },
   { label: '정밀 진단 소요시간', value: '3분', desc: '실시간 다차원 스캔' },
 ]
@@ -42,7 +42,7 @@ const steps = [
   {
     no: '01',
     title: '유전체 정밀 스캔',
-    desc: '간편 타액 키트 또는 기존 결과지를 통해 주요 74종 암·심뇌혈관 만성질환 취약점과 가족력을 정밀 디지털 스캔합니다.',
+    desc: '간편 타액 키트 또는 기존 결과지를 통해 주요 74종 암·심뇌혈관 만성질환 취약점을 정밀 디지털 스캔합니다.',
   },
   {
     no: '02',

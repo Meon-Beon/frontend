@@ -87,8 +87,8 @@ const STEPS: {
   },
   {
     icon: pngIcon(writingIcon),
-    title: '건강검진이력, 가족력 입력',
-    desc: '건보공단 10년 마이데이터와 직계 3대 가족력 간편 등록',
+    title: '건강검진이력 입력',
+    desc: '건보공단 10년 마이데이터 건강검진 이력 간편 등록',
     footer: '마이데이터 연동',
     to: '/health-history',
   },
