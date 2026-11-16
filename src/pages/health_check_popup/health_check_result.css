@@ -1,0 +1,321 @@
+/* 팝업 안 건강검진 결과 — 흰 종이에 남색 글씨. 일반 CSS라서 모든 이름에 health-check-result 접두사를 붙임 */
+.health-check-result {
+  --paper: #ffffff;
+  --paper-soft: #f6f7fa;
+  --navy: #13254a;
+  --navy-body: #34436a;
+  --navy-muted: #7c869c;
+  --rule: #e3e7ef;
+  --good: #1f8a80;
+  --warn: #c27c0e;
+  --risk: #d0445e;
+
+  color: var(--navy-body);
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+.health-check-result h2,
+.health-check-result h3,
+.health-check-result p,
+.health-check-result ul,
+.health-check-result dl,
+.health-check-result dd {
+  margin: 0;
+  padding: 0;
+}
+
+.health-check-result ul {
+  list-style: none;
+}
+
+.health-check-result__title,
+.health-check-result__section-head h3 {
+  color: var(--navy);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- 머리말 ---------- */
+.health-check-result__head {
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--navy);
+}
+
+.health-check-result__kicker {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--navy-muted);
+}
+
+.health-check-result__title {
+  margin-top: 6px !important;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.health-check-result__person {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin-top: 22px !important;
+}
+
+.health-check-result__person dt {
+  font-size: 12px;
+  color: var(--navy-muted);
+}
+
+.health-check-result__person dd {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* ---------- 회차 선택 ---------- */
+.health-check-result__tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+  overflow-x: auto;
+}
+
+.health-check-result__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  padding: 10px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--navy-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.health-check-result__tab b {
+  font-size: 14px;
+  color: var(--navy-body);
+}
+
+.health-check-result__tab span {
+  font-size: 12px;
+}
+
+.health-check-result__tab:hover {
+  border-color: #b9c3d8;
+}
+
+.health-check-result__tab:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.health-check-result__tab[aria-selected='true'] {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.health-check-result__tab[aria-selected='true'] b {
+  color: #fff;
+}
+
+/* ---------- 섹션 ---------- */
+.health-check-result__section {
+  margin-top: 32px;
+}
+
+.health-check-result__section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--navy);
+}
+
+.health-check-result__section-head h3 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.health-check-result__section-head p {
+  font-size: 13px;
+  color: var(--navy-muted);
+}
+
+/* ---------- 주요 소견 ---------- */
+.health-check-result__findings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 16px !important;
+}
+
+.health-check-result__finding {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--paper-soft);
+}
+
+.health-check-result__finding-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.health-check-result__finding-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.health-check-result__finding-value {
+  margin-top: 10px;
+  color: var(--navy);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.health-check-result__finding-advice {
+  margin-top: 6px !important;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+/* ---------- 표 ---------- */
+.health-check-result__table-wrap {
+  overflow-x: auto;
+}
+
+.health-check-result__table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.health-check-result__table th,
+.health-check-result__table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.health-check-result__table thead th {
+  background: var(--paper-soft);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy-muted);
+}
+
+.health-check-result__table tbody th {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.health-check-result__table td b {
+  font-weight: 600;
+}
+
+.health-check-result__value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.health-check-result__unit {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--navy-muted);
+}
+
+.health-check-result__muted {
+  font-size: 13px;
+  color: var(--navy-muted);
+}
+
+/* ---------- 문진 ---------- */
+.health-check-result__interview > div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.health-check-result__interview dt {
+  font-size: 13px;
+  color: var(--navy-muted);
+}
+
+.health-check-result__interview dd {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+/* ---------- 정상/주의/위험 글씨색 ---------- */
+.health-check-result .health-check-result__tone--good {
+  color: var(--good);
+}
+
+.health-check-result .health-check-result__tone--warn {
+  color: var(--warn);
+}
+
+.health-check-result .health-check-result__tone--risk {
+  color: var(--risk);
+}
+
+.health-check-result__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px !important;
+  font-size: 12px;
+  color: var(--navy-muted);
+}
+
+.health-check-result__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.health-check-result__legend span::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (max-width: 720px) {
+  .health-check-result__person {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .health-check-result__title {
+    font-size: 24px;
+  }
+}

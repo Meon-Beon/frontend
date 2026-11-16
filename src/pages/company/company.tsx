@@ -35,8 +35,6 @@ function useReveal() {
 const ICONS = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
   dna: 'M7 3c0 4.5 10 4.5 10 9s-10 4.5-10 9M17 3c0 4.5-10 4.5-10 9s10 4.5 10 9M8.5 6h7M8.5 18h7',
-  family:
-    'M7 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM4.5 21v-8.5A2.5 2.5 0 0 1 7 10a2.5 2.5 0 0 1 2.5 2.5V21M14.5 21v-8.5A2.5 2.5 0 0 1 17 10a2.5 2.5 0 0 1 2.5 2.5V21',
   pulse: 'M3 12h4l2-5 4 10 2-5h6',
   badge: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 12l2.5 2.5 4.5-5',
   db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
@@ -95,7 +93,6 @@ const METRICS = [
 
 const ANALYSIS = [
   { icon: ICONS.dna, label: 'DNA 분석' },
-  { icon: ICONS.family, label: '가족력 조사' },
   { icon: ICONS.pulse, label: '건강검진 이력 확인' },
 ]
 
@@ -176,9 +173,9 @@ function Company() {
               </ul>
             </section>
 
-            {/* ---------- 3개 지표 ---------- */}
+            {/* ---------- 2개 지표 ---------- */}
             <section className="company-card company-reveal" style={delay(400)}>
-              <h2 className="company-side-title">3개 지표 통합분석</h2>
+              <h2 className="company-side-title">2개 지표 통합분석</h2>
               <ul className="company-chips">
                 {ANALYSIS.map((a) => (
                   <li key={a.label}>
