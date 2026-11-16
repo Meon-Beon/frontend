@@ -1,0 +1,8 @@
+export const formatDate = (iso: string) => iso.replaceAll('-', '.')
+
+/** 홍길동 → 홍*동 */
+export function maskName(name: string) {
+  if (name.length <= 1) return name
+  if (name.length === 2) return `${name[0]}*`
+  return `${name[0]}${'*'.repeat(name.length - 2)}${name[name.length - 1]}`
+}
