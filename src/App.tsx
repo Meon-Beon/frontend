@@ -3,12 +3,14 @@ import RequireAuth from './auth/RequireAuth'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
 import DnaApply from './pages/dna-apply/DnaApply'
+import EventPage from './pages/event/event'
 import HealthHistory from './pages/health-history/HealthHistory'
 import InsuranceSetting from './pages/insurance_setting/insurance_setting'
 import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
+import ReportCheck from './pages/Report_check/Report_check'
 import ServiceCenter from './pages/service_center/service_center'
 import Signup from './pages/signup/Signup'
 
@@ -37,6 +39,8 @@ function App() {
           <Route path="/support" element={<ServiceCenter />} />
           <Route path="/dna-apply" element={<DnaApply />} />
           <Route path="/health-history" element={<HealthHistory />} />
+          <Route path="/report" element={<ReportCheck />} />
+          <Route path="/event" element={<EventPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

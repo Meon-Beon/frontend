@@ -1,0 +1,671 @@
+/* EVENT — 메인과 같은 남색 테마. 일반 CSS라서 모든 이름에 event- 접두사를 붙여 다른 페이지와 겹치지 않게 함 */
+.event-page {
+  --surface: #101b35;
+  --surface-soft: #16244a;
+  --line: rgba(255, 255, 255, 0.08);
+  --glass-line: rgba(170, 195, 255, 0.12);
+  --ink: #e4e8ef;
+  --body: #b3bccb;
+  --muted: #8892a5;
+  --teal: #5ef2e6;
+  --violet: #b48cff;
+  --risk: #ff6b78;
+  --warn: #ffc76b;
+
+  /* #root 너비 제한을 넘어 화면 전체를 채움 */
+  width: 100vw;
+  min-height: calc(100svh - 96px);
+  margin-inline: calc(50% - 50vw);
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(45% 30% at 10% 8%, rgba(94, 242, 230, 0.08), transparent 70%),
+    radial-gradient(40% 30% at 90% 40%, rgba(180, 140, 255, 0.1), transparent 70%),
+    linear-gradient(180deg, #0b1530 0%, #070d1f 100%);
+  color: var(--body);
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+body:has(.event-page) {
+  overflow-x: hidden;
+  background: #070d1f;
+}
+
+.event-page main {
+  flex: 1;
+}
+
+.event-page h1,
+.event-page h2,
+.event-page h3,
+.event-page p {
+  margin: 0;
+}
+
+/* 줄바꿈: 마지막 줄에 한두 단어만 남지 않게 줄 길이를 고르게 나눔 */
+.event-page h1,
+.event-page h2,
+.event-page h3,
+.event-page p,
+.event-bridge strong {
+  text-wrap: balance;
+}
+
+.event-page a {
+  text-decoration: none;
+}
+
+.event-band {
+  padding: clamp(40px, 5vw, 72px) 40px;
+}
+
+.event-band.is-alt {
+  background: rgba(16, 27, 53, 0.55);
+  border-block: 1px solid var(--line);
+}
+
+.event-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.event-h2 {
+  font-size: clamp(24px, 2.8vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.event-lead {
+  max-width: 80ch;
+  text-wrap: balance;
+  margin-top: 10px !important;
+  margin-bottom: 26px !important;
+  color: var(--body);
+}
+
+.event-gene {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- 버튼 ---------- */
+.event-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s;
+}
+
+.event-btn.is-main {
+  background: linear-gradient(120deg, #2f8f86 0%, #3d6fd6 60%, #7b5ce0 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 14px 40px -12px rgba(94, 242, 230, 0.45);
+  color: #fff;
+}
+
+.event-btn.is-world {
+  background: #d9799f;
+  box-shadow: 0 12px 30px -14px rgba(217, 121, 159, 0.6);
+  color: #fff;
+}
+
+.event-btn:hover {
+  transform: translateY(-2px);
+}
+
+.event-btn:focus-visible,
+.event-seg button:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+/* ---------- 머리말 ---------- */
+.event-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 32px;
+  margin-bottom: 28px;
+}
+
+.event-top .event-lead {
+  margin-bottom: 0 !important;
+}
+
+.event-month {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--risk);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.event-month i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--risk);
+  box-shadow: 0 0 8px var(--risk);
+}
+
+.event-title {
+  margin-top: 14px !important;
+  font-size: clamp(36px, 4.6vw, 54px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.event-draws {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+
+/* ---------- 유전형 설명 ---------- */
+.event-guide {
+  margin-bottom: 24px;
+  padding: 26px 28px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px rgba(180, 140, 255, 0.3);
+  animation: event-guide-open 0.3s ease;
+}
+
+@keyframes event-guide-open {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.event-guide-lead {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+}
+
+/* 청록·분홍 유전자 범례 */
+.event-guide-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 14px !important;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.event-guide-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.event-guide-legend span::before {
+  content: '';
+  width: 12px;
+  height: 16px;
+  border-radius: 6px;
+}
+
+.event-guide-legend .is-calm::before {
+  background: var(--teal);
+}
+
+.event-guide-legend .is-strong::before {
+  background: #f4a9c6;
+}
+
+.event-guide-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event-guide-cards li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 16px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px var(--line);
+  text-align: center;
+}
+
+.event-guide-svg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+}
+
+.event-guide-cards strong {
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.event-guide-title {
+  font-size: 14px;
+  color: var(--body);
+}
+
+/* 설명 안 체질 탭 */
+.event-guide-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.event-guide-tabs button {
+  min-width: 72px;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+  color: var(--body);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.event-guide-tabs button[aria-pressed='true'] {
+  background: var(--ink);
+  box-shadow: none;
+  color: #0b1530;
+}
+
+.event-guide-tabs button:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* 체질 세기 두 칸 */
+.event-guide-meter {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.event-guide-meter i {
+  width: 28px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.event-guide-meter i.is-on {
+  background: #f4a9c6;
+}
+
+.event-guide-meter-label {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---------- 체질 카드 ---------- */
+.event-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.event-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 20px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-line),
+    0 30px 60px -32px rgba(0, 0, 0, 0.7);
+}
+
+.event-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.event-card-head h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.event-seg {
+  display: flex;
+  gap: 6px;
+  margin: 14px 0 6px;
+}
+
+.event-seg button {
+  flex: 1;
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px var(--glass-line);
+  color: var(--body);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.event-seg button:hover {
+  color: var(--ink);
+}
+
+.event-seg button[aria-pressed='true'] {
+  background: var(--ink);
+  box-shadow: none;
+  color: #0b1530;
+}
+
+.event-fig {
+  height: 190px;
+  margin: 6px -6px;
+}
+
+.event-fig svg {
+  width: 100%;
+  height: 100%;
+}
+
+.event-skin {
+  transition: fill 0.4s;
+}
+
+.event-needle {
+  transform-origin: 150px 128px;
+  transition: transform 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+/* 판정 도장 */
+.event-stamp {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  padding: 2px 10px;
+  border: 3px solid var(--risk);
+  border-radius: 10px;
+  color: var(--risk);
+  font-size: 18px;
+  font-weight: 900;
+  transform: rotate(-12deg);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.event-verdict {
+  margin-top: 6px !important;
+  font-size: clamp(22px, 2.2vw, 27px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.event-desc {
+  min-height: 5.2em;
+  margin: 6px 0 14px !important;
+  font-size: 14px;
+}
+
+.event-share {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  font-size: 13px;
+}
+
+.event-share-row {
+  display: grid;
+  grid-template-columns: 3.8em 2.6em minmax(0, 1fr) 3.4em;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+/* 뽑힌 사람의 유전형 표시 */
+.event-gt {
+  justify-self: start;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.event-gt.is-kr {
+  color: var(--teal);
+}
+
+.event-gt.is-world {
+  color: #f4a9c6;
+}
+
+.event-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.event-track i {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s;
+}
+
+.event-track .is-kr {
+  background: var(--teal);
+}
+
+.event-track .is-world {
+  background: #f4a9c6;
+}
+
+.event-share-row b {
+  color: var(--ink);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.event-who {
+  min-height: 1.6em;
+  margin-top: 16px !important;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ---------- 한국인 평균 vs 세계 평균 ---------- */
+.event-cmp {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.event-cmp h3 {
+  margin-bottom: 10px !important;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.event-cmp-label {
+  margin-top: 10px !important;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.event-stackbar {
+  display: flex;
+  height: 30px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+.event-stackbar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.event-stack-0 {
+  background: #2f6f8f;
+}
+
+.event-stack-1 {
+  background: #b0566a;
+}
+
+.event-stack-2 {
+  background: #e2465a;
+}
+
+.event-twist {
+  margin-top: 12px !important;
+  font-size: 14px;
+  color: var(--body);
+}
+
+/* ---------- 체질 다음은 위험도 ---------- */
+.event-bridge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.event-bridge div {
+  padding: 2px 0 2px 14px;
+  border-left: 4px solid var(--risk);
+}
+
+.event-bridge strong {
+  display: block;
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.event-bridge p {
+  margin-top: 4px !important;
+  font-size: 14px;
+}
+
+.event-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  margin-top: 32px;
+  padding: 24px 28px;
+  border-radius: 20px;
+  background:
+    linear-gradient(140deg, rgba(47, 143, 134, 0.35) 0%, rgba(61, 111, 214, 0.28) 55%, rgba(123, 92, 224, 0.38) 100%),
+    var(--surface);
+  box-shadow: inset 0 0 0 1px rgba(180, 140, 255, 0.35);
+}
+
+.event-cta > span {
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.event-src {
+  margin-top: 26px !important;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 900px) {
+  .event-guide-cards,
+  .event-cards,
+  .event-cmp,
+  .event-bridge {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .event-desc {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .event-band {
+    padding: 36px 16px;
+  }
+
+  .event-top {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-track i,
+  .event-skin,
+  .event-needle {
+    transition: none;
+  }
+}
