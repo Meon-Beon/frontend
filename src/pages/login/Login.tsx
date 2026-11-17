@@ -106,7 +106,7 @@ function Login() {
       <main className={styles.wrap}>
         <form className={styles.card} onSubmit={handleSubmit}>
           <Link to="/" className={styles.mark} aria-label="내진(GENE)설계 홈으로">
-            <GeneLogo className={styles.logo} background="#101b35" title="" />
+            <GeneLogo className={styles.logo} title="" />
           </Link>
 
           <h1 className={styles.title}>

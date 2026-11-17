@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Footer from '../../components/Footer/Footer'
 import pcrIcon from '../../assets/icons/pcr-test.png'
-import writingIcon from '../../assets/icons/writing.png'
 import styles from './style.module.css'
 
 const ARROW = 'M5 12h14M13 6l6 6-6 6'
@@ -24,20 +23,43 @@ function Icon({ d }: { d: string }) {
   )
 }
 
-/** 두 가닥이 꼬인 유전자 나선. 카드 글자색(currentColor)을 따름 */
-function DnaIcon() {
+/** 청진기. 카드 글자색(currentColor)을 따름 */
+function StethoscopeIcon() {
   return (
     <svg
       className={styles.stepIcon}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.6"
       strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M7 2.5c0 4.75 10 4.75 10 9.5s-10 4.75-10 9.5M17 2.5c0 4.75-10 4.75-10 9.5s10 4.75 10 9.5" />
-      <path d="M8.2 5.5h7.6M10 8.6h4M10 15.4h4M8.2 18.5h7.6" />
+      <path d="M5 2.8h2M13 2.8h2M6 2.8v5.4a4 4 0 0 0 8 0V2.8" />
+      <path d="M10 12.2v2.6a5 5 0 0 0 10 0v-1.6" />
+      <circle cx="20" cy="11" r="2.2" />
+    </svg>
+  )
+}
+
+/** 하트가 들어간 리포트 클립보드. 카드 글자색(currentColor)을 따름 */
+function ReportIcon() {
+  return (
+    <svg
+      className={styles.stepIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8.5 4.2H6.6A1.6 1.6 0 0 0 5 5.8v14.6A1.6 1.6 0 0 0 6.6 22h10.8a1.6 1.6 0 0 0 1.6-1.6V5.8a1.6 1.6 0 0 0-1.6-1.6h-1.9" />
+      <rect x="8.5" y="2.4" width="7" height="3.6" rx="1" />
+      <path d="M12 14.2l-2.4-2.3a1.5 1.5 0 0 1 2.4-1.8 1.5 1.5 0 0 1 2.4 1.8z" />
+      <path d="M9 17.4h6M9 19.6h3.6" />
     </svg>
   )
 }
@@ -79,23 +101,23 @@ const STEPS: {
   final?: boolean
 }[] = [
   {
-    icon: <DnaIcon />,
+    icon: pngIcon(pcrIcon),
     title: 'DNA 검사 신청',
     desc: '한국유전자정보센터 전문 연구소 안전 접수',
     footer: '신청하기',
     to: '/dna-apply',
   },
   {
-    icon: pngIcon(writingIcon),
-    title: '건강검진이력 입력',
+    icon: <StethoscopeIcon />,
+    title: '건강검진기록 입력',
     desc: '건보공단 10년 마이데이터 건강검진 이력 간편 등록',
     footer: '마이데이터 연동',
     to: '/health-history',
   },
   {
-    icon: pngIcon(pcrIcon),
-    title: '유전자 검사 + 건강이력 결과 리포트',
-    desc: 'PRS 유전 위험도와 생활검진 복합 분석 신호등 리포트 한눈에 확인',
+    icon: <ReportIcon />,
+    title: '건강 종합 리포트',
+    desc: '내 유전자 검사와 건강검진 내역을 모두 반영한 복합 분석 리포트 확인',
     footer: '리포트 확인하기',
     to: '/report',
   },

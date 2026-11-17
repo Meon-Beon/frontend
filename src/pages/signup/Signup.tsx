@@ -344,7 +344,7 @@ function Signup() {
       <div className={styles.wrap}>
         <header className={styles.top}>
           <Link to="/" className={styles.mark} aria-label="내진(GENE)설계 홈으로">
-            <GeneLogo className={styles.logo} background="#08112a" title="" />
+            <GeneLogo className={styles.logo} title="" />
           </Link>
           <h1 className={styles.title}>회원가입</h1>
         </header>

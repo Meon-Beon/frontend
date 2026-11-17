@@ -1,14 +1,25 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import IntroTree from './IntroTree'
+import DnaFlow from './DnaFlow'
 import { Link } from 'react-router-dom'
 import DnaHelix from '../../components/dna-helix/DnaHelix'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
+import { LAND_POINTS } from './landPoints'
 import styles from './style.module.css'
 
+/** 숫자로 보는 내진설계. 첫 항목은 오른쪽 위에 크게, 나머지는 그 아래 작은 칸 */
 const stats = [
-  { label: '유전정보 추가 결과 식별률 향상', value: '+47.7%', desc: 'European Heart Journal 연구 결과 | 심혈관질환' },
-  { label: '비교 연계 보험사', value: '50 사', desc: '생·손보 통합 데이터' },
-  { label: '정밀 진단 소요시간', value: '3분', desc: '실시간 다차원 스캔' },
+  { label: '유전정보 추가 결과 식별률 향상', value: '+47.7', unit: '%', desc: 'European Heart Journal 연구 결과 | 심혈관질환' },
+  { label: '비교 연계 보험사', value: '50', unit: '사', desc: '생·손보 통합 데이터' },
+  { label: '정밀 진단 소요시간', value: '3', unit: '분', desc: '실시간 다차원 스캔' },
+  { label: '불필요 보험료 절감', value: '38.4', unit: '%', desc: '평균 납입료 다이어트' },
+]
+
+const services = [
+  { no: '01', title: 'DNA 검사 신청', desc: '타액 키트로 집에서 간편하게 신청하세요.', to: '/dna-apply' },
+  { no: '02', title: '건강검진 연동', desc: '건보공단 10년 검진 기록을 한 번에 불러와요.', to: '/health-history' },
+  { no: '03', title: '결과 리포트', desc: 'DNA와 검진을 종합한 위험도를 확인하세요.', to: '/report' },
+  { no: '04', title: '체질 테스트', desc: '술·담배·살 체질을 유전형으로 알아봐요.', to: '/event' },
 ]
 
 const partners = [
@@ -32,7 +43,7 @@ const partners = [
     no: '03',
     icon: 'building',
     category: '국내 생·손보사 통합망',
-    name: '32개 제휴 보험사',
+    name: '50개 제휴 보험사',
     quote:
       '“보험 상품 정보들을 한눈에 비교 분석합니다. 국내 주요 생·손보사 보장 상품들을 매칭하여 내 유전 취약점 대비 최대 혜택을 선별합니다.”',
   },
@@ -42,37 +53,66 @@ const steps = [
   {
     no: '01',
     title: '유전체 정밀 스캔',
-    desc: '간편 타액 키트 또는 기존 결과지를 통해 주요 74종 암·심뇌혈관 만성질환 취약점을 정밀 디지털 스캔합니다.',
+    desc: '간편 타액 키트로 당뇨·심장질환·뇌혈관질환·유방암·대장암·치매의 유전적 위험도를 정밀 분석합니다.',
   },
   {
     no: '02',
-    title: '보유 보험 다이어트',
-    desc: "현재 납입 중인 기가입 증권을 불러와 유전적 위험도가 '낮음'으로 판정된 불필요 과보장 및 중복 특약을 정밀 소멸합니다.",
+    title: '종합 건강 리포트',
+    desc: '건강검진 결과와 유전자 검사 결과를 한데 모아, 지금의 건강 상태와 앞으로의 잠재 위험을 한눈에 보여주는 종합 리포트를 제공합니다.',
   },
   {
     no: '03',
-    title: '결핍 위험 1:1 집중 보강',
-    desc: '유전적으로 발병 위험이 감지된 잠재 결핍 항목만 32개사 최적 상품에서 1:1 타겟 특약으로 가장 알뜰하게 채워 넣습니다.',
+    title: '맞춤 보험 설계',
+    desc: '건강검진만으로는 보이지 않던 유전적 잠재 위험까지 보강해, 나에게 꼭 맞는 보험을 설계하고 추천합니다.',
   },
 ] as const
 
-type IconName =
-  | 'arrow'
-  | 'checkCircle'
-  | 'db'
-  | 'lab'
-  | 'team'
-  | 'building'
-  | 'upload'
+type IconName = 'arrow'
 
 const iconPaths: Record<IconName, string> = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
-  checkCircle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.2 12.3l2.6 2.6 5-5.6',
-  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
-  lab: 'M6 21h12M9 21v-3a5 5 0 0 0 0-10M10 4l4 4-3 3-4-4zM14 18a6 6 0 0 0 4-6',
-  team: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.7-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3.3 0 6 2 6 5',
-  building: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4',
-  upload: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 17v-6M9.5 13.5L12 11l2.5 2.5',
+}
+
+type PartnerIconName = 'lab' | 'team' | 'building'
+
+/** 협력 구조 카드 아이콘: 선 여러 개로 그린 그림 */
+const partnerIconPaths: Record<PartnerIconName, string[]> = {
+  // 공인 검증기관: 플라스크 안에 이중나선
+  lab: [
+    'M9 3h6M10 3v5.5L4.8 17.6A2.3 2.3 0 0 0 6.8 21h10.4a2.3 2.3 0 0 0 2-3.4L14 8.5V3',
+    'M7.6 12.6h8.8',
+    'M8 16.6c1.3-2.2 2.7-2.2 4 0s2.7 2.2 4 0M8 16.6c1.3 2.2 2.7 2.2 4 0s2.7-2.2 4 0',
+    'M10 15.6v2M14 15.6v2',
+  ],
+  // 설계단: 가운데 사람과 양옆 동료
+  team: [
+    'M12 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z',
+    'M6 20c0-3.3 2.7-5.6 6-5.6s6 2.3 6 5.6',
+    'M5.6 10.6a2.4 2.4 0 1 1 1.2-4.5M18.4 10.6a2.4 2.4 0 1 0-1.2-4.5',
+    'M2.5 18.4c0-2 1.3-3.6 3.2-4.2M21.5 18.4c0-2-1.3-3.6-3.2-4.2',
+  ],
+  // 제휴 보험사: 기둥이 있는 금융기관 건물
+  building: ['M3.5 21h17', 'M4.5 9.2 12 4l7.5 5.2z', 'M6.5 12v6M10.2 12v6M13.8 12v6M17.5 12v6', 'M5 18.5h14'],
+}
+
+/** 청록 → 보라 그라데이션 선으로 그린 아이콘을 빛나는 유리 칸에 담음 */
+function PartnerIcon({ name }: { name: PartnerIconName }) {
+  const gid = `partner-grad-${useId().replace(/:/g, '')}`
+  return (
+    <span className={styles.partnerIcon}>
+      <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <defs>
+          <linearGradient id={gid} x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#5ef2e6" />
+            <stop offset="1" stopColor="#b48cff" />
+          </linearGradient>
+        </defs>
+        {partnerIconPaths[name].map((d) => (
+          <path key={d} d={d} stroke={`url(#${gid})`} />
+        ))}
+      </svg>
+    </span>
+  )
 }
 
 function Icon({ name, className }: { name: IconName; className?: string }) {
@@ -154,9 +194,250 @@ const markIntroSeen = () => {
   }
 }
 
+/* ---------- 2) 숫자 올라가기 ---------- */
+
+/** "+47.7", "12,480" 같은 값을 화면에 들어올 때 0부터 올려 보여 줌 */
+function CountUp({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const prefix = value.match(/^[^\d]*/)?.[0] ?? ''
+    const target = Number(value.replace(/[^\d.]/g, ''))
+    const decimals = (value.split('.')[1] ?? '').length
+    const format = (n: number) =>
+      prefix + n.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    if (prefersReducedMotion() || !Number.isFinite(target)) {
+      el.textContent = value
+      return
+    }
+    el.textContent = format(0)
+
+    let frame = 0
+    const run = () => {
+      const start = performance.now()
+      const step = (now: number) => {
+        const t = Math.min((now - start) / 1400, 1)
+        const eased = 1 - Math.pow(1 - t, 3)
+        el.textContent = t < 1 ? format(target * eased) : value
+        if (t < 1) frame = requestAnimationFrame(step)
+      }
+      frame = requestAnimationFrame(step)
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          run()
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.4 },
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [value])
+  return <span ref={ref}>{value}</span>
+}
+
+/* ---------- 3) 세계 지도 지구본 ---------- */
+
+/** 연구소 위치: 경기도 성남시 분당구 판교 */
+const HQ = { lat: 37.4, lng: 127.11 }
+
+/**
+ * 육지 점으로 그린 지구본. 한국 경도를 중심으로 좌우로 천천히 흔들리며 돌고,
+ * 연구소(판교) 자리에 분홍 표시가 맥박처럼 퍼짐. 화면에 보일 때만 움직임
+ */
+function Globe({ className }: { className?: string }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = ref.current
+    const ctx = canvas?.getContext('2d')
+    if (!canvas || !ctx) return
+    const RAD = Math.PI / 180
+    const land = LAND_POINTS.map(([lat, lng]) => ({ phi: lat * RAD, lam: lng * RAD }))
+
+    let width = 0
+    let height = 0
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      width = canvas.clientWidth
+      height = canvas.clientHeight
+      canvas.width = Math.round(width * dpr)
+      canvas.height = Math.round(height * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    // 위도·경도 → 화면 좌표 (중심 경도 lam0, 북쪽으로 tilt 만큼 기울여 한국이 잘 보이게)
+    const tilt = 28 * RAD
+    const project = (phi: number, lam: number, lam0: number, r: number, cx: number, cy: number) => {
+      const x0 = Math.cos(phi) * Math.sin(lam - lam0)
+      const y0 = Math.sin(phi)
+      const z0 = Math.cos(phi) * Math.cos(lam - lam0)
+      const y = y0 * Math.cos(tilt) - z0 * Math.sin(tilt)
+      const z = y0 * Math.sin(tilt) + z0 * Math.cos(tilt)
+      return { x: cx + x0 * r, y: cy - y * r, z }
+    }
+
+    const draw = (t: number) => {
+      ctx.clearRect(0, 0, width, height)
+      const r = Math.min(width * 0.46, height * 0.42)
+      const cx = width / 2
+      const cy = height * 0.46
+      const lam0 = (HQ.lng - 10 + Math.sin(t * 0.35) * 35) * RAD
+
+      // 바다: 은은한 구
+      const ocean = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r)
+      ocean.addColorStop(0, 'rgba(94, 242, 230, 0.12)')
+      ocean.addColorStop(1, 'rgba(19, 37, 74, 0.55)')
+      ctx.fillStyle = ocean
+      ctx.beginPath()
+      ctx.arc(cx, cy, r, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(94, 242, 230, 0.25)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // 육지 점: 앞쪽일수록 크고 진하게
+      ctx.fillStyle = '#5ef2e6'
+      for (const p of land) {
+        const q = project(p.phi, p.lam, lam0, r, cx, cy)
+        if (q.z <= 0) continue
+        ctx.globalAlpha = 0.25 + q.z * 0.7
+        ctx.beginPath()
+        ctx.arc(q.x, q.y, 0.7 + q.z * 1.1, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      ctx.globalAlpha = 1
+
+      // 연구소 표시
+      const hq = project(HQ.lat * RAD, HQ.lng * RAD, lam0, r, cx, cy)
+      if (hq.z > 0) {
+        const pulse = (t * 0.9) % 1
+        ctx.strokeStyle = `rgba(170, 102, 255, ${1 - pulse})`
+        ctx.lineWidth = 2.4
+        ctx.beginPath()
+        ctx.arc(hq.x, hq.y, 6 + pulse * 22, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.fillStyle = '#aa66ff'
+        ctx.shadowColor = 'rgba(170, 102, 255, 0.95)'
+        ctx.shadowBlur = 14
+        ctx.beginPath()
+        ctx.arc(hq.x, hq.y, 5.5, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.shadowBlur = 0
+        // 이름표: 오른쪽 끝에 닿으면 표시의 왼쪽에 붙임
+        ctx.font = '700 13px Pretendard, sans-serif'
+        const labelW = ctx.measureText('제노플랜코리아 연구소').width
+        const toLeft = hq.x + 20 + labelW > width - 12
+        const dir = toLeft ? -1 : 1
+        const lx = hq.x + dir * 16
+        const ly = hq.y - 26
+        ctx.strokeStyle = 'rgba(170, 102, 255, 0.7)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(hq.x + dir * 4, hq.y - 4)
+        ctx.lineTo(lx, ly + 6)
+        ctx.stroke()
+        ctx.textAlign = toLeft ? 'right' : 'left'
+        ctx.fillStyle = '#ffffff'
+        ctx.fillText('제노플랜코리아 연구소', lx + dir * 4, ly)
+        ctx.font = '500 11px Pretendard, sans-serif'
+        ctx.fillStyle = 'rgba(228, 232, 239, 0.7)'
+        ctx.fillText('PANGYO · KOREA', lx + dir * 4, ly + 15)
+        ctx.textAlign = 'left'
+      }
+    }
+
+    resize()
+    draw(0)
+    const reduced = prefersReducedMotion()
+    let frame = 0
+    let visible = false
+    const start = performance.now()
+    const tick = (now: number) => {
+      draw((now - start) / 1000)
+      if (visible) frame = requestAnimationFrame(tick)
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      cancelAnimationFrame(frame)
+      if (visible && !reduced) frame = requestAnimationFrame(tick)
+    })
+    observer.observe(canvas)
+    const onResize = () => {
+      resize()
+      draw((performance.now() - start) / 1000)
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
+  return <canvas ref={ref} className={className} aria-label="판교에 있는 제노플랜코리아 연구소를 표시한 지구본" role="img" />
+}
+
+/* ---------- 숫자 카드 회전 ---------- */
+
+/** 칸을 시계방향(큰 칸 → 아래 오른쪽 → 아래 가운데 → 아래 왼쪽)으로 셌을 때, 처음 각 칸에 있는 숫자 번호 */
+const STAT_ORDER = [0, 3, 2, 1]
+/** turn 번 돌았을 때 k 번째 칸(시계방향 순서)에 올 숫자의 STAT_ORDER 위치 */
+const slotOf = (k: number, turn: number) => (((k - turn) % 4) + 4) % 4
+
+/** 숫자 카드 한 칸의 내용. turn 이 바뀔 때마다 새로 그려져 조용히 서서히 바뀜 (숫자 올라가기 없음) */
+function StatBody({ s, turn }: { s: (typeof stats)[number]; turn: number }) {
+  return (
+    <div key={`${s.label}-${turn}`} className={styles.statSwap}>
+      <span className={styles.statLabel}>{s.label}</span>
+      <strong className={styles.statValue}>
+        {turn === 0 ? <CountUp value={s.value} /> : s.value}
+        <small>{s.unit}</small>
+      </strong>
+      <span className={styles.statDesc}>{s.desc}</span>
+    </div>
+  )
+}
+
+/** 화면에 보이는 동안 5초마다 1씩 늘어나는 회전 횟수. 마우스를 올리면 잠깐 멈춤 */
+function useStatTurn(ref: RefObject<HTMLElement | null>) {
+  const [turn, setTurn] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || prefersReducedMotion()) return
+    let visible = false
+    let hover = false
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+    }, { threshold: 0.3 })
+    observer.observe(el)
+    const enter = () => (hover = true)
+    const leave = () => (hover = false)
+    el.addEventListener('mouseenter', enter)
+    el.addEventListener('mouseleave', leave)
+    const timer = window.setInterval(() => {
+      if (visible && !hover) setTurn((t) => t + 1)
+    }, 5000)
+    return () => {
+      observer.disconnect()
+      window.clearInterval(timer)
+      el.removeEventListener('mouseenter', enter)
+      el.removeEventListener('mouseleave', leave)
+    }
+  }, [ref])
+  return turn
+}
+
 function Intro() {
   const pageRef = useRef<HTMLDivElement>(null)
   useIntroMotion(pageRef)
+  const helixRef = useRef<HTMLDivElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const statTurn = useStatTurn(statsRef)
 
   // 방문(브라우저 탭 세션)당 한 번만 재생
   // 주소 끝에 ?intro 를 붙이면 설정과 상관없이 항상 다시 재생 (테스트·시연용)
@@ -179,7 +460,7 @@ function Intro() {
         <span className={styles.aurora} />
         <span className={styles.stars} />
       </div>
-      <div className={styles.helixStage} role="img" aria-label="회전하는 3D 유전자 나선">
+      <div ref={helixRef} className={styles.helixStage} role="img" aria-label="회전하는 3D 유전자 나선">
         <span className={styles.helixGlow} />
         {/* 한 화면 내릴 때마다 나선이 반 바퀴 더 돌아 본문과 함께 움직임 */}
         <DnaHelix background="transparent" scrollSpin={Math.PI} />
@@ -187,13 +468,7 @@ function Intro() {
 
       <header className={styles.header}>
         <Link to="/" className={styles.brand}>
-          <GeneLogo className={styles.brandMark} title="" />
-          <span>
-            <strong className={styles.brandName}>
-              내진<em>(GENE)</em>설계
-            </strong>
-            <small className={styles.brandSub}>유전자 기반 정밀 보험 설계</small>
-          </span>
+          <GeneLogo className={styles.brandMark} />
         </Link>
 
         <nav className={styles.nav}>
@@ -203,60 +478,84 @@ function Intro() {
           <Link to="/login">로그인/회원가입</Link>
         </nav>
 
-        <div className={styles.headerActions}>
-          <Link to="/login" className={styles.headerCta}>
-            내 보험 설계 GENE행하기 <Icon name="arrow" />
-          </Link>
-        </div>
       </header>
 
       <main className={styles.main}>
+        {/* 히어로: 핵심 메시지 한 장 + 바로 설계 시작 버튼 */}
         <section className={styles.hero}>
-          {/* 왼쪽 칸은 배경 나선이 보이도록 비워 둠 */}
-          <div
-            className={`${styles.heroCopy} ${treePlayed && treeDone ? styles.heroEnter : ''}`}
-          >
-            <h1 className={styles.heroTitle}>
-              보험에 나를 맞추지 마세요.
-              <br />
-              <span className={styles.gradientText}>보험을 나에게 맞추세요.</span>
-            </h1>
-            <p className={styles.heroDesc}>
-              <span>
-                <b>내진(GENE)설계</b>는 유전적 위험도에 꼭 맞는 필수 보장만 정밀하게 담아냅니다.
-              </span>
-              <span>중복되거나 불필요한 특약에 새어나가던 보험료를 투명하게 바로잡습니다.</span>
-            </p>
-
-            <ul className={styles.trust}>
-              <li>
-                <Icon name="checkCircle" /> 보건복지부 DTC 4.0 인증 완료
-              </li>
-              <li>
-                <Icon name="checkCircle" /> 유전정보보호 가이드라인 100% 준수
-              </li>
-              <li>
-                <Icon name="db" /> 누적 42,000건+ 유전체 분석 포트폴리오
-              </li>
-            </ul>
-          </div>
-
-          <a href="#numbers" className={styles.scrollCue} aria-label="아래로 이동">
-            <span />
-          </a>
-        </section>
-
-        <section id="numbers" className={`${styles.glass} ${styles.stats}`} data-reveal>
-          {stats.map((s) => (
-            <div key={s.label} className={styles.stat}>
-              <span className={styles.statLabel}>{s.label}</span>
-              <strong className={styles.statValue}>{s.value}</strong>
-              <span className={styles.statDesc}>{s.desc}</span>
+          <div className={styles.heroSticky}>
+            <div className={styles.heroSlides}>
+              <div className={`${styles.heroCopy} ${styles.slideOn} ${treePlayed && treeDone ? styles.heroEnter : ''}`}>
+                <h1 className={styles.heroTitle}>
+                  보험에 나를 맞추지 마세요.
+                  <br />
+                  <span className={styles.gradientText}>보험을 나에게 맞추세요.</span>
+                </h1>
+                <p className={styles.heroDesc}>
+                  <span>
+                    <b>내진(GENE)설계</b>는 유전적 위험도에 꼭 맞는 필수 보장만 정밀하게 담아냅니다.
+                  </span>
+                  <span>중복되거나 불필요한 특약에 새어나가던 보험료를 투명하게 바로잡습니다.</span>
+                </p>
+                <div className={styles.heroCtas}>
+                  <Link to="/login" className={styles.primaryBtn}>
+                    내 보험 설계 GENE행하기 <Icon name="arrow" />
+                  </Link>
+                </div>
+              </div>
             </div>
-          ))}
+
+          </div>
         </section>
 
-        <section id="partners" className={styles.section}>
+        {/* 왼쪽 세로 나선이 내려오다 휘어져 가로 이중나선으로 이어짐 */}
+        <DnaFlow helixRef={helixRef} pageRef={pageRef} />
+
+        <section id="numbers" className={`${styles.section} ${styles.bandGray}`}>
+          <p className={styles.kicker} data-reveal>
+            BY THE NUMBERS
+          </p>
+          <h2 className={styles.sectionTitle} data-reveal>
+            숫자로 증명하는 정밀함
+            <span className={styles.sectionSub}>연구 결과와 분석 실적</span>
+          </h2>
+          <div className={styles.numbers}>
+            {/* 왼쪽: 지구본과 연구소 위치 */}
+            <div className={`${styles.glass} ${styles.globeCard}`} data-reveal>
+              <Globe className={styles.globe} />
+              <div className={styles.globeInfo}>
+                <span className={styles.globeTag}>RESEARCH LAB</span>
+                <strong>제노플랜코리아 연구소</strong>
+                <span>경기도 성남시 분당구 판교로228번길 15 판교세븐벤처밸리1단지 제3동 8층</span>
+              </div>
+            </div>
+
+            {/* 오른쪽: 대표 숫자 크게 + 작은 숫자 세 칸. 칸 모양은 그대로, 5초마다 숫자가 시계방향으로 한 칸씩 이동 */}
+            <div ref={statsRef} className={styles.numbersRight}>
+              <div className={`${styles.glass} ${styles.stat} ${styles.statBig}`} data-reveal>
+                <StatBody s={stats[STAT_ORDER[slotOf(0, statTurn)]]} turn={statTurn} />
+              </div>
+              <ul className={styles.statRow}>
+                {[0, 1, 2].map((j) => (
+                  <li
+                    key={j}
+                    className={`${styles.glass} ${styles.stat}`}
+                    style={{ '--delay': `${(j + 1) * 80}ms` } as CSSProperties}
+                    data-reveal
+                  >
+                    <StatBody s={stats[STAT_ORDER[slotOf(3 - j, statTurn)]]} turn={statTurn} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+
+        <section id="partners" className={`${styles.section} ${styles.bandWhite}`}>
+          <p className={styles.kicker} data-reveal>
+            PARTNERS
+          </p>
           <h2 className={styles.sectionTitle} data-reveal>
             3대 핵심 협력 구조
             <span className={styles.sectionSub}>데이터 객관성과 설계 신뢰도</span>
@@ -270,12 +569,7 @@ function Intro() {
                 style={{ '--delay': `${i * 120}ms` } as CSSProperties}
                 data-reveal
               >
-                <div className={styles.partnerTop}>
-                  <span className={styles.partnerIcon}>
-                    <Icon name={p.icon} />
-                  </span>
-                  <span className={styles.partnerNo}>PARTNER {p.no}</span>
-                </div>
+                <PartnerIcon name={p.icon} />
                 <p className={styles.partnerCategory}>{p.category}</p>
                 <h3 className={styles.partnerName}>{p.name}</h3>
                 <p className={styles.partnerQuote}>{p.quote}</p>
@@ -284,7 +578,10 @@ function Intro() {
           </div>
         </section>
 
-        <section id="process" className={styles.section}>
+        <section id="process" className={`${styles.section} ${styles.bandGray}`}>
+          <p className={styles.kicker} data-reveal>
+            PROCESS
+          </p>
           <h2 className={styles.sectionTitle} data-reveal>
             내진설계 3단계 간이 프로세스
           </h2>
@@ -302,37 +599,34 @@ function Intro() {
                 <span className={styles.stepNo}>STEP {s.no}</span>
                 <h3 className={styles.stepTitle}>{s.title}</h3>
                 <p className={styles.stepDesc}>{s.desc}</p>
-                <span className={styles.stepArrow}>
-                  <Icon name="arrow" />
-                </span>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* 마지막 행동 유도: 설계 시작 / 결과지 등록 */}
-        <div className={styles.ctaStack}>
-          <section className={`${styles.glass} ${styles.cta}`} data-reveal>
-            <h3 className={styles.ctaTitle}>내 유전자에 꼭 맞는 보험, 지금 설계해 보세요</h3>
-            <Link to="/login" className={`${styles.primaryBtn} ${styles.ctaMainBtn}`}>
-              내 보험 설계 GENE행하기
-              <Icon name="arrow" />
-            </Link>
-          </section>
-
-          <section
-            className={`${styles.glass} ${styles.cta}`}
-            style={{ '--delay': '120ms' } as CSSProperties}
-            data-reveal
-          >
-            <h3 className={`${styles.ctaTitle} ${styles.ctaTitleSmall}`}>
-              유전자 검사 결과지가 이미 있으신가요?
-            </h3>
-            <Link to="/dna-apply" className={styles.resultBtn}>
-              <Icon name="upload" /> 결과지 등록하고 무료 진단 <Icon name="arrow" />
-            </Link>
-          </section>
-        </div>
+        {/* ---------- 서비스 바로가기 ---------- */}
+        <section className={`${styles.section} ${styles.bandWhite}`}>
+          <p className={styles.kicker} data-reveal>
+            SERVICES
+          </p>
+          <h2 className={styles.sectionTitle} data-reveal>
+            상담부터 리포트까지, 한곳에서
+          </h2>
+          <ul className={styles.services}>
+            {services.map((sv, i) => (
+              <li key={sv.no} style={{ '--delay': `${i * 100}ms` } as CSSProperties} data-reveal>
+                <Link to={sv.to} className={`${styles.glass} ${styles.service}`}>
+                  <span className={styles.serviceNo}>SERVICE {sv.no}</span>
+                  <strong>{sv.title}</strong>
+                  <span className={styles.serviceDesc}>{sv.desc}</span>
+                  <span className={styles.servicePlus} aria-hidden="true">
+                    +
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
 
       </main>
 
@@ -352,7 +646,7 @@ function Intro() {
             <a href="#">이용약관</a>
           </p>
           <p>
-            고객지원센터 <b>1588-0000</b>
+            고객지원센터 <b>1588-0921</b>
           </p>
         </div>
       </footer>
