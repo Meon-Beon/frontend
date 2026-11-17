@@ -27,7 +27,7 @@ const partners = [
     no: '01',
     icon: 'lab',
     category: '공인 유전체 검증기관',
-    name: '한국유전자정보센터',
+    name: '제노플랜코리아',
     quote:
       '“공인 연구기관에 연구를 직접 의뢰하여 12,480개 유전자 마커를 객관적으로 판독하고 정밀 프로파일링을 확립합니다.”',
   },
@@ -642,7 +642,7 @@ function Intro() {
       <footer className={styles.footer}>
         <div>
           <p className={styles.footerBrand}>
-            내진설계(GENE) Precision InsurTech <span>· 한국유전자정보센터 연계 파트너십</span>
+            내진설계(GENE) Precision InsurTech <span>· 제노플랜코리아 연계 파트너십</span>
           </p>
           <p className={styles.footerCopy}>
             CONFIDENTIAL · © 2026 내진설계(GENE). 모든 유전체 정보는 생명윤리 및 안전에 관한
