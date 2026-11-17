@@ -31,7 +31,7 @@ const MATRIX: { title: string; dna: number; current: number; level: Level; comme
     dna: 78,
     current: 75,
     level: 'risk',
-    comment: '혈압이 경계치이고 뇌혈관벽 탄력 저하 유전 인자가 있어요. 뇌질환 특약 보장을 권해요.',
+    comment: '혈압이 경계치예요. 뇌혈관 탄력 저하 유전 인자도 있어요. 뇌질환 특약 보장을 권해요.',
   },
   {
     title: '당뇨병 및 인슐린',
@@ -133,6 +133,20 @@ function Icon({ d }: { d: string }) {
   )
 }
 
+/** 문장이 끝날 때마다 줄을 바꿔서, 한 줄에 한 문장씩 보여 줌 */
+function Sentences({ text }: { text: string }) {
+  const sentences = text.split(/(?<=[.!?])\s+/)
+  return (
+    <>
+      {sentences.map((sentence) => (
+        <span key={sentence} className="report-check-sentence">
+          {sentence}
+        </span>
+      ))}
+    </>
+  )
+}
+
 /** 퍼센트 막대. 처음 그려질 때 0에서 차오름 */
 function Bar({ percent, level }: { percent: number; level: Level }) {
   return (
@@ -180,7 +194,9 @@ function FindingCard({ f }: { f: Finding }) {
         {f.lines.map((l) => (
           <div key={l.label}>
             <dt>{l.label}</dt>
-            <dd>{l.text}</dd>
+            <dd>
+              <Sentences text={l.text} />
+            </dd>
           </div>
         ))}
       </dl>
@@ -234,7 +250,11 @@ function ReportCheck() {
                   </div>
                   <Bar percent={m.current} level={m.level} />
                 </div>
-                <p className="report-check-comment">{m.comment}</p>
+                <p className="report-check-comment">
+                  <span>
+                    <Sentences text={m.comment} />
+                  </span>
+                </p>
               </li>
             ))}
           </ul>

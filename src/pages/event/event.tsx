@@ -116,6 +116,13 @@ const GUIDE: Record<
   },
 }
 
+/** 기능 설명: 화면 사용법 세 단계 */
+const HOW_TO = [
+  { title: '데이터 뽑기', desc: '한국인·서양인 중 한 명을 뽑아요' },
+  { title: '유형 자동 선택', desc: '그 사람의 GG·AG·AA가 카드에 바로 눌려요' },
+  { title: '비율 보기', desc: '아래 막대로 그 유형이 얼마나 흔한지 봐요' },
+]
+
 const BRIDGE = [
   { title: '홍당무형 + 음주 → 식도암', desc: '술에 약한 유전자(ALDH2)를 가진 동아시아인에게서 식도암과의 연관이 보고됐어요.' },
   { title: '니코틴 A형 → 폐암', desc: '니코틴에 끌리는 유전자(CHRNA5)는 흡연량 증가, 폐암 감수성과 함께 보고돼요.' },
@@ -342,7 +349,7 @@ function TraitCard({ trait, lv, krLv, westLv, onPick }: CardProps) {
 }
 
 function EventPage() {
-  // 카드 그림·판정은 유전형 버튼으로만, 게이지는 한국인·서양인 뽑기 버튼으로 각자 따로 바뀜
+  // 뽑기 버튼은 카드 유전형과 자기 게이지 줄(한국인·서양인)을 바꾸고, 유전형 버튼은 카드만 바꿈
   const [sel, setSel] = useState([0, 0, 0])
   // 처음엔 각 집단에서 가장 흔한 유형
   const [krPick, setKrPick] = useState(() => TRAITS.map((t) => mostCommon(t.kr)))
@@ -356,15 +363,20 @@ function EventPage() {
     setSel((prev) => prev.map((v, k) => (k === i ? lv : v)))
   }
 
+  // 뽑은 사람의 유전형으로 카드의 GG·AG·AA 버튼도 같이 눌림
   const drawKorean = () => {
-    setKrPick(TRAITS.map((t) => pick(t.kr)))
+    const picked = TRAITS.map((t) => pick(t.kr))
+    setKrPick(picked)
+    setSel(picked)
     setKrWho('한국인: 유전형 비율대로 무작위로 뽑은 가상의 한 사람이에요.')
   }
 
   const drawWest = () => {
     const keys = Object.keys(WORLD_COMBOS)
     const key = keys[pick(keys.map((k) => WORLD_COMBOS[k]))]
-    setWestPick(key.split('|').map((g, i) => Math.max(0, TRAITS[i].gts.indexOf(g))))
+    const picked = key.split('|').map((g, i) => Math.max(0, TRAITS[i].gts.indexOf(g)))
+    setWestPick(picked)
+    setSel(picked)
     setWestWho(`서양인: 참가자 411명 중 한 명의 실제 조합이에요 (같은 조합 ${WORLD_COMBOS[key]}명).`)
   }
 
@@ -398,15 +410,25 @@ function EventPage() {
                   aria-controls="event-guide"
                   onClick={() => setGuideOpen((v) => !v)}
                 >
-                  GG · AG · AA가 뭔가요? {guideOpen ? '▲' : '▼'}
+                  기능 설명 {guideOpen ? '▲' : '▼'}
                 </button>
               </div>
             </div>
 
             {/* ---------- 유전형 설명 ---------- */}
             {guideOpen && (
-              <section id="event-guide" className="event-guide" aria-label="유전형 설명">
-                <p className="event-guide-lead">엄마·아빠에게 하나씩 받은 유전자 한 쌍이에요.</p>
+              <section id="event-guide" className="event-guide" aria-label="기능 설명">
+                {/* 화면 사용법 */}
+                <ol className="event-guide-steps">
+                  {HOW_TO.map((h, k) => (
+                    <li key={h.title}>
+                      <span className="event-guide-step-no">{k + 1}</span>
+                      <strong>{h.title}</strong>
+                      <span>{h.desc}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="event-guide-lead">GG·AG·AA는 엄마·아빠에게 하나씩 받은 유전자 한 쌍이에요.</p>
                 <div className="event-guide-tabs" role="group" aria-label="체질 고르기">
                   {TRAITS.map((t) => (
                     <button

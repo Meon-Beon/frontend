@@ -52,6 +52,21 @@ body:has(.report-check) {
   list-style: none;
 }
 
+/* 한 문장이 끝나면 다음 줄로 */
+.report-check-sentence {
+  display: block;
+}
+
+/* 줄바꿈: 단어 중간에서 끊지 않고(keep-all), 마지막 줄에 한두 단어만 남지 않게 줄 길이를 고르게 나눔 */
+.report-check h1,
+.report-check h2,
+.report-check h3,
+.report-check p,
+.report-check dd,
+.report-check-finding-title {
+  text-wrap: balance;
+}
+
 .report-check a {
   color: inherit;
   text-decoration: none;
@@ -328,10 +343,14 @@ body:has(.report-check) {
   font-size: 15px;
   font-weight: 500;
   line-height: 1.7;
-  text-align: center;
-  /* 두 줄 길이가 비슷하게 나뉘도록 */
-  text-wrap: balance;
   color: var(--ink);
+}
+
+/* 글자는 왼쪽 정렬, 글 덩어리는 박스 가운데에 */
+.report-check-comment span {
+  text-align: left;
+  /* 줄 길이가 비슷하게 나뉘도록 */
+  text-wrap: balance;
 }
 
 /* ---------- 출처별 식별 정보 ---------- */

@@ -206,6 +206,48 @@ body:has(.event-page) {
   }
 }
 
+/* 기능 설명 세 단계 */
+.event-guide-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0 0 22px;
+  border-bottom: 1px solid var(--line);
+  list-style: none;
+}
+
+.event-guide-steps li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+}
+
+.event-guide-step-no {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--violet);
+  color: #0b1530;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.event-guide-steps strong {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.event-guide-steps li > span:last-child {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .event-guide-lead {
   font-size: 16px;
   font-weight: 600;
@@ -640,6 +682,7 @@ body:has(.event-page) {
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 900px) {
+  .event-guide-steps,
   .event-guide-cards,
   .event-cards,
   .event-cmp,
