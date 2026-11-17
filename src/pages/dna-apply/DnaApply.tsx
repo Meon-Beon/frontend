@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 // STEP 표시에만 쓰는 둥근 글꼴
 import '@fontsource/nunito/800.css'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ANONYMOUS, loadTossPayments } from '@tosspayments/tosspayments-sdk'
 import { confirmDnaPayment, createDnaOrder, errorMessage } from '../../api/dna'
 import { readUser } from '../../auth/session'
@@ -198,10 +198,19 @@ function DnaApply() {
   const [payState, setPayState] = useState(() => initialPayState(searchParams))
   const closePayState = useCallback(() => setPayState(null), [])
   const confirmedRef = useRef(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // 약관 모두 동의 → 결제하기: 동의창을 닫고 토스 결제창을 띄움
   const startPayment = useCallback(() => {
     setConsentOpen(false)
+
+    // 로그인 안 했으면 결제 대신 로그인 페이지로. 로그인하면 이 페이지로 다시 돌아옴 (Login.tsx의 getRedirectPath)
+    if (!readUser()) {
+      navigate('/login', { state: { from: location.pathname + location.search } })
+      return
+    }
+
     openTossPayment().catch((error) => {
       console.error('[토스 결제창 열기 실패]', error)
       setPayState({
@@ -209,7 +218,7 @@ function DnaApply() {
         message: errorMessage(error, '결제창을 열지 못했어요. 잠시 후 다시 시도해 주세요.'),
       })
     })
-  }, [])
+  }, [navigate, location])
 
   // 결제 성공으로 돌아왔으면 서버에 승인 요청 → 결과를 결제완료 팝업에 표시
   useEffect(() => {
