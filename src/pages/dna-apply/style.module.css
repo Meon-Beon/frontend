@@ -57,7 +57,7 @@
 
 .title {
   font-size: clamp(30px, 3.4vw, 40px);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: #fff;
 }
@@ -94,7 +94,8 @@
 .cardTitle {
   padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
-  font-size: 19px;
+  /* 기존 19px의 120% */
+  font-size: 23px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink);
@@ -125,7 +126,7 @@
   right: 20px;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg, var(--teal), var(--violet));
+  background: var(--teal);
   opacity: 0.7;
 }
 
@@ -175,7 +176,7 @@
 
 .benefits h3 {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -186,10 +187,17 @@
   color: var(--body);
 }
 
-.medical {
+.source {
   margin-top: 18px !important;
   padding-top: 16px;
   border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted, var(--body));
+}
+
+.medical {
+  margin-top: 8px !important;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.6;

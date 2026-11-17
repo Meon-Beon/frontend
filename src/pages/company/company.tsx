@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import './company.css'
 
@@ -34,8 +34,8 @@ function useReveal() {
 
 const ICONS = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
-  dna: 'M7 3c0 4.5 10 4.5 10 9s-10 4.5-10 9M17 3c0 4.5-10 4.5-10 9s10 4.5 10 9M8.5 6h7M8.5 18h7',
-  pulse: 'M3 12h4l2-5 4 10 2-5h6',
+  checkup:
+    'M9 3.5h6v3H9zM9 5H6.5A1.5 1.5 0 0 0 5 6.5v13A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17.5 5H15M7.5 14h2l1.5-3 2 5 1.5-2h2',
   badge: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 12l2.5 2.5 4.5-5',
   db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
   bank: 'M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18',
@@ -56,6 +56,51 @@ function Icon({ d }: { d: string }) {
       aria-hidden="true"
     >
       <path d={d} />
+    </svg>
+  )
+}
+
+/** 로고 N 자리와 같은 사선 이중나선: 왼쪽 위(보라)에서 오른쪽 아래(민트)로 한 번 꼬임 */
+const HELIX = (() => {
+  const top = { x: 6, y: 3.5 }
+  const bottom = { x: 18, y: 20.5 }
+  const width = 3.6
+  const dx = bottom.x - top.x
+  const dy = bottom.y - top.y
+  const len = Math.hypot(dx, dy)
+  const nx = -dy / len
+  const ny = dx / len
+  const at = (t: number, off: number) => `${(top.x + dx * t + nx * off).toFixed(2)} ${(top.y + dy * t + ny * off).toFixed(2)}`
+  const strand = (sign: number) =>
+    'M' + Array.from({ length: 25 }, (_, k) => at(k / 24, sign * width * Math.sin((k / 24) * Math.PI * 2))).join(' L')
+  const rung = (t: number) => {
+    const off = width * Math.sin(t * Math.PI * 2) * 0.75
+    return `M${at(t, off)} L${at(t, -off)}`
+  }
+  return { a: strand(1), b: strand(-1), rungs: rung(0.25) + rung(0.75), top, bottom }
+})()
+
+function HelixMark() {
+  const grad = `company-helix-${useId().replace(/:/g, '')}`
+  return (
+    <svg className="company-icon" viewBox="0 0 24 24" fill="none" strokeLinecap="round" aria-hidden="true">
+      <defs>
+        <linearGradient
+          id={grad}
+          gradientUnits="userSpaceOnUse"
+          x1={HELIX.top.x}
+          y1={HELIX.top.y}
+          x2={HELIX.bottom.x}
+          y2={HELIX.bottom.y}
+        >
+          <stop offset="0" stopColor="#c99cff" />
+          <stop offset="0.5" stopColor="#8d7dff" />
+          <stop offset="1" stopColor="#3fe0d6" />
+        </linearGradient>
+      </defs>
+      <path d={HELIX.rungs} stroke="rgba(238, 241, 248, 0.55)" strokeWidth="0.9" />
+      <path d={HELIX.b} stroke={`url(#${grad})`} strokeWidth="2" opacity="0.85" />
+      <path d={HELIX.a} stroke={`url(#${grad})`} strokeWidth="2" />
     </svg>
   )
 }
@@ -91,9 +136,10 @@ const METRICS = [
   { label: ['파트너십', '보험사'], value: '50', unit: '사' },
 ]
 
-const ANALYSIS = [
-  { icon: ICONS.dna, label: 'DNA 분석' },
-  { icon: ICONS.pulse, label: '건강검진 이력 확인' },
+/** 리포트를 만드는 두 가지 데이터 */
+const ANALYSIS: { icon: ReactNode; label: string; desc: string }[] = [
+  { icon: <HelixMark />, label: '유전자 분석', desc: '타고난 위험' },
+  { icon: <Icon d={ICONS.checkup} />, label: '건강검진 기록', desc: '지금의 건강 상태' },
 ]
 
 const CERTS = [
@@ -173,24 +219,35 @@ function Company() {
               </ul>
             </section>
 
-            {/* ---------- 2개 지표 ---------- */}
+            {/* ---------- 통합 분석 ---------- */}
             <section className="company-card company-reveal" style={delay(400)}>
-              <h2 className="company-side-title">2개 지표 통합분석</h2>
-              <ul className="company-chips">
-                {ANALYSIS.map((a) => (
-                  <li key={a.label}>
-                    <Icon d={a.icon} />
-                    {a.label}
-                  </li>
+              <h2 className="company-side-title">유전자 × 건강검진 통합 분석</h2>
+              <div className="company-blend">
+                {ANALYSIS.map((a, i) => (
+                  <div key={a.label} className="company-blend-item">
+                    {i > 0 && (
+                      <span className="company-blend-plus" aria-hidden="true">
+                        +
+                      </span>
+                    )}
+                    <span className="company-blend-icon">
+                      {a.icon}
+                    </span>
+                    <strong>{a.label}</strong>
+                    <small>{a.desc}</small>
+                  </div>
                 ))}
-              </ul>
+              </div>
+              <p className="company-blend-note">
+                두 데이터를 함께 봐야 지금은 괜찮아도 앞으로 주의할 위험까지 보입니다.
+              </p>
             </section>
 
             {/* ---------- R&D 센터 ---------- */}
             <section className="company-card company-lab company-reveal" style={delay(480)}>
               <h2 className="company-lab-title">자체 유전체 생명공학 R&amp;D 센터 운영</h2>
               <p>
-                판교 테크노밸리 제2연구동 소재 유전체 연구소에서 국내 최고 수준의
+                판교세븐벤처밸리에 자리한 제노플랜코리아 연구소에서 국내 최고 수준의
                 생물정보학(Bioinformatics) 연구원진이 진단 모형을 상시 고도화합니다.
               </p>
               <Link to="/lab" className="company-lab-link">
