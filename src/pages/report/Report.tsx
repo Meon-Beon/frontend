@@ -1,6 +1,8 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { errorMessage } from '../../api/dna'
 import { DEMO_PERSON } from '../../api/healthDemo'
+import { fetchReport, type Report, type ReportDisease } from '../../api/report'
 import Footer from '../../components/Footer/Footer'
 import './Report.css'
 import { readUser } from '../../auth/session'
@@ -26,44 +28,17 @@ const PERSON = {
   gender: DEMO_PERSON.gender === 'M' ? '남성' : '여성',
 }
 
+// TODO: CSV에 종합위험분류 값이 아직 없어서 고정값. 값이 생기면 서버에서 받아오기
 /** 종합 건강위험도 */
 const TOTAL: Level = 3
 
-/** 건강검진(후천)과 DNA(선천)를 합쳐 본 질환군. comment 는 줄 단위, 빈 문자열은 한 줄 띄움 */
-const MATRIX: { title: string; dna: Level; current: Level; comment: string[] }[] = [
-  {
-    title: '뇌혈관 질환',
-    dna: 4,
-    current: 3,
-    comment: [
-      '건강검진: 혈압 수치 경계',
-      '유전 인자: 복합 작용하여 뇌출혈·뇌경색 발병 위험 상존',
-      '',
-      '집중적인 예방 및 선제적 뇌질환 특약 보장이 권장',
-    ],
-  },
-  {
-    title: '당뇨병 및 인슐린',
-    dna: 3,
-    current: 2,
-    comment: [
-      '건강검진: 공복혈당 관리군 수치',
-      '유전 인자: 인슐린 감수성 저하',
-      '',
-      '식이 개선 미이행 시 합병증 위험, 선제적 보장 설계 권장',
-    ],
-  },
-  {
-    title: '간 및 심혈관',
-    dna: 0,
-    current: 1,
-    comment: [
-      '건강검진, 유전 인자: 모두 양호한 안전군',
-      '',
-      '생활습관 변화에 따른 혈관 탄력도 저하 방지 목적,',
-      '정기적 추적관찰을 유지',
-    ],
-  },
+/** 서버의 5단계 눈금(1~5)을 화면의 0~4로 바꿈 */
+const toLevel = (stage: number) => Math.min(4, Math.max(0, stage - 1)) as Level
+
+/** 위쪽 종합 분석 칸의 설명 줄 */
+const matrixComment = (d: ReportDisease) => [
+  `건강검진: ${d.checkup_summary ?? '관련 검진 정보 없음'}`,
+  `유전 인자: ${d.dna_summary ?? '유전적 특징에 대한 근거 정보 없음'}`,
 ]
 
 /** 숫자와 단위(48 mL/min 등)가 줄바꿈으로 갈라지지 않게 붙여 둠 */
@@ -80,78 +55,27 @@ function CommentLine({ line }: { line: string }) {
   )
 }
 
-type Finding = { title: string; level: Level; lines: { label: string; text: ReactNode }[] }
+type Finding = { title: string; level: Level; lines: { label: string; text: string }[] }
 
-/** 문구 안에서 위험색으로 강조할 부분 */
-const Hot = ({ children }: { children: ReactNode }) => <b className="report-check-hot">{children}</b>
+/** 건강검진으로 식별된 정보 카드 */
+const checkupFinding = (d: ReportDisease): Finding => ({
+  title: d.disease,
+  level: toLevel(d.checkup_stage),
+  lines: [
+    { label: '검진 수치', text: d.checkup_values ?? '검진수치 정보 없음' },
+    { label: '판정 소견', text: d.checkup_opinion ?? '판정소견 정보 없음' },
+  ],
+})
 
-const CHECKUP_FINDINGS: Finding[] = [
-  {
-    title: '신장 질환 (만성신장기능 저하 / 요단백)',
-    level: 4,
-    lines: [
-      {
-        label: '검진 수치',
-        text: (
-          <>
-            e-GFR 48{'\u00a0'}mL/min (신장기능 저하), 요단백 <Hot>양성{'\u00a0'}(2+)</Hot>, 크레아티닌 1.62{'\u00a0'}mg/dL
-          </>
-        ),
-      },
-      { label: '판정 소견', text: '사구체 여과율 저하 및 단백뇨 지속 관찰, 정밀 신장내과 진료 필요' },
-    ],
-  },
-  {
-    title: '고혈압 (혈압 관리군 / 혈관 압력 상승)',
-    level: 3,
-    lines: [
-      { label: '검진 수치', text: '수축기 138 mmHg / 이완기 88 mmHg (고혈압 전단계~1기 경계)' },
-      { label: '판정 소견', text: '수축기 혈압 지속 상승 소견, 식이 저염식 및 주기적 혈압 모니터링 요망' },
-    ],
-  },
-  {
-    title: '간장 질환 (간기능 수치 경미 상승)',
-    level: 2,
-    lines: [
-      { label: '검진 수치', text: 'AST 38 IU/L, ALT 46 IU/L, γ-GTP 78 IU/L (경미한 간기능 이상)' },
-      { label: '판정 소견', text: '음주 및 대사 관련 간수치 소폭 상승, 생활습관 개선 및 3개월 후 재검 권고' },
-    ],
-  },
-]
-
-const DNA_FINDINGS: Finding[] = [
-  {
-    title: '유방암',
-    level: 4,
-    lines: [
-      { label: '검진', text: '유방 촬영 치밀유방 소견' },
-      { label: 'DNA', text: 'BRCA 유전자 변이 및 감수성 취약 (5단계 위험군)' },
-    ],
-  },
-  {
-    title: '대장암',
-    level: 4,
-    lines: [
-      {
-        label: '검진',
-        text: (
-          <>
-            분변잠혈 <Hot>"양성 (+)"</Hot>
-          </>
-        ),
-      },
-      { label: 'DNA', text: '유전성 용종 및 대장암 취약 인자 5단계 위험군' },
-    ],
-  },
-  {
-    title: '알츠하이머 (치매)',
-    level: 3,
-    lines: [
-      { label: '검진', text: '인지기능 간이선별 주의군' },
-      { label: 'DNA', text: 'APOE-ε4 대립유전자 보유 경계군' },
-    ],
-  },
-]
+/** DNA로 식별된 정보 카드 */
+const dnaFinding = (d: ReportDisease): Finding => ({
+  title: d.disease,
+  level: toLevel(d.dna_stage),
+  lines: [
+    { label: '검진', text: d.checkup_summary ?? '관련 검진 정보 없음' },
+    { label: 'DNA', text: d.dna_summary ?? '유전적 특징에 대한 근거 정보 없음' },
+  ],
+})
 
 const ICON = {
   download: 'M12 3v12M7 10l5 5 5-5M4 19h16',
@@ -204,7 +128,7 @@ function FindingCard({ f }: { f: Finding }) {
         {f.lines.map((l) => (
           <div key={l.label}>
             <dt>{l.label}:</dt>
-            <dd>{typeof l.text === 'string' ? keepUnits(l.text) : l.text}</dd>
+            <dd>{keepUnits(l.text)}</dd>
           </div>
         ))}
       </dl>
@@ -213,7 +137,31 @@ function FindingCard({ f }: { f: Finding }) {
 }
 
 function ReportCheck() {
-  const name = readUser()?.name ?? PERSON.name
+  const user = readUser()
+  const name = user?.name ?? PERSON.name
+  const [report, setReport] = useState<Report | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    // /report 는 RequireAuth 안쪽이라 보통 로그인 정보가 있음
+    if (!user) return
+    let ignore = false // 화면을 떠난 뒤 늦게 온 응답은 무시
+    fetchReport(user.id)
+      .then((data) => {
+        if (!ignore) setReport(data)
+      })
+      .catch((e) => {
+        if (!ignore) setError(errorMessage(e, '리포트를 불러오지 못했어요.'))
+      })
+    return () => {
+      ignore = true
+    }
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const matrix = report?.matrix ?? []
+  const checkupFindings = report?.checkup.map(checkupFinding) ?? []
+  const dnaFindings = report?.dna.map(dnaFinding) ?? []
+  const status = error || (!report ? '리포트를 불러오는 중이에요.' : '')
 
   return (
     <div className="report-check">
@@ -241,19 +189,20 @@ function ReportCheck() {
               분석하여 위험도를 단계별로 표시합니다.
             </p>
           </header>
+          {status && <p className="report-check-metric">{status}</p>}
           <ul className="report-check-matrix">
-            {MATRIX.map((m) => (
-              <li key={m.title} className="report-check-matrix-row">
+            {matrix.map((m) => (
+              <li key={m.disease} className="report-check-matrix-row">
                 <div className="report-check-matrix-bars">
-                  <h3>{m.title}</h3>
+                  <h3>{m.disease}</h3>
                   <p className="report-check-metric">DNA 선천위험도</p>
-                  <Scale level={m.dna} />
+                  <Scale level={toLevel(m.dna_stage)} />
                   <p className="report-check-metric">현재 질환 의심도</p>
-                  <Scale level={m.current} />
+                  <Scale level={toLevel(m.checkup_stage)} />
                 </div>
                 <p className="report-check-comment">
                   <span>
-                    {m.comment.map((line, k) =>
+                    {matrixComment(m).map((line, k) =>
                       line ? (
                         <CommentLine key={k} line={line} />
                       ) : (
@@ -274,7 +223,7 @@ function ReportCheck() {
               <h2>건강검진으로 식별된 정보예요</h2>
             </header>
             <ul className="report-check-findings">
-              {CHECKUP_FINDINGS.map((f) => (
+              {checkupFindings.map((f) => (
                 <FindingCard key={f.title} f={f} />
               ))}
             </ul>
@@ -285,7 +234,7 @@ function ReportCheck() {
               <h2>DNA로 식별된 정보예요</h2>
             </header>
             <ul className="report-check-findings">
-              {DNA_FINDINGS.map((f) => (
+              {dnaFindings.map((f) => (
                 <FindingCard key={f.title} f={f} />
               ))}
             </ul>
