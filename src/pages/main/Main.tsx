@@ -103,7 +103,7 @@ const STEPS: {
   {
     icon: pngIcon(pcrIcon),
     title: 'DNA 검사 신청',
-    desc: '한국유전자정보센터 전문 연구소 안전 접수',
+    desc: '제노플랜코리아 전문 연구소 안전 접수',
     footer: '신청하기',
     to: '/dna-apply',
   },

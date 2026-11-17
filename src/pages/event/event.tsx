@@ -386,11 +386,11 @@ function EventPage() {
             <div className="event-top">
               <div>
                 <span className="event-month">
-                  <i /> 11월의 이벤트 · 11.01 ~ 11.30
+                  <i /> 11월의 이벤트 · 11.1. ~ 11.30.
                 </span>
                 <h1 className="event-title">내 GENE 체질 테스트</h1>
                 <p className="event-lead">
-                  침 한 번으로 알아보는 술·담배·살 체질. 유전형을 직접 누르고, 오른쪽 버튼으로 한국인·서양인 한 명씩 뽑아 비교해 보세요.
+                  유전자 검사 한 번으로 알아보는 내 체질. 유전형을 직접 누르고, 아래 버튼으로 한국인·서양인 한 명씩 뽑아 비교해 보세요.
                 </p>
               </div>
               <div className="event-draws">

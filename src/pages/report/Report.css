@@ -9,10 +9,8 @@
   --muted: #8892a5;
   --teal: #5ef2e6;
   --violet: #b48cff;
-  /* 5단계 색: 안전·양호는 초록, 보통·경계는 노랑, 위험은 빨강 */
-  --safe: #5ee08a;
+  /* 3단계 색: 양호 초록, 위험 노랑, 고위험 빨강 */
   --good: #5ee08a;
-  --normal: #ffd36b;
   --caution: #ffd36b;
   --danger: #ff6b7a;
 
@@ -53,11 +51,6 @@ body:has(.report-check) {
 
 .report-check ul {
   list-style: none;
-}
-
-/* 한 문장이 끝나면 다음 줄로 */
-.report-check-sentence {
-  display: block;
 }
 
 /* 줄바꿈: 단어 중간에서 끊지 않고(keep-all), 마지막 줄에 한두 단어만 남지 않게 줄 길이를 고르게 나눔 */
@@ -152,36 +145,10 @@ body:has(.report-check) {
   color: var(--body);
 }
 
-/* 오른쪽 위 종합 건강위험도 칸 */
-.report-check-total {
-  width: 280px;
-  padding: 16px 20px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-.report-check-total p {
-  margin-bottom: 12px !important;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-/* ---------- 5단계 눈금 ---------- */
-.report-check-scale.is-safe,
-.report-check-finding-title.is-safe {
-  --tone: var(--safe);
-}
-
+/* ---------- 3단계 눈금 ---------- */
 .report-check-scale.is-good,
 .report-check-finding-title.is-good {
   --tone: var(--good);
-}
-
-.report-check-scale.is-normal,
-.report-check-finding-title.is-normal {
-  --tone: var(--normal);
 }
 
 .report-check-scale.is-caution,
@@ -197,11 +164,11 @@ body:has(.report-check) {
 .report-check-scale-track,
 .report-check-scale-labels {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
 }
 
-/* 다섯 칸. 현재 단계까지는 단계 색으로 차오름 */
+/* 세 칸. 현재 단계까지는 단계 색으로 차오름 */
 .report-check-scale-track span {
   height: 6px;
   border-radius: 999px;
@@ -220,14 +187,6 @@ body:has(.report-check) {
 
 .report-check-scale-track .is-on:nth-child(3) {
   animation-delay: 0.16s;
-}
-
-.report-check-scale-track .is-on:nth-child(4) {
-  animation-delay: 0.24s;
-}
-
-.report-check-scale-track .is-on:nth-child(5) {
-  animation-delay: 0.32s;
 }
 
 @keyframes report-check-fill {
@@ -271,6 +230,69 @@ body:has(.report-check) {
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
+.report-check-matrix-bars {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 왼쪽 아래: 이름 + 오른쪽으로 한 줄 나열한 유전자 코드 */
+.report-check-codes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.report-check-codes p {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* 넘치면 줄바꿈 대신 오른쪽으로 밀어서 봄 */
+.report-check-code-list {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.report-check-code-list:active {
+  cursor: grabbing;
+}
+
+.report-check-code-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* 더 볼 코드가 있는 쪽 끝을 흐리게 */
+.report-check-code-list.is-end {
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+
+.report-check-code-list.is-start {
+  mask-image: linear-gradient(90deg, transparent, #000 15%);
+}
+
+.report-check-code-list.is-start.is-end {
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+.report-check-code-list li {
+  flex-shrink: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--body);
+  white-space: nowrap;
+}
+
 .report-check-matrix-bars h3 {
   margin-bottom: 14px;
   font-size: 18px;
@@ -289,41 +311,46 @@ body:has(.report-check) {
   margin-top: 4px !important;
 }
 
-.report-check-comment {
+/* 위쪽 dl 기본값(padding: 0)보다 우선하도록 .report-check 를 앞에 붙임 */
+.report-check .report-check-comment {
   align-self: stretch;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  gap: 16px;
+  margin: 0;
   padding: 20px 28px;
   border-radius: 12px;
   background: rgba(7, 13, 31, 0.45);
   font-size: 15px;
-  font-weight: 500;
-  line-height: 1.7;
+  line-height: 1.65;
   color: var(--ink);
 }
 
-/* 글자는 왼쪽 정렬, 글 덩어리는 박스 가운데에 */
-.report-check-comment > span {
-  text-align: left;
-}
-
-/* 줄마다 길이가 고르게 나뉘도록, 이어지는 줄은 살짝 들여 씀 */
-.report-check-comment .report-check-sentence {
-  padding-left: 1em;
-  text-indent: -1em;
-  text-wrap: balance;
-}
-
-.report-check-comment .report-check-sentence b {
+/* 이름은 위에 작게, 설명은 그 아래에 이어서. 설명이 길어도 줄 시작이 가지런함 */
+.report-check-comment dt {
+  margin-bottom: 2px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--teal);
 }
 
-/* 설명 사이 한 줄 띄움 */
-.report-check-gap {
-  display: block;
-  height: 0.9em;
+.report-check-comment dd {
+  margin: 0;
+  font-weight: 500;
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+/* 유전 인자 줄이 여러 개면 줄 사이 살짝 띄움 */
+.report-check-comment dd + dd {
+  margin-top: 4px;
+}
+
+/* 두 설명 사이 옅은 구분선 */
+.report-check-comment > div + div {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
 }
 
 /* ---------- 출처별 식별 정보 ---------- */
@@ -407,6 +434,7 @@ body:has(.report-check) {
 /* ---------- 다음 단계 버튼 ---------- */
 .report-check-actions {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   gap: 12px;
 }
@@ -464,11 +492,6 @@ body:has(.report-check) {
   .report-check-profile {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .report-check-total {
-    width: 100%;
-    box-sizing: border-box;
   }
 
   .report-check-matrix-row,
