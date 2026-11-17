@@ -550,7 +550,13 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  animation: stat-swap 0.8s ease;
+  transition: opacity 1.2s ease;
+  animation: stat-swap 1.6s ease;
+}
+
+/* 바뀌기 직전: 기존 숫자가 천천히 흐려짐 */
+.statLeaving {
+  opacity: 0;
 }
 
 .statBig .statSwap {

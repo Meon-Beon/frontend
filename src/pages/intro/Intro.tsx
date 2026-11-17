@@ -12,7 +12,7 @@ const stats = [
   { label: '유전정보 추가 결과 식별률 향상', value: '+47.7', unit: '%', desc: 'European Heart Journal 연구 결과 | 심혈관질환' },
   { label: '비교 연계 보험사', value: '50', unit: '사', desc: '생·손보 통합 데이터' },
   { label: '정밀 진단 소요시간', value: '3', unit: '분', desc: '실시간 다차원 스캔' },
-  { label: '불필요 보험료 절감', value: '38.4', unit: '%', desc: '평균 납입료 다이어트' },
+  { label: '유전정보 결합 시 당뇨 조기 식별', value: '+21.5', unit: '%', desc: 'Diabetes 저널 | 13,294명 추적 연구' },
 ]
 
 const services = [
@@ -390,9 +390,9 @@ const STAT_ORDER = [0, 3, 2, 1]
 const slotOf = (k: number, turn: number) => (((k - turn) % 4) + 4) % 4
 
 /** 숫자 카드 한 칸의 내용. turn 이 바뀔 때마다 새로 그려져 조용히 서서히 바뀜 (숫자 올라가기 없음) */
-function StatBody({ s, turn }: { s: (typeof stats)[number]; turn: number }) {
+function StatBody({ s, turn, leaving }: { s: (typeof stats)[number]; turn: number; leaving: boolean }) {
   return (
-    <div key={`${s.label}-${turn}`} className={styles.statSwap}>
+    <div key={`${s.label}-${turn}`} className={`${styles.statSwap} ${leaving ? styles.statLeaving : ''}`}>
       <span className={styles.statLabel}>{s.label}</span>
       <strong className={styles.statValue}>
         {turn === 0 ? <CountUp value={s.value} /> : s.value}
@@ -403,9 +403,11 @@ function StatBody({ s, turn }: { s: (typeof stats)[number]; turn: number }) {
   )
 }
 
-/** 화면에 보이는 동안 5초마다 1씩 늘어나는 회전 횟수. 마우스를 올리면 잠깐 멈춤 */
+/** 화면에 보이는 동안 10초마다 1씩 늘어나는 회전 횟수. 마우스를 올리면 잠깐 멈춤 */
 function useStatTurn(ref: RefObject<HTMLElement | null>) {
   const [turn, setTurn] = useState(0)
+  // 바뀌기 직전 1.2초 동안 기존 숫자를 천천히 흐리게 함
+  const [leaving, setLeaving] = useState(false)
   useEffect(() => {
     const el = ref.current
     if (!el || prefersReducedMotion()) return
@@ -419,17 +421,24 @@ function useStatTurn(ref: RefObject<HTMLElement | null>) {
     const leave = () => (hover = false)
     el.addEventListener('mouseenter', enter)
     el.addEventListener('mouseleave', leave)
+    let swap = 0
     const timer = window.setInterval(() => {
-      if (visible && !hover) setTurn((t) => t + 1)
-    }, 5000)
+      if (!visible || hover) return
+      setLeaving(true)
+      swap = window.setTimeout(() => {
+        setTurn((t) => t + 1)
+        setLeaving(false)
+      }, 1200)
+    }, 10000)
     return () => {
       observer.disconnect()
       window.clearInterval(timer)
+      window.clearTimeout(swap)
       el.removeEventListener('mouseenter', enter)
       el.removeEventListener('mouseleave', leave)
     }
   }, [ref])
-  return turn
+  return { turn, leaving }
 }
 
 function Intro() {
@@ -437,7 +446,7 @@ function Intro() {
   useIntroMotion(pageRef)
   const helixRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
-  const statTurn = useStatTurn(statsRef)
+  const { turn: statTurn, leaving: statLeaving } = useStatTurn(statsRef)
 
   // 방문(브라우저 탭 세션)당 한 번만 재생
   // 주소 끝에 ?intro 를 붙이면 설정과 상관없이 항상 다시 재생 (테스트·시연용)
@@ -530,10 +539,10 @@ function Intro() {
               </div>
             </div>
 
-            {/* 오른쪽: 대표 숫자 크게 + 작은 숫자 세 칸. 칸 모양은 그대로, 5초마다 숫자가 시계방향으로 한 칸씩 이동 */}
+            {/* 오른쪽: 대표 숫자 크게 + 작은 숫자 세 칸. 칸 모양은 그대로, 10초마다 숫자가 시계방향으로 한 칸씩 이동 */}
             <div ref={statsRef} className={styles.numbersRight}>
               <div className={`${styles.glass} ${styles.stat} ${styles.statBig}`} data-reveal>
-                <StatBody s={stats[STAT_ORDER[slotOf(0, statTurn)]]} turn={statTurn} />
+                <StatBody s={stats[STAT_ORDER[slotOf(0, statTurn)]]} turn={statTurn} leaving={statLeaving} />
               </div>
               <ul className={styles.statRow}>
                 {[0, 1, 2].map((j) => (
@@ -543,7 +552,7 @@ function Intro() {
                     style={{ '--delay': `${(j + 1) * 80}ms` } as CSSProperties}
                     data-reveal
                   >
-                    <StatBody s={stats[STAT_ORDER[slotOf(3 - j, statTurn)]]} turn={statTurn} />
+                    <StatBody s={stats[STAT_ORDER[slotOf(3 - j, statTurn)]]} turn={statTurn} leaving={statLeaving} />
                   </li>
                 ))}
               </ul>
