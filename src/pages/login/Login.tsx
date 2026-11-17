@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { client } from '../../api/client'
 import { saveUser, type SessionUser } from '../../auth/session'
@@ -42,6 +42,18 @@ const ICON = {
   check: 'M6 12.5l4 4 8-9',
 }
 
+/**
+ * 로그인 뒤 돌아갈 주소. RequireAuth가 state.from 으로 넘겨준 값을 쓰고, 없으면 메인으로.
+ * '/'로 시작하는 우리 사이트 안 주소만 허용 ('//다른사이트' 같은 외부 주소로 튕기는 것 방지)
+ */
+function getRedirectPath(state: unknown) {
+  const from = (state as { from?: unknown } | null)?.from
+  if (typeof from === 'string' && from.startsWith('/') && !from.startsWith('//') && from !== '/login') {
+    return from
+  }
+  return '/main'
+}
+
 function Login() {
   const [userId, setUserId] = useState(readSavedId)
   const [password, setPassword] = useState('')
@@ -49,6 +61,8 @@ function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectPath = getRedirectPath(location.state)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -64,7 +78,7 @@ function Login() {
 
     if (MOCK_LOGIN) {
       saveUser({ id: 0, login_id: userId, name: null })
-      navigate('/main')
+      navigate(redirectPath, { replace: true })
       return
     }
 
@@ -73,7 +87,7 @@ function Login() {
       // 서버가 200을 주면 성공, 401이면 axios가 에러를 던져 catch로 간다
       const { data } = await client.post<SessionUser>('/api/login', { login_id: userId, password })
       saveUser(data)
-      navigate('/main')
+      navigate(redirectPath, { replace: true })
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {
         setError('아이디 또는 비밀번호가 올바르지 않습니다.')
