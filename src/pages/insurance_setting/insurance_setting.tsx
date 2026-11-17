@@ -25,8 +25,12 @@ const cleanName = (name: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/** 태그용 짧은 보장 이름: 괄호 설명은 덜어 냄 (예: "갑상선암(중증 갑상선암 제외)" → "갑상선암") */
-const shortName = (name: string) => name.replace(/\(.*?\)/g, '').trim()
+/** 태그용 짧은 보장 이름: 괄호 설명·갱신 표시는 덜어 냄 (예: "갑상선암(중증 갑상선암 제외)" → "갑상선암", "갱)뇌혈관질환진단비Ⅲ(간편맞춤형Ⅱ) [보통약관]" → "뇌혈관질환진단비Ⅲ") */
+const shortName = (name: string) =>
+  name
+    .replace(/^갱\)/, '')
+    .replace(/\[.*?\]|\(.*?\)/g, '')
+    .trim()
 
 /** "2000만원" → "2,000만원". 조건이 붙은 금액은 그대로 */
 const prettyAmount = (amount: string) => {
