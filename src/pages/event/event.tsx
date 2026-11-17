@@ -191,7 +191,7 @@ function Face({ lv }: { lv: number }) {
   )
 }
 
-/** 니코틴: 유전형이 무거울수록 담배에 감기는 사슬과 연기 */
+/** 니코틴: 유전형이 무거울수록 짙어지는 담배 연기 */
 function Cigarette({ lv }: { lv: number }) {
   return (
     <>
@@ -201,23 +201,20 @@ function Cigarette({ lv }: { lv: number }) {
       <rect x="40" y="114" width="170" height="8" fill="#000" opacity=".06" />
       <rect x="210" y="96" width="16" height="26" rx="3" fill="#8a8a8a" />
       <circle cx="226" cy="109" r="7" fill="var(--risk)" opacity=".9" />
-      {Array.from({ length: 2 + lv * 2 }, (_, k) => (
-        <circle key={`s${k}`} cx={236 + k * 6 + (k % 2 ? 8 : -6)} cy={78 - k * 14} r={8 + k * 2} fill="#8892a5" opacity={0.4 - k * 0.04} />
-      ))}
-      {Array.from({ length: lv * 3 }, (_, k) => {
-        const cx = 64 + k * 22
-        const cy = 120 + (k % 2 ? -6 : 6)
+      {/* 담배 끝에서 피어오르는 연기. 유전형이 무거울수록 줄기가 늘어남 (1 → 3 → 5줄) */}
+      {Array.from({ length: lv * 2 + 1 }, (_, k) => {
+        const x = 226 + (k - lv) * 12
         return (
-          <ellipse
-            key={`l${k}`}
-            cx={cx}
-            cy={cy}
-            rx="14"
-            ry="8"
+          <path
+            key={`s${k}`}
+            className="event-smoke"
+            d={`M${x} 94c-10-10 10-18 0-28s10-18 0-28s10-16 2-26`}
             fill="none"
-            stroke="#b3bccb"
+            stroke="#d6dde9"
             strokeWidth="5"
-            transform={`rotate(${k % 2 ? 20 : -20} ${cx} ${cy})`}
+            strokeLinecap="round"
+            opacity={0.6 - Math.abs(k - lv) * 0.1}
+            style={{ animationDelay: `${k * 0.4}s` }}
           />
         )
       })}

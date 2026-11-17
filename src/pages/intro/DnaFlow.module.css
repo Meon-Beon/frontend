@@ -1,0 +1,101 @@
+/* 세로 → 가로로 휘는 DNA 구간: 이 구간을 스크롤하는 동안 화면은 고정 */
+.flow {
+  --A: #ff8aa0;
+  --T: #ffd680;
+  --G: #6ee7a0;
+  --C: #78aaff;
+
+  position: relative;
+  /* 이 구간 스크롤 길이. 짧을수록 휘는 전환이 빨리 끝남 */
+  height: 170vh;
+  /* #root 너비 제한을 넘어 화면 전체를 씀 */
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.sticky {
+  position: sticky;
+  top: 104px;
+  height: calc(100svh - 104px);
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* 위 배경 나선과 같은 은은한 네온 번짐 */
+  filter: drop-shadow(0 0 2px rgba(94, 242, 230, 0.18)) drop-shadow(0 0 6px rgba(180, 140, 255, 0.08));
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 가로 나선이 펼쳐지면 잠깐 떴다 사라지는 환영 문구 */
+.welcome {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  margin: 0;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-size: clamp(22px, 3vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #8ff5ec;
+  text-shadow:
+    0 0 18px rgba(94, 242, 230, 0.45),
+    0 0 40px rgba(7, 13, 31, 0.9);
+  pointer-events: none;
+}
+
+/* 위·아래로 흘러가는 염기서열 글자 */
+.seq {
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  will-change: transform;
+}
+
+.seq b {
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+.seqTop {
+  top: 10%;
+  font-size: clamp(18px, 2.4vw, 30px);
+  opacity: 0.7;
+}
+
+.seqBottom {
+  bottom: 10%;
+  font-size: clamp(14px, 1.6vw, 20px);
+  opacity: 0.28;
+}
+
+.A {
+  color: var(--A);
+}
+
+.T {
+  color: var(--T);
+}
+
+.G {
+  color: var(--G);
+}
+
+.C {
+  color: var(--C);
+}

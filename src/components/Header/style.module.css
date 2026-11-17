@@ -45,25 +45,12 @@
   gap: 14px;
 }
 
-/* 세로형 GENE 로고 (가로:세로 = 420:770) */
+/* GENE 워드마크 (가로:세로 = 520:236) */
 .mark {
   display: block;
-  height: 60px;
+  height: 54px;
   width: auto;
-  aspect-ratio: 420 / 770;
-}
-
-.name {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  color: #fff;
-}
-
-.name em {
-  font-style: normal;
-  color: var(--teal);
+  aspect-ratio: 520 / 236;
 }
 
 /* ---------- 메뉴 ---------- */
@@ -210,11 +197,7 @@
   }
 
   .mark {
-    height: 48px;
-  }
-
-  .name {
-    font-size: 22px;
+    height: 44px;
   }
 
   .actions {

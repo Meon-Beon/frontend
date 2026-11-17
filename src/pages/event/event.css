@@ -465,6 +465,22 @@ body:has(.event-page) {
   transition: fill 0.4s;
 }
 
+/* 연기가 위로 살짝 흔들리며 피어오름 */
+.event-smoke {
+  animation: event-smoke 2.4s ease-in-out infinite;
+}
+
+@keyframes event-smoke {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
 .event-needle {
   transform-origin: 150px 128px;
   transition: transform 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
@@ -710,5 +726,9 @@ body:has(.event-page) {
   .event-skin,
   .event-needle {
     transition: none;
+  }
+
+  .event-smoke {
+    animation: none;
   }
 }

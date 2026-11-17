@@ -53,15 +53,11 @@
   gap: 10px;
 }
 
-.brand strong {
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.brand em {
-  font-style: normal;
-  color: var(--teal);
+.logo {
+  display: block;
+  height: 48px;
+  width: auto;
+  aspect-ratio: 520 / 236;
 }
 
 .about {

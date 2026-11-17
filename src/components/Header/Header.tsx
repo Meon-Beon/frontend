@@ -72,10 +72,7 @@ function Header() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link to="/main" className={styles.brand} aria-label="메인으로" onClick={scrollToTop}>
-          <GeneLogo className={styles.mark} background="#0b1530" title="" />
-          <span className={styles.name}>
-            내진<em>(GENE)</em>설계
-          </span>
+          <GeneLogo className={styles.mark} />
         </Link>
 
         <nav className={styles.nav} aria-label="주요 메뉴">

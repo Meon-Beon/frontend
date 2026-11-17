@@ -1,3 +1,4 @@
+import GeneLogo from '../GeneLogo/GeneLogo'
 import styles from './style.module.css'
 
 const POLICY_LINKS = ['개인정보처리방침', '이용약관', '유전자검사인권헌장', '보안센터']
@@ -10,9 +11,7 @@ function Footer() {
         <div className={styles.top}>
           <div className={styles.company}>
             <p className={styles.brand}>
-              <strong>
-                내진<em>(GENE)</em>설계
-              </strong>
+              <GeneLogo className={styles.logo} />
             </p>
             <p className={styles.about}>
               내진(GENE)설계는 유전자 분석 검사 데이터와 개인 건강검진 기록을 복합
