@@ -72,11 +72,11 @@ export default function GeneLogo({ className, title = '내진(GENE)설계', comp
         </filter>
       </defs>
 
-      {/* G · E · N 왼쪽 기둥 · E: 얇은 흰 선 */}
+      {/* G · E · N 양쪽 기둥 · E: 얇은 흰 선 */}
       <g fill="none" stroke="#eef1f8" strokeWidth="9">
         <path d="M137 37 A69 69 0 1 0 151 88 H101" />
         <path d="M268 18.5 H185.5 V151.5 H268 M185.5 85 H262" />
-        <path d="M300.5 14 V156" />
+        <path d="M300.5 14 V156M392.5 14 V156" />
         <path d="M505 18.5 H422.5 V151.5 H505 M422.5 85 H499" />
       </g>
 

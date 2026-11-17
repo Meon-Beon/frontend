@@ -19,11 +19,11 @@ function Footer() {
               인슈어테크 기업입니다.
             </p>
             <p className={styles.info}>
-              <span>대표이사: 정밀분석</span>
+              <span>대표이사: 지민</span>
               <span>사업자등록번호: 220-88-01928</span>
               <span>보험대리점 등록번호: 제2024-0391호</span>
             </p>
-            <p className={styles.info}>서울특별시 중구 세종대로12길 12 2층</p>
+            <p className={styles.info}>서울 성동구 왕십리로 63</p>
           </div>
 
           <div className={styles.support}>
@@ -36,7 +36,7 @@ function Footer() {
               <br />
               유전체 상담 전문 간호사 상시 배속
               <br />
-              이메일: <a href="mailto:wlalswlswls@gmail.com">wlalswlswls@gmail.com</a>
+              이메일: <a href="mailto:qlghsdosqlghs@gmail.com">qlghsdosqlghs@gmail.com</a>
             </p>
           </div>
         </div>

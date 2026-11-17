@@ -545,6 +545,24 @@
     var(--glass);
 }
 
+/* 칸 안 내용: 숫자가 바뀔 때마다 움직임 없이 서서히 나타남 */
+.statSwap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  animation: stat-swap 0.8s ease;
+}
+
+.statBig .statSwap {
+  justify-content: flex-end;
+}
+
+@keyframes stat-swap {
+  from {
+    opacity: 0;
+  }
+}
+
 .statLabel {
   font-size: 14px;
   font-weight: 500;
@@ -779,18 +797,6 @@
   font-size: 14px;
   line-height: 1.8;
   color: var(--body);
-}
-
-.stepArrow {
-  align-self: flex-end;
-  margin-top: 24px;
-  color: var(--teal);
-}
-
-.stepArrow .icon {
-  width: 28px;
-  height: 28px;
-  stroke-width: 2.2;
 }
 
 /* ---------- 서비스 바로가기 ---------- */

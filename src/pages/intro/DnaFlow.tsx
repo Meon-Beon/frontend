@@ -259,7 +259,7 @@ export default function DnaFlow({ helixRef, pageRef }: Props) {
     observer.observe(section)
 
     /* 가로 나선이 다 펼쳐지면 한 번만: 0.5초 돌다가 문구 두 개가 차례로 떴다 사라지고, 다시 2초 동안 돎.
-       그동안은 스크롤을 잠깐 멈춰서 끝까지 보이게 함 */
+       스크롤은 막지 않아서 사용자가 언제든 계속 내려갈 수 있음 */
     const WAIT = 0.5
     const FADE_IN = 0.6
     const HOLD = 1.3
@@ -270,33 +270,11 @@ export default function DnaFlow({ helixRef, pageRef }: Props) {
     const TOTAL = WAIT + ONE * MESSAGES.length + SPIN_AFTER
     let welcomeStart = -1 // -1: 아직, 0 이상: 시작 시각(ms)
     let welcomeDone = false
-    let lockY = 0
-    const block = (e: Event) => e.preventDefault()
-    const blockKeys = (e: KeyboardEvent) => {
-      if ([' ', 'PageDown', 'PageUp', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) e.preventDefault()
-    }
-    const holdScroll = () => {
-      if (Math.abs(window.scrollY - lockY) > 1) window.scrollTo(0, lockY)
-    }
-    const lock = () => {
-      lockY = window.scrollY
-      window.addEventListener('wheel', block, { passive: false })
-      window.addEventListener('touchmove', block, { passive: false })
-      window.addEventListener('keydown', blockKeys)
-      window.addEventListener('scroll', holdScroll)
-    }
-    const unlock = () => {
-      window.removeEventListener('wheel', block)
-      window.removeEventListener('touchmove', block)
-      window.removeEventListener('keydown', blockKeys)
-      window.removeEventListener('scroll', holdScroll)
-    }
     const runWelcome = (now: number) => {
       if (welcomeDone) return
       if (welcomeStart < 0) {
         if (current < 0.6) return
         welcomeStart = now
-        if (!reduce) lock()
       }
       const t = (now - welcomeStart) / 1000
       // 지금 몇 번째 문구인지, 그 문구 안에서 몇 초 지났는지
@@ -314,7 +292,6 @@ export default function DnaFlow({ helixRef, pageRef }: Props) {
       if (t >= TOTAL) {
         welcomeDone = true
         welcome.style.opacity = '0'
-        unlock()
       }
     }
 
@@ -342,7 +319,6 @@ export default function DnaFlow({ helixRef, pageRef }: Props) {
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
-      unlock()
       window.removeEventListener('resize', resize)
       window.removeEventListener('scroll', readScroll)
     }

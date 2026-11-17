@@ -53,17 +53,17 @@ const steps = [
   {
     no: '01',
     title: '유전체 정밀 스캔',
-    desc: '간편 타액 키트 또는 기존 결과지를 통해 주요 74종 암·심뇌혈관 만성질환 취약점을 정밀 디지털 스캔합니다.',
+    desc: '간편 타액 키트로 당뇨·심장질환·뇌혈관질환·유방암·대장암·치매의 유전적 위험도를 정밀 분석합니다.',
   },
   {
     no: '02',
-    title: '보유 보험 다이어트',
-    desc: "현재 납입 중인 기가입 증권을 불러와 유전적 위험도가 '낮음'으로 판정된 불필요 과보장 및 중복 특약을 정밀 소멸합니다.",
+    title: '종합 건강 리포트',
+    desc: '건강검진 결과와 유전자 검사 결과를 한데 모아, 지금의 건강 상태와 앞으로의 잠재 위험을 한눈에 보여주는 종합 리포트를 제공합니다.',
   },
   {
     no: '03',
-    title: '결핍 위험 1:1 집중 보강',
-    desc: '유전적으로 발병 위험이 감지된 잠재 결핍 항목만 50개사 최적 상품에서 1:1 타겟 특약으로 가장 알뜰하게 채워 넣습니다.',
+    title: '맞춤 보험 설계',
+    desc: '건강검진만으로는 보이지 않던 유전적 잠재 위험까지 보강해, 나에게 꼭 맞는 보험을 설계하고 추천합니다.',
   },
 ] as const
 
@@ -317,15 +317,18 @@ function Globe({ className }: { className?: string }) {
       const hq = project(HQ.lat * RAD, HQ.lng * RAD, lam0, r, cx, cy)
       if (hq.z > 0) {
         const pulse = (t * 0.9) % 1
-        ctx.strokeStyle = `rgba(196, 168, 255, ${1 - pulse})`
-        ctx.lineWidth = 2
+        ctx.strokeStyle = `rgba(170, 102, 255, ${1 - pulse})`
+        ctx.lineWidth = 2.4
         ctx.beginPath()
         ctx.arc(hq.x, hq.y, 6 + pulse * 22, 0, Math.PI * 2)
         ctx.stroke()
-        ctx.fillStyle = '#c4a8ff'
+        ctx.fillStyle = '#aa66ff'
+        ctx.shadowColor = 'rgba(170, 102, 255, 0.95)'
+        ctx.shadowBlur = 14
         ctx.beginPath()
-        ctx.arc(hq.x, hq.y, 5, 0, Math.PI * 2)
+        ctx.arc(hq.x, hq.y, 5.5, 0, Math.PI * 2)
         ctx.fill()
+        ctx.shadowBlur = 0
         // 이름표: 오른쪽 끝에 닿으면 표시의 왼쪽에 붙임
         ctx.font = '700 13px Pretendard, sans-serif'
         const labelW = ctx.measureText('제노플랜코리아 연구소').width
@@ -333,7 +336,7 @@ function Globe({ className }: { className?: string }) {
         const dir = toLeft ? -1 : 1
         const lx = hq.x + dir * 16
         const ly = hq.y - 26
-        ctx.strokeStyle = 'rgba(196, 168, 255, 0.7)'
+        ctx.strokeStyle = 'rgba(170, 102, 255, 0.7)'
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(hq.x + dir * 4, hq.y - 4)
@@ -379,10 +382,62 @@ function Globe({ className }: { className?: string }) {
   return <canvas ref={ref} className={className} aria-label="판교에 있는 제노플랜코리아 연구소를 표시한 지구본" role="img" />
 }
 
+/* ---------- 숫자 카드 회전 ---------- */
+
+/** 칸을 시계방향(큰 칸 → 아래 오른쪽 → 아래 가운데 → 아래 왼쪽)으로 셌을 때, 처음 각 칸에 있는 숫자 번호 */
+const STAT_ORDER = [0, 3, 2, 1]
+/** turn 번 돌았을 때 k 번째 칸(시계방향 순서)에 올 숫자의 STAT_ORDER 위치 */
+const slotOf = (k: number, turn: number) => (((k - turn) % 4) + 4) % 4
+
+/** 숫자 카드 한 칸의 내용. turn 이 바뀔 때마다 새로 그려져 조용히 서서히 바뀜 (숫자 올라가기 없음) */
+function StatBody({ s, turn }: { s: (typeof stats)[number]; turn: number }) {
+  return (
+    <div key={`${s.label}-${turn}`} className={styles.statSwap}>
+      <span className={styles.statLabel}>{s.label}</span>
+      <strong className={styles.statValue}>
+        {turn === 0 ? <CountUp value={s.value} /> : s.value}
+        <small>{s.unit}</small>
+      </strong>
+      <span className={styles.statDesc}>{s.desc}</span>
+    </div>
+  )
+}
+
+/** 화면에 보이는 동안 5초마다 1씩 늘어나는 회전 횟수. 마우스를 올리면 잠깐 멈춤 */
+function useStatTurn(ref: RefObject<HTMLElement | null>) {
+  const [turn, setTurn] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || prefersReducedMotion()) return
+    let visible = false
+    let hover = false
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+    }, { threshold: 0.3 })
+    observer.observe(el)
+    const enter = () => (hover = true)
+    const leave = () => (hover = false)
+    el.addEventListener('mouseenter', enter)
+    el.addEventListener('mouseleave', leave)
+    const timer = window.setInterval(() => {
+      if (visible && !hover) setTurn((t) => t + 1)
+    }, 5000)
+    return () => {
+      observer.disconnect()
+      window.clearInterval(timer)
+      el.removeEventListener('mouseenter', enter)
+      el.removeEventListener('mouseleave', leave)
+    }
+  }, [ref])
+  return turn
+}
+
 function Intro() {
   const pageRef = useRef<HTMLDivElement>(null)
   useIntroMotion(pageRef)
   const helixRef = useRef<HTMLDivElement>(null)
+  const statsRef = useRef<HTMLDivElement>(null)
+  const statTurn = useStatTurn(statsRef)
 
   // 방문(브라우저 탭 세션)당 한 번만 재생
   // 주소 끝에 ?intro 를 붙이면 설정과 상관없이 항상 다시 재생 (테스트·시연용)
@@ -475,32 +530,20 @@ function Intro() {
               </div>
             </div>
 
-            {/* 오른쪽: 대표 숫자 크게 + 작은 숫자 세 칸 */}
-            <div className={styles.numbersRight}>
-              {stats.slice(0, 1).map((s) => (
-                <div key={s.label} className={`${styles.glass} ${styles.stat} ${styles.statBig}`} data-reveal>
-                  <span className={styles.statLabel}>{s.label}</span>
-                  <strong className={styles.statValue}>
-                    <CountUp value={s.value} />
-                    <small>{s.unit}</small>
-                  </strong>
-                  <span className={styles.statDesc}>{s.desc}</span>
-                </div>
-              ))}
+            {/* 오른쪽: 대표 숫자 크게 + 작은 숫자 세 칸. 칸 모양은 그대로, 5초마다 숫자가 시계방향으로 한 칸씩 이동 */}
+            <div ref={statsRef} className={styles.numbersRight}>
+              <div className={`${styles.glass} ${styles.stat} ${styles.statBig}`} data-reveal>
+                <StatBody s={stats[STAT_ORDER[slotOf(0, statTurn)]]} turn={statTurn} />
+              </div>
               <ul className={styles.statRow}>
-                {stats.slice(1).map((s, i) => (
+                {[0, 1, 2].map((j) => (
                   <li
-                    key={s.label}
+                    key={j}
                     className={`${styles.glass} ${styles.stat}`}
-                    style={{ '--delay': `${(i + 1) * 80}ms` } as CSSProperties}
+                    style={{ '--delay': `${(j + 1) * 80}ms` } as CSSProperties}
                     data-reveal
                   >
-                    <span className={styles.statLabel}>{s.label}</span>
-                    <strong className={styles.statValue}>
-                      <CountUp value={s.value} />
-                      <small>{s.unit}</small>
-                    </strong>
-                    <span className={styles.statDesc}>{s.desc}</span>
+                    <StatBody s={stats[STAT_ORDER[slotOf(3 - j, statTurn)]]} turn={statTurn} />
                   </li>
                 ))}
               </ul>
@@ -556,9 +599,6 @@ function Intro() {
                 <span className={styles.stepNo}>STEP {s.no}</span>
                 <h3 className={styles.stepTitle}>{s.title}</h3>
                 <p className={styles.stepDesc}>{s.desc}</p>
-                <span className={styles.stepArrow}>
-                  <Icon name="arrow" />
-                </span>
               </li>
             ))}
           </ol>
