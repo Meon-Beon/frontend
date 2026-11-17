@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import labPhoto from './lab-photo.jpg'
 import researcher1 from './researcher-1.jpg'
@@ -59,14 +59,13 @@ function Icon({ d, className = 'lab-icon' }: { d: string; className?: string }) 
   )
 }
 
-/** 청록→파랑 원 안의 흰 체크 */
+/** 꽉 찬 민트 원 안의 남색 체크 (인증 배지 느낌) */
 function CheckBadge() {
   return (
-    <span className="lab-check" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M6.5 12.5l3.5 3.5 7.5-8" />
-      </svg>
-    </span>
+    <svg className="lab-check" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="10" />
+      <path d="M5.8 10.4l2.8 2.8 5.6-6" />
+    </svg>
   )
 }
 
@@ -76,7 +75,7 @@ const STATS = [
 ]
 
 const FACILITY = [
-  { label: 'LOCATION', value: '경기도 성남시 분당구 판교로 305', desc: '판교 테크노밸리 연구동' },
+  { label: 'LOCATION', value: '경기도 성남시 분당구 판교로228번길 15', desc: '판교세븐벤처밸리 1단지 제3동 8층' },
   { label: 'CLEAN SYSTEM', value: 'HEPA H14 필터', desc: '교차오염 제로화 격벽 음압실' },
   { label: 'DATA ENCRYPTION', value: 'AES-256 GCM', desc: '원외 반출 불가 인트라넷 보관' },
   { label: 'POWER', value: '이중화 비상 전력망', desc: 'UPS · 발전기 연동 24시간 무중단 가동' },
@@ -91,11 +90,11 @@ const LOGISTICS = [
 ]
 
 const PROCESS = [
-  { title: '검수', desc: '검체 수령 및 바코드 라벨링' },
-  { title: '품질 검증', desc: 'DNA 추출 및 품질 검증' },
-  { title: '핵심 시퀀싱', desc: '초고속 유전체 시퀀싱' },
-  { title: '변이 분석', desc: 'SNP 질병 변이 판독' },
-  { title: '결과 발급', desc: '암호화 분석 리포트 전송' },
+  { title: '검수', desc: ['검체 수령 및', '바코드 라벨링'] },
+  { title: '품질 검증', desc: ['DNA 추출 및', '품질 검증'] },
+  { title: '핵심 시퀀싱', desc: ['초고속', '유전체 시퀀싱'] },
+  { title: '변이 분석', desc: ['SNP', '질병 변이 판독'] },
+  { title: '결과 발급', desc: ['검체 수거 후 72시간 내', '암호화 리포트 발급'] },
 ]
 
 const EQUIPMENT = [
@@ -117,7 +116,7 @@ const CERTS = [
 const RESEARCHERS = [
   {
     name: '이도연 박사',
-    role: '판교 테크노밸리 연구소',
+    role: '제노플랜코리아 연구소',
     photo: researcher1,
     school: 'Harvard University',
     career: ['前 미국 국립인간유전체연구소(NHGRI) 방문연구원', '한국인 질병 감수성 관련 SCI급 논문 45편 이상 게재', '보건복지부 유전자분석 질평가 심의위원'],
@@ -141,6 +140,100 @@ const RESEARCHERS = [
   },
 ]
 
+/** 각 지역에서 중앙 분석소(가운데)로 들어오는 이송 경로 */
+const HUB = { x: 156, y: 72 }
+const ROUTES = [
+  { name: '수도권', x: 56, y: 34, d: 'M56 34 C 98 50, 126 78, 156 72', label: { x: 56, y: 22 } },
+  { name: '강원', x: 262, y: 30, d: 'M262 30 C 236 36, 196 70, 156 72', label: { x: 262, y: 18 } },
+  { name: '영남', x: 250, y: 128, d: 'M250 128 C 220 104, 188 88, 156 72', label: { x: 250, y: 145 } },
+  { name: '호남', x: 36, y: 120, d: 'M36 120 C 86 104, 108 64, 156 72', label: { x: 36, y: 137 } },
+]
+const SHIP_MS = 1400
+const NEXT_MS = 3000
+
+/** 검체(빛나는 점)가 지역 → 중앙 분석소로 차례로 이동. 지역 점을 누르면 그 경로로 바로 보냄 */
+function LogisticsMap() {
+  const [shot, setShot] = useState({ route: 0, n: 0 })
+  const motion = useRef<SVGAnimateMotionElement>(null)
+
+  // 새 검체가 그려지자마자(화면에 찍히기 전) 이동 시작
+  useLayoutEffect(() => {
+    motion.current?.beginElement()
+  }, [shot])
+
+  // 가만히 두면 다음 지역에서 자동으로 출발
+  useEffect(() => {
+    const t = window.setTimeout(() => setShot((s) => ({ route: (s.route + 1) % ROUTES.length, n: s.n + 1 })), NEXT_MS)
+    return () => window.clearTimeout(t)
+  }, [shot])
+
+  const send = (route: number) => setShot((s) => ({ route, n: s.n + 1 }))
+  const active = ROUTES[shot.route]
+
+  return (
+    <div className="lab-map">
+      <svg viewBox="0 0 300 150" role="group" aria-label="전국에서 중앙 분석소로 이어지는 검체 이송 경로">
+        {ROUTES.map((r, i) => (
+          <path key={r.name} className={`lab-map-route${i === shot.route ? ' is-active' : ''}`} d={r.d} />
+        ))}
+
+        {/* 도착할 때 중앙 분석소에서 퍼지는 고리 */}
+        <circle
+          key={`ring-${shot.n}`}
+          className="lab-map-ring"
+          cx={HUB.x}
+          cy={HUB.y}
+          r="7"
+          style={{ animationDelay: `${SHIP_MS - 100}ms` }}
+        />
+        <circle className="lab-map-hub" cx={HUB.x} cy={HUB.y} r="7" />
+
+        <circle key={`packet-${shot.n}`} className="lab-map-packet" r="3.5">
+          <animateMotion
+            ref={motion}
+            begin="indefinite"
+            dur={`${SHIP_MS}ms`}
+            path={active.d}
+            fill="freeze"
+            calcMode="spline"
+            keyTimes="0;1"
+            keySplines="0.45 0 0.25 1"
+          />
+        </circle>
+
+        {ROUTES.map((r, i) => (
+          <g
+            key={r.name}
+            className={`lab-map-stop${i === shot.route ? ' is-active' : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`${r.name}에서 검체 보내기`}
+            onClick={() => send(i)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                send(i)
+              }
+            }}
+          >
+            {/* 손가락으로 누르기 쉽게 넓은 투명 영역 */}
+            <circle className="lab-map-hit" cx={r.x} cy={r.y} r="14" />
+            <circle className="lab-map-node" cx={r.x} cy={r.y} r="4" />
+            <text className="lab-map-name" x={r.label.x} y={r.label.y}>
+              {r.name}
+            </text>
+          </g>
+        ))}
+      </svg>
+      <span className="lab-map-label">
+        <Icon d={ICONS.pin} />
+        제노플랜코리아 중앙 분석소
+      </span>
+      <span className="lab-map-hint">지역을 눌러 검체를 보내 보세요</span>
+    </div>
+  )
+}
+
 function Laboratory() {
   const pageRef = useReveal()
 
@@ -156,7 +249,7 @@ function Laboratory() {
             한국유전자정보센터 <em>연구소 소개</em>
           </h1>
           <p className="lab-lead">
-            판교 테크노밸리 연구소에 최첨단 NGS 시퀀싱 인프라를 구축하여, 검체 수거부터 72시간 내
+            제노플랜코리아 연구소에 최첨단 NGS 시퀀싱 인프라를 구축하여, 검체 수거부터 72시간 내
             99.9% 신뢰도의 질병 감수성 변이(SNP) 분석을 완료합니다.
           </p>
         </section>
@@ -176,7 +269,7 @@ function Laboratory() {
           </ul>
 
           <section className="lab-card lab-tall lab-reveal" style={delay(300)}>
-            <h2 className="lab-card-title">판교 테크노밸리</h2>
+            <h2 className="lab-card-title">제노플랜코리아 연구소</h2>
             <p className="lab-card-sub">
               생물학적 오염을 원천 차단하는 클린룸(Class 1,000 등급)과 전용 비상 전력망,
               항온항습 무진동 특수 설비를 갖춘 R&amp;D 메디컬 첨단 클러스터입니다.
@@ -199,22 +292,7 @@ function Laboratory() {
               전국 병의원 및 다이렉트 키트 발송 고객을 위해 콜드체인(Cold-chain) 특수 운송망과
               연계되어 검체 채취 즉시 24시간 내 중앙 연구소로 입고됩니다.
             </p>
-            <div className="lab-map" role="img" aria-label="전국에서 중앙 분석소로 이어지는 검체 이송 경로">
-              <svg viewBox="0 0 300 150" aria-hidden="true">
-                <path className="lab-map-route" d="M36 120 C 86 104, 108 64, 156 72 S 236 36, 262 30" />
-                <path className="lab-map-route" d="M56 34 C 98 50, 126 78, 156 72" />
-                <path className="lab-map-route" d="M250 128 C 220 104, 188 88, 156 72" />
-                <circle className="lab-map-node" cx="36" cy="120" r="4" />
-                <circle className="lab-map-node" cx="56" cy="34" r="4" />
-                <circle className="lab-map-node" cx="250" cy="128" r="4" />
-                <circle className="lab-map-node" cx="262" cy="30" r="4" />
-                <circle className="lab-map-hub" cx="156" cy="72" r="7" />
-              </svg>
-              <span className="lab-map-label">
-                <Icon d={ICONS.pin} />
-                판교 테크노밸리 중앙 분석소
-              </span>
-            </div>
+            <LogisticsMap />
             <dl className="lab-logistics">
               {LOGISTICS.map(([k, v]) => (
                 <div key={k}>
@@ -228,12 +306,16 @@ function Laboratory() {
 
         {/* ---------- 연구 프로세스 ---------- */}
         <section className="lab-card lab-reveal" style={delay(0)}>
-          <h2 className="lab-card-title">연구 프로세스 안내 (End-to-End 72시간 쾌속 파이프라인)</h2>
+          <h2 className="lab-card-title">연구 프로세스 안내</h2>
           <ol className="lab-process">
             {PROCESS.map((p, i) => (
               <li key={p.title} className="lab-reveal" style={delay(120 + i * 100)}>
                 <span className="lab-step">{p.title}</span>
-                <p>{p.desc}</p>
+                <p>
+                  {p.desc.map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </p>
                 {i < PROCESS.length - 1 && (
                   <Icon d={ICONS.chevron} className="lab-icon lab-step-next" />
                 )}
@@ -308,7 +390,7 @@ function Laboratory() {
                 <ul className="lab-career">
                   {r.career.map((c) => (
                     <li key={c}>
-                      <CheckBadge />
+                      <span className="lab-dash" aria-hidden="true" />
                       {c}
                     </li>
                   ))}

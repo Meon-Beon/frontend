@@ -257,8 +257,18 @@ body:has(.lab-page) {
   stroke: var(--teal);
   stroke-width: 1.5;
   stroke-dasharray: 5 6;
-  opacity: 0.7;
+  opacity: 0.35;
   animation: lab-flow 1.6s linear infinite;
+  transition:
+    opacity 0.4s,
+    stroke-width 0.4s;
+}
+
+/* 지금 검체가 지나가는 경로는 더 밝고 빠르게 */
+.lab-map-route.is-active {
+  opacity: 0.9;
+  stroke-width: 2;
+  animation-duration: 0.8s;
 }
 
 @keyframes lab-flow {
@@ -267,14 +277,97 @@ body:has(.lab-page) {
   }
 }
 
+.lab-map-stop {
+  cursor: pointer;
+  outline: none;
+}
+
+.lab-map-hit {
+  fill: transparent;
+}
+
 .lab-map-node {
   fill: var(--violet);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.25s, fill 0.25s;
+}
+
+.lab-map-stop:hover .lab-map-node,
+.lab-map-stop:focus-visible .lab-map-node {
+  transform: scale(1.4);
+}
+
+/* 누르는 순간 살짝 눌렸다가 출발하는 지점은 민트로 */
+.lab-map-stop:active .lab-map-node {
+  transform: scale(0.8);
+}
+
+.lab-map-stop.is-active .lab-map-node {
+  fill: var(--teal);
+  animation: lab-node-pop 0.45s ease-out;
+}
+
+@keyframes lab-node-pop {
+  40% {
+    transform: scale(1.7);
+  }
+}
+
+.lab-map-name {
+  font-size: 8px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--muted);
+  transition: fill 0.25s;
+}
+
+.lab-map-stop.is-active .lab-map-name,
+.lab-map-stop:hover .lab-map-name {
+  fill: var(--ink);
 }
 
 .lab-map-hub {
   fill: var(--teal);
   stroke: rgba(94, 242, 230, 0.3);
   stroke-width: 8;
+}
+
+/* 이동하는 검체 */
+.lab-map-packet {
+  fill: #fff;
+  filter: drop-shadow(0 0 3px var(--teal));
+}
+
+/* 도착하면 중앙 분석소에서 퍼지는 고리 */
+.lab-map-ring {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lab-ring 0.9s ease-out both;
+}
+
+@keyframes lab-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.lab-map-hint {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
 }
 
 .lab-map-label {
@@ -351,7 +444,7 @@ body:has(.lab-page) {
   right: 18px;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg, var(--teal), var(--violet));
+  background: var(--teal);
   opacity: 0.7;
 }
 
@@ -379,6 +472,13 @@ body:has(.lab-page) {
   font-size: 14px;
   font-weight: 500;
   color: var(--ink);
+}
+
+/* 설명은 미리 나눈 줄 단위로 */
+.lab-process p span {
+  display: block;
+  line-height: 1.6;
+  word-break: keep-all;
 }
 
 /* ---------- 장비 표 ---------- */
@@ -448,21 +548,19 @@ body:has(.lab-page) {
 
 /* 은은한 청록 원 안의 청록 체크 (빛 번짐 없이 차분하게) */
 .lab-check {
-  display: grid;
   flex-shrink: 0;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(94, 242, 230, 0.12);
-  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
+  width: 18px;
+  height: 18px;
 }
 
-.lab-check svg {
-  width: 12px;
-  height: 12px;
-  stroke: #7fd6cc;
-  stroke-width: 3;
+.lab-check circle {
+  fill: var(--teal);
+}
+
+.lab-check path {
+  fill: none;
+  stroke: #0b1530;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -545,10 +643,14 @@ body:has(.lab-page) {
   color: var(--body);
 }
 
-.lab-career .lab-check {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
+/* 경력 앞 짧은 대시 */
+.lab-dash {
+  flex-shrink: 0;
+  width: 8px;
+  height: 1.5px;
+  margin-top: 0.8em;
+  border-radius: 1px;
+  background: var(--teal);
 }
 
 .lab-field {
@@ -638,7 +740,9 @@ body:has(.lab-page) {
     animation: none;
   }
 
-  .lab-map-route {
+  .lab-map-route,
+  .lab-map-ring,
+  .lab-map-stop.is-active .lab-map-node {
     animation: none;
   }
 }

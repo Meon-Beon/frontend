@@ -85,7 +85,7 @@
   bottom: 0;
   height: 2px;
   border-radius: 1px;
-  background: linear-gradient(90deg, var(--teal), #b48cff);
+  background: var(--teal);
 }
 
 /* ---------- 오른쪽 ---------- */

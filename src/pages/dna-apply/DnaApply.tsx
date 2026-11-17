@@ -110,20 +110,20 @@ const STEPS: { title: string; desc: ReactNode }[] = [
 
 const BENEFITS = [
   {
-    title: '주요 4대 질환 및 암 유전적 취약도 정밀 분석',
-    desc: '위·대장·간·폐암과 심뇌혈관 질환의 유전적 위험도를 한눈에 파악합니다.',
+    title: '주요 질환의 유전적 위험도',
+    desc: '당뇨·심장질환·뇌혈관질환·유방암·대장암·치매의 유전적 위험도를 한눈에 확인합니다.',
   },
   {
-    title: '생활습관형 대사 지표 (혈당, 혈압, 비만 등)',
-    desc: '카페인·비타민 대사 등 체질에 맞춘 영양·운동 솔루션을 제시합니다.',
+    title: '내 몸의 대사·생활습관 특성',
+    desc: '혈당·혈압·비만, 카페인·비타민 대사 등 내 체질에 맞는 영양·운동 가이드를 제시합니다.',
   },
   {
-    title: '내 유전체 맞춤형 보험 보장 분석 (과부족 진단)',
-    desc: '필요한 특약은 강화하고 중복 보장은 줄인 맞춤 리포트를 제공합니다.',
+    title: '건강검진으로는 보이지 않던 숨은 위험',
+    desc: '건강검진 결과와 함께 분석해, 검진 수치만으로는 드러나지 않던 잠재 위험을 찾아냅니다.',
   },
   {
-    title: '보건복지부 DTC 인증 연구소 정밀 분석',
-    desc: '질병관리청 승인 기관의 공인 시스템으로 99.9% 신뢰도를 보장합니다.',
+    title: '지금 내 보험에서 비어 있는 보장',
+    desc: '찾아낸 위험과 현재 보장을 비교해, 부족한 보장은 채우고 중복 보장은 정리하는 맞춤 리포트를 제공합니다.',
   },
 ]
 
@@ -279,6 +279,9 @@ function DnaApply() {
                   </li>
                 ))}
               </ul>
+              <p className={styles.source}>
+                보건복지부 DTC 인증기관 제노플랜코리아 분석 · 질환 위험도는 의료기관 연계 검사 기준
+              </p>
               <p className={styles.medical}>
                 “본 서비스는 의료기관의 진료를 대체할 수 없으며, 발병 여부를 확진하지 않습니다.”
               </p>
@@ -303,11 +306,11 @@ function DnaApply() {
             </section>
 
             <section className={`${styles.card} ${styles.price} ${styles.reveal}`} style={delay(260)}>
-              <span className={styles.product}>DTC 유전자 96종 종합 분석 키트 + 리포트</span>
+              <span className={styles.product}>DTC 유전자 88종 종합 분석 키트 + 리포트</span>
               <p className={styles.amount}>
-                <s>정상가 150,000원</s>
+                <s>정상가 198,000원</s>
                 <strong>
-                  50,000<small>원</small>
+                  80,000<small>원</small>
                 </strong>
               </p>
               {/* 4-1 약관동의 → 4-2 토스 결제창 → 4-3 결제완료 */}
