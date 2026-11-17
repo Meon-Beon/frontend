@@ -10,7 +10,7 @@ import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
-import ReportCheck from './pages/Report_check/Report_check'
+import ReportCheck from './pages/report/Report'
 import ServiceCenter from './pages/service_center/service_center'
 import Signup from './pages/signup/Signup'
 
