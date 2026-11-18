@@ -252,7 +252,7 @@ body:has(.ins-page) {
 .ins-titlebar h1 {
   color: var(--ink);
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
@@ -290,14 +290,14 @@ body:has(.ins-page) {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 22px;
+  gap: 14px;
+  padding: 22px 36px;
   overflow: hidden;
 }
 
 .ins-owned-summary h2 {
   color: var(--ink);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -311,7 +311,7 @@ body:has(.ins-page) {
 .ins-owned-summary-body {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 40px;
 }
 
 .ins-total,
@@ -332,7 +332,7 @@ body:has(.ins-page) {
 
 .ins-total strong {
   color: var(--ink);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
@@ -361,7 +361,7 @@ body:has(.ins-page) {
 /* 요약 사이 얇은 세로 구분선 */
 .ins-main-cat,
 .ins-count {
-  padding-left: 28px;
+  padding-left: 40px;
   border-left: 1px solid var(--line);
 }
 

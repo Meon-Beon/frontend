@@ -631,7 +631,7 @@ function Insurance() {
       <div className="ins-page">
         <div className="ins-wrap ins-center">
           <section className="ins-card ins-login">
-            <h1>GENE 보험설계</h1>
+            <h1>내 GENE 보험설계</h1>
             <p>로그인하면 내 보유 보험과 유전체 분석 기반 맞춤 보험 설계를 볼 수 있어요.</p>
             <Link to="/login" state={{ from: location.pathname }} className="ins-cta">
               로그인하러 가기 <Icon d={ICON.arrow} />
@@ -649,7 +649,7 @@ function Insurance() {
       <div className="ins-wrap">
         <div className="ins-titlebar">
           <div className="ins-title-left">
-            <h1>GENE 보험설계</h1>
+            <h1>내 GENE 보험설계</h1>
           </div>
           {existing && design && (
             /* ---------- 현재 보유 보험 분석: 제목 줄 오른쪽에 한 줄로 ---------- */
