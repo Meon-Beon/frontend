@@ -20,16 +20,16 @@ function Footer() {
             </p>
             <p className={styles.info}>
               <span>대표이사: 지민</span>
-              <span>사업자등록번호: 220-88-01928</span>
-              <span>보험대리점 등록번호: 제2024-0391호</span>
+              <span>사업자등록번호: 9999-01-0304</span>
+              <span>보험대리점 등록번호: 제2026-1123호</span>
             </p>
             <p className={styles.info}>서울 성동구 왕십리로 63</p>
           </div>
 
           <div className={styles.support}>
             <p className={styles.supportTitle}>고객지원 및 분쟁처리</p>
-            <a href="tel:1588-0921" className={styles.phone}>
-              1588-0921
+            <a href="tel:0831-1214" className={styles.phone}>
+              0831-1214
             </a>
             <p className={styles.supportText}>
               평일 09:00 - 18:00 (점심시간 12:00 - 13:00)

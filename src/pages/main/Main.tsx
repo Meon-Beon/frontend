@@ -116,7 +116,7 @@ const STEPS: {
   {
     icon: <SwabTubeIcon />,
     title: 'DNA 검사 신청',
-    desc: '제노플랜코리아 전문 연구소 분석 의뢰',
+    desc: 'DNA분석 전문 연구소를 통한 안전 접수',
     footer: '신청하기',
     to: '/dna-apply',
   },
