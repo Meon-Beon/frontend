@@ -10,6 +10,7 @@ import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
+import MyPage from './pages/mypage/MyPage'
 import KakaoCallback from './pages/oauth/KakaoCallback'
 import ReportCheck from './pages/report/Report'
 import ServiceCenter from './pages/service_center/service_center'
@@ -41,6 +42,7 @@ function App() {
             <Route path="/main" element={<Main />} />
             <Route path="/health-history" element={<HealthHistory />} />
             <Route path="/report" element={<ReportCheck />} />
+            <Route path="/mypage" element={<MyPage />} />
           </Route>
         </Route>
 
