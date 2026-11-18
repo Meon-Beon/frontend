@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { errorMessage } from '../../api/dna'
 import {
@@ -44,18 +44,6 @@ const prettyAmount = (amount: string | null) => {
   const m = amount.replace(/\s/g, '').match(/^(\d+)만원$/)
   return m ? `${won(Number(m[1]))}만원` : amount
 }
-
-/** 질병마다 고유 색: 질병 칩과 카드 왼쪽 띠에 씀 */
-const DISEASE_COLOR: Record<string, string> = {
-  심장: '#ff8aa0',
-  뇌혈관: '#b48cff',
-  당뇨: '#ffc857',
-  고혈압: '#ff9f6b',
-  치매: '#6fb8ff',
-  대장암: '#5ee08a',
-  유방암: '#f7a8ff',
-}
-const colorOf = (d: string) => DISEASE_COLOR[d] ?? '#5ef2e6'
 
 /** 추천 카드 태그: 대상 질병마다 관련 보장을 하나씩 먼저 보여 줌 (KB처럼 보장이 28개인 상품도 당뇨·심장·뇌혈관이 다 보이게) */
 const DISEASE_KEYWORDS: Record<string, string[]> = {
@@ -112,6 +100,19 @@ function diseaseState(g: CoverageGap, designed: Recommendation[]): DiseaseState 
   return g.status === '공백의심' ? { label: '보장 공백', tone: 'gap' } : { label: '확인 필요', tone: 'check' }
 }
 
+/**
+ * 팝업 보장 공백 요약: 서버의 공백 설명(gap_detail)과 현재 보장(current_summary)을 한 줄로 합친 문구.
+ * 지금은 시연 데이터 기준으로 당뇨·심장·뇌혈관·고혈압만 정리했고, 그 밖의 질병은 서버 문장을 그대로 보여 줌
+ */
+const GAP_ONE_LINE: Record<string, string> = {
+  당뇨: '기존 보험에 당뇨 진단/치료 관련 보장 문구 없음 (암 관련 보장만 확인)',
+  심장: '기존 보험에 심장질환 진단/수술/입원 보장 문구 없음',
+  뇌혈관: '기존 보험에 뇌졸중 등 뇌혈관질환 관련 보장 문구 없음',
+  고혈압: '기존 보험에 고혈압 직접 보장 문구 없음',
+}
+
+const TONE_ORDER: Record<DiseaseState['tone'], number> = { gap: 0, check: 1, designed: 2, owned: 3 }
+
 const GAP_ORDER: Record<CoverageGap['status'], number> = { 공백의심: 0, 정보부족: 1, 보장확인: 2 }
 const GAP_TITLE: Record<CoverageGap['status'], string> = {
   공백의심: '보장 공백 의심',
@@ -128,7 +129,9 @@ const SORTS: { key: SortKey; label: string }[] = [
 function sortRecs(recs: Recommendation[], key: SortKey) {
   const price = (r: Recommendation) => r.premium ?? Number.POSITIVE_INFINITY
   const list = [...recs]
-  if (key === 'coverage') list.sort((a, b) => b.coverages.length - a.coverages.length || a.rec_rank - b.rec_rank)
+  // 보장 많은순: 대비하는 질병(당뇨·심장·뇌혈관 등) 종류가 많은 상품부터, 같으면 추천순
+  if (key === 'coverage')
+    list.sort((a, b) => b.target_diseases.length - a.target_diseases.length || a.rec_rank - b.rec_rank)
   if (key === 'cheap') list.sort((a, b) => price(a) - price(b) || a.rec_rank - b.rec_rank)
   return list
 }
@@ -136,6 +139,79 @@ function sortRecs(recs: Recommendation[], key: SortKey) {
 const DRAG_TYPE = 'application/x-gene-recommendation'
 
 /* ---------- 작은 조각들 ---------- */
+
+/** 서버 문장(추천 이유·확인할 점)을 문장마다 한 줄씩: 줄 끝에 한두 단어만 떨어지지 않게 */
+function Sentences({ text, className }: { text: string; className?: string }) {
+  // 여는 괄호 앞에 줄바꿈 금지 문자(U+2060)를 넣어 "진단비 / (300만원"처럼 괄호만 다음 줄로 떨어지지 않게
+  const lines = text
+    .split(/(?<=[.!?])\s+/)
+    .filter(Boolean)
+    .map((line) => line.replace(/(\S)\(/g, '$1\u2060('))
+  return (
+    <p className={`ins-sentences${className ? ` ${className}` : ''}`}>
+      {lines.map((line, i) => (
+        <span key={i}>{line}</span>
+      ))}
+    </p>
+  )
+}
+
+/** 괄호 밖의 쉼표로만 나눔: "A(1, 2), B(3)" → ["A(1, 2)", "B(3)"] */
+function splitTopLevel(text: string) {
+  const parts: string[] = []
+  let depth = 0
+  let cur = ''
+  for (const ch of text) {
+    if (ch === '(') depth++
+    if (ch === ')') depth = Math.max(0, depth - 1)
+    if (ch === ',' && depth === 0) {
+      parts.push(cur.trim())
+      cur = ''
+    } else cur += ch
+  }
+  if (cur.trim()) parts.push(cur.trim())
+  return parts
+}
+
+/** 끝의 괄호 묶음만 금액으로: "심장질환(특정Ⅰ)진단비(300만원, 협심증 등)" → 이름 "심장질환(특정Ⅰ)진단비", 금액 "300만원, 협심증 등" */
+function splitAmount(item: string) {
+  if (!item.endsWith(')')) return { name: item, detail: '' }
+  let depth = 0
+  for (let i = item.length - 1; i >= 0; i--) {
+    if (item[i] === ')') depth++
+    if (item[i] === '(' && --depth === 0) {
+      const name = item.slice(0, i).trim()
+      return name ? { name, detail: item.slice(i + 1, -1).trim() } : { name: item, detail: '' }
+    }
+  }
+  return { name: item, detail: '' }
+}
+
+/**
+ * 오른쪽 설계 카드의 추천 이유: "상품명: A(금액), B(금액) 문구가 확인됨. 설명…" 형태를
+ * 확인된 보장은 한 줄에 하나씩(이름 + 금액), 나머지 설명은 문장마다 한 줄로 나눠 읽기 쉽게
+ */
+function ReasonText({ text }: { text: string }) {
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean)
+  const m = sentences[0]?.match(/^[^:]+:\s*(.+?)\s*문구가 확인됨\.?$/)
+  if (!m) return <Sentences text={text} />
+  const items = splitTopLevel(m[1]).map(splitAmount)
+  const notes = sentences.slice(1)
+  return (
+    <div className="ins-reason">
+      <p className="ins-reason-label">확인된 보장</p>
+      <ul className="ins-reason-items">
+        {items.map((it) => (
+          <li key={it.name}>
+            <span>{it.name}</span>
+            {it.detail && <b>{it.detail}</b>}
+          </li>
+        ))}
+      </ul>
+      {notes.length > 0 && <Sentences text={notes.join(' ')} className="ins-reason-notes" />}
+    </div>
+  )
+}
 
 function Icon({ d, className }: { d: string; className?: string }) {
   return (
@@ -151,7 +227,8 @@ const ICON = {
   plus: 'M12 5v14M5 12h14',
   check: 'M5 12.5l4.5 4.5L19 7.5',
   drop: 'M12 4v12M7 11l5 5 5-5M4 20h16',
-  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  /* 설계 카드 메뉴 버튼: 빼기(-) 모양 */
+  more: 'M7 12h10',
   reset: 'M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 }
@@ -160,9 +237,7 @@ function DiseaseChips({ diseases }: { diseases: string[] }) {
   return (
     <span className="ins-diseases">
       {diseases.map((d) => (
-        <i key={d} style={{ '--c': colorOf(d) } as CSSProperties}>
-          {d}
-        </i>
+        <i key={d}>{d}</i>
       ))}
     </span>
   )
@@ -191,6 +266,8 @@ function RecommendCard({
   index: number
 }) {
   const [open, setOpen] = useState(false)
+  /** 펼친 상세(추천 이유 등) 위에 포인터가 있으면 카드 끌기를 끄고 글자를 드래그해 복사할 수 있게 함 */
+  const [overText, setOverText] = useState(false)
   const detailId = `ins-rec-detail-${r.id}`
 
   const onDragStart = (e: DragEvent<HTMLLIElement>) => {
@@ -201,13 +278,12 @@ function RecommendCard({
   return (
     <li
       className={`ins-rec${added ? ' is-added' : ''}`}
-      draggable={!added}
+      draggable={!added && !overText}
       onDragStart={onDragStart}
-      style={{ animationDelay: `${index * 50}ms`, '--accent': colorOf(r.target_diseases[0] ?? '') } as CSSProperties}
+      style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="ins-rec-top">
         <span className="ins-company">
-          <b>{r.rec_rank}</b>
           {r.company_name}
         </span>
         <DiseaseChips diseases={r.target_diseases} />
@@ -231,18 +307,24 @@ function RecommendCard({
               </>
             ) : (
               <>
-                <span className="ins-drag-hint">드래그 가능</span> 담기 <Icon d={ICON.arrow} />
+                담기 <Icon d={ICON.arrow} />
               </>
             )}
           </button>
         </div>
       </div>
 
-      <div id={detailId} className="ins-rec-detail" hidden={!open}>
+      <div
+        id={detailId}
+        className="ins-rec-detail"
+        hidden={!open}
+        onPointerEnter={() => setOverText(true)}
+        onPointerLeave={() => setOverText(false)}
+      >
         {r.reason && (
           <>
             <h4>추천 이유</h4>
-            <p>{r.reason}</p>
+            <ReasonText text={r.reason} />
           </>
         )}
         <h4>보장 내용 ({r.coverages.length}개)</h4>
@@ -257,7 +339,7 @@ function RecommendCard({
         {r.checks && (
           <>
             <h4>가입 전 확인할 점</h4>
-            <p className="ins-checks">{r.checks}</p>
+            <Sentences text={r.checks} className="ins-checks" />
           </>
         )}
         {r.join_age && <p className="ins-meta">가입연령 {r.join_age}세 · {r.insurer_type}보험 · {r.product_type}</p>}
@@ -273,18 +355,12 @@ const safeUrl = (url: string | null) => (url && /^https?:\/\//i.test(url) ? url 
 
 function DesignedCard({ r, onRemove }: { r: Recommendation; onRemove: () => void }) {
   const [menu, setMenu] = useState(false)
+  const [reasonOpen, setReasonOpen] = useState(false)
+  const reasonId = `ins-designed-reason-${r.id}`
   const url = safeUrl(r.join_url)
   const name = cleanName(r.product_name)
   return (
-    <li
-      className={`ins-designed${url ? ' has-link' : ''}`}
-      style={{ '--accent': colorOf(r.target_diseases[0] ?? '') } as CSSProperties}
-    >
-      {/* 카드 전체를 덮는 링크: 카드 아무 곳이나 누르면 보험사 가입 페이지가 새 탭으로 열림.
-          ⋯ 메뉴 버튼은 이 링크보다 위(z-index)에 있어서 따로 눌림 */}
-      {url && (
-        <a className="ins-designed-link" href={url} target="_blank" rel="noopener noreferrer" aria-label={`${r.company_name} ${name} 가입 페이지 (새 탭)`} />
-      )}
+    <li className="ins-designed">
       <div className="ins-rec-top">
         <span className="ins-company">{r.company_name}</span>
         <div className="ins-more">
@@ -303,18 +379,41 @@ function DesignedCard({ r, onRemove }: { r: Recommendation; onRemove: () => void
       <p className="ins-name">{name}</p>
       <DiseaseChips diseases={r.target_diseases} />
       <div className="ins-designed-foot">
-        <span>월 예상 보험료</span>
+        {r.reason ? (
+          <button
+            type="button"
+            className="ins-text-btn ins-reason-toggle"
+            aria-expanded={reasonOpen}
+            aria-controls={reasonId}
+            onClick={() => setReasonOpen(!reasonOpen)}
+          >
+            {reasonOpen ? '접기' : '추천 이유'}
+          </button>
+        ) : (
+          <span />
+        )}
         <Price value={r.premium} />
       </div>
-      <p className={`ins-join${url ? '' : ' is-none'}`} aria-hidden="true">
-        {url ? (
-          <>
-            보험사에서 가입하기 <Icon d={ICON.external} />
-          </>
-        ) : (
-          '가입 링크 준비 중'
-        )}
-      </p>
+      {r.reason && (
+        // 카드 링크보다 위에 있어 글자를 드래그해 복사할 수 있음
+        <div id={reasonId} className="ins-designed-reason" hidden={!reasonOpen}>
+          <ReasonText text={r.reason} />
+        </div>
+      )}
+      {/* 가입 페이지는 이 버튼을 눌렀을 때만 새 탭으로 열림 (카드 다른 곳을 눌러도 넘어가지 않음) */}
+      {url ? (
+        <a
+          className="ins-join"
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${r.company_name} ${name} 보험사에서 가입하기 (새 탭)`}
+        >
+          보험사에서 가입하기 <Icon d={ICON.external} />
+        </a>
+      ) : (
+        <p className="ins-join is-none">가입 링크 준비 중</p>
+      )}
     </li>
   )
 }
@@ -443,8 +542,14 @@ function OwnedModal({
                       <span>{GAP_TITLE[g.status]}</span>
                       {g.disease}
                     </p>
-                    {g.gap_detail && <p>{g.gap_detail}</p>}
-                    {g.current_summary && <p className="ins-gap-current">현재 보장: {g.current_summary}</p>}
+                    {GAP_ONE_LINE[g.disease] && g.status === '공백의심' ? (
+                      <p>{GAP_ONE_LINE[g.disease]}</p>
+                    ) : (
+                      <>
+                        {g.gap_detail && <p>{g.gap_detail}</p>}
+                        {g.current_summary && <p className="ins-gap-current">현재 보장: {g.current_summary}</p>}
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -495,7 +600,10 @@ function Insurance() {
   const ids = designedIds ?? aiIds
   const designed = ids.map((id) => recs.find((r) => r.id === id)).filter((r): r is Recommendation => !!r)
   const designedTotal = designed.reduce((sum, r) => sum + (r.premium ?? 0), 0)
-  const riskDiseases = gaps.filter((g) => g.at_risk)
+  // 위험 질환 보장 현황: 보장 공백 → 확인 필요 → 설계로 보완 → 보유 보장 순 (같은 상태끼리는 원래 순서)
+  const riskDiseases = gaps
+    .filter((g) => g.at_risk)
+    .sort((a, b) => TONE_ORDER[diseaseState(a, designed).tone] - TONE_ORDER[diseaseState(b, designed).tone])
   const sorted = useMemo(() => sortRecs(recs, sort), [recs, sort])
   const isAiPick = designedIds === null
   // 팝업의 useEffect 가 렌더마다 다시 돌지 않도록 같은 함수를 계속 넘김
@@ -523,7 +631,7 @@ function Insurance() {
       <div className="ins-page">
         <div className="ins-wrap ins-center">
           <section className="ins-card ins-login">
-            <h1>GENE 보험설계</h1>
+            <h1>내 GENE 보험설계</h1>
             <p>로그인하면 내 보유 보험과 유전체 분석 기반 맞춤 보험 설계를 볼 수 있어요.</p>
             <Link to="/login" state={{ from: location.pathname }} className="ins-cta">
               로그인하러 가기 <Icon d={ICON.arrow} />
@@ -540,35 +648,21 @@ function Insurance() {
     <div className="ins-page">
       <div className="ins-wrap">
         <div className="ins-titlebar">
-          <h1>GENE 보험설계</h1>
-          {/* 서버 리포트(PDF)가 생기기 전까지는 이 화면을 인쇄·PDF 저장 */}
-          <button type="button" className="ins-ghost" onClick={() => window.print()}>
-            <Icon d={ICON.download} />
-            리포트 다운로드
-          </button>
-        </div>
-
-        {error && <p className="ins-status ins-status-error">{error}</p>}
-        {loading && <p className="ins-status">보험 정보를 불러오는 중이에요.</p>}
-
-        {existing && design && (
-          <>
-            {/* ---------- 현재 보유 보험 분석 ---------- */}
+          <div className="ins-title-left">
+            <h1>내 GENE 보험설계</h1>
+          </div>
+          {existing && design && (
+            /* ---------- 현재 보유 보험 분석: 제목 줄 오른쪽에 한 줄로 ---------- */
             <section className="ins-card ins-owned-summary">
-              <div className="ins-owned-summary-head">
-                <h2>
-                  <u>{name}</u> 님의 현재 보유 보험 분석
-                </h2>
-                <button type="button" className="ins-cta ins-cta-sm" onClick={() => setModalOpen(true)}>
-                  보험 상세보기 <Icon d={ICON.arrow} />
-                </button>
-              </div>
+              <h2>
+                <u>{name}</u> 님의 현재 보유 보험
+              </h2>
               <div className="ins-owned-summary-body">
                 <div className="ins-total">
                   <p>월 납입 보험료</p>
                   <strong>
                     {won(existing.total_premium)}
-                    <small>원 / 월</small>
+                    <small>원</small>
                   </strong>
                 </div>
                 {existing.main_category && (
@@ -578,19 +672,29 @@ function Insurance() {
                   </div>
                 )}
                 <div className="ins-count">
-                  <p>유지 계약 건수</p>
+                  <p>유지 계약</p>
                   <strong>총 {existing.products.length}건</strong>
                 </div>
+                <button type="button" className="ins-detail-link" onClick={() => setModalOpen(true)}>
+                  보험 상세보기 <Icon d={ICON.arrow} />
+                </button>
               </div>
             </section>
+          )}
+        </div>
+
+        {error && <p className="ins-status ins-status-error">{error}</p>}
+        {loading && <p className="ins-status">보험 정보를 불러오는 중이에요.</p>}
+
+        {existing && design && (
+          <>
 
             <div className="ins-layout">
               {/* ---------- 왼쪽: 추천 보험 ---------- */}
               <section className="ins-card ins-left" aria-labelledby="ins-left-title">
                 <div className="ins-panel-head">
                   <div>
-                    <h2 id="ins-left-title">내 GENE에 적합한 보험이에요</h2>
-                    <p>유전체·검진 분석으로 고른 상품이에요. 오른쪽 설계 칸으로 끌어다 놓거나 담기를 누르세요.</p>
+                    <h2 id="ins-left-title">내 GENE에 적합한 보험</h2>
                   </div>
                   <label className="ins-select">
                     <span className="ins-sr">정렬</span>
@@ -628,7 +732,7 @@ function Insurance() {
                 <div className="ins-panel-head">
                   <div>
                     <h2 id="ins-right-title">AI 맞춤 추천 설계</h2>
-                    <p>{isAiPick ? 'AI가 보장 공백을 가장 적은 보험료로 채우는 조합을 담아 두었어요.' : '직접 고친 설계예요.'}</p>
+                    <p>{isAiPick ? 'AI가 보장 공백을 가장 적은 보험료로 채우는 조합을 담아 두었어요.' : '기존 보험의 보장 공백을 분석해 추천한 맞춤형 보험 포트폴리오'}</p>
                   </div>
                   {!isAiPick && (
                     <button type="button" className="ins-text-btn" onClick={() => setDesignedIds(null)}>
@@ -640,7 +744,7 @@ function Insurance() {
                 <div className="ins-dropzone" aria-hidden="true">
                   <Icon d={ICON.drop} />
                   <p>드래그하여 보험 상품 추가</p>
-                  <span>왼쪽 목록에서 상품을 끌어다 놓으면 설계에 담겨요.</span>
+                  <span>왼쪽 상품을 드래그해 원하는 보험을 추가하세요.</span>
                 </div>
 
                 {riskDiseases.length > 0 && (
@@ -676,14 +780,14 @@ function Insurance() {
                     <dd>총 {designed.length}건</dd>
                   </div>
                   <div>
-                    <dt>월 납입 합계</dt>
+                    <dt>예상 월 보험료 합계</dt>
                     <dd>
                       <strong>{won(designedTotal)}</strong> 원
                     </dd>
                   </div>
                   <div className="ins-design-total-all">
-                    <dt>기존 보험 포함</dt>
-                    <dd>월 {won(designedTotal + existing.total_premium)} 원</dd>
+                    <dt>기존 가입 보험료 포함</dt>
+                    <dd>{won(designedTotal + existing.total_premium)} 원</dd>
                   </div>
                 </dl>
               </section>

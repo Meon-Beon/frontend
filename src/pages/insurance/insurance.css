@@ -7,8 +7,9 @@
   --line: rgba(255, 255, 255, 0.08);
   --glass-line: rgba(170, 195, 255, 0.12);
   --ink: #e4e8ef;
-  --body: #b3bccb;
-  --muted: #8892a5;
+  /* 회색 대신 탁한 흰색 계열 */
+  --body: #d3d9e4;
+  --muted: #aeb6c6;
   --teal: #5ef2e6;
   --violet: #b48cff;
   --good: #5ee08a;
@@ -166,6 +167,8 @@ body:has(.ins-page) {
 
 .ins-text-btn:hover {
   color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .ins-icon-btn {
@@ -226,79 +229,102 @@ body:has(.ins-page) {
   font-size: 26px;
 }
 
-/* ---------- 제목 줄 ---------- */
+/* ---------- 제목 줄: 제목·다운로드 바로 옆에 보유 보험 요약 ---------- */
 .ins-titlebar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 24px;
+}
+
+/* 요약 카드는 가운데 칸 → 화면 중앙 */
+.ins-titlebar > .ins-owned-summary {
+  grid-column: 2;
+}
+
+.ins-title-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .ins-titlebar h1 {
   color: var(--ink);
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.03em;
 }
 
-/* ---------- 현재 보유 보험 분석 ---------- */
+/* 보험 상세보기: 상자 없이 민트 글자 + 화살표 */
+.ins-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--teal);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ins-detail-link svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* 요약 카드 안에서는 숫자 줄 높이에 맞춰 아래쪽에 붙임 */
+.ins-owned-summary-body .ins-detail-link {
+  align-self: flex-end;
+}
+
+.ins-detail-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ---------- 현재 보유 보험: 한 줄 요약 ---------- */
 .ins-owned-summary {
   position: relative;
-  width: min(620px, 100%);
-  margin: 0 auto;
-  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 36px;
   overflow: hidden;
 }
 
-/* 위쪽 청록→보라 띠 */
-.ins-owned-summary::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(90deg, var(--teal), var(--violet));
-}
-
-.ins-owned-summary-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.ins-owned-summary-head h2 {
+.ins-owned-summary h2 {
   color: var(--ink);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 
-.ins-owned-summary-head u {
-  text-decoration: none;
-  background: linear-gradient(transparent 62%, rgba(94, 242, 230, 0.28) 62%);
+.ins-owned-summary u {
+  text-decoration: underline;
+  text-decoration-color: var(--teal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .ins-owned-summary-body {
   display: flex;
-  align-items: flex-end;
-  gap: 16px;
+  align-items: center;
+  gap: 40px;
 }
 
 .ins-total,
+.ins-main-cat,
 .ins-count {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
 }
 
-.ins-total {
-  padding: 14px 18px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-}
-
 .ins-total p,
+.ins-main-cat p,
 .ins-count p {
   color: var(--muted);
   font-size: 12px;
@@ -306,55 +332,44 @@ body:has(.ins-page) {
 
 .ins-total strong {
   color: var(--ink);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
 .ins-total small {
-  margin-left: 6px;
+  margin-left: 4px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.ins-main-cat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding-bottom: 4px;
-}
-
-.ins-main-cat p {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .ins-pill {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(94, 224, 138, 0.14);
-  color: var(--good);
-  font-size: 12px;
+  color: #fff;
+  font-size: 15px;
   font-weight: 700;
-}
-
-.ins-count {
-  margin-left: auto;
-  text-align: right;
+  line-height: 1.3;
 }
 
 .ins-count strong {
   color: var(--ink);
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+/* 요약 사이 얇은 세로 구분선 */
+.ins-main-cat,
+.ins-count {
+  padding-left: 40px;
+  border-left: 1px solid var(--line);
 }
 
 /* ---------- 두 칸 배치 ---------- */
 .ins-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  /* 오른쪽 AI 맞춤 추천 설계 칸을 조금 넓게 */
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -364,10 +379,8 @@ body:has(.ins-page) {
   padding: 24px;
 }
 
-/* 오른쪽 설계 칸은 왼쪽 목록을 스크롤해도 화면에 붙어 있음 → 끌어다 놓기 편함 */
+/* 오른쪽 설계 칸: 끌어다 놓는 자리라 테두리를 민트로 */
 .ins-right {
-  position: sticky;
-  top: 112px;
   border-color: rgba(94, 242, 230, 0.32);
   transition:
     border-color 0.2s ease,
@@ -399,6 +412,8 @@ body:has(.ins-page) {
   margin-top: 4px;
   color: var(--muted);
   font-size: 12.5px;
+  line-height: 1.6;
+  word-break: keep-all;
 }
 
 .ins-select select {
@@ -423,19 +438,8 @@ body:has(.ins-page) {
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-}
-
-.ins-company b {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  background: rgba(94, 242, 230, 0.14);
-  color: var(--teal);
-  font-size: 11px;
 }
 
 .ins-name {
@@ -461,20 +465,43 @@ body:has(.ins-page) {
   font-size: 12px;
 }
 
+/* 추천 카드의 보장 이름: 오른쪽 설계 카드처럼 상자 없이 글자만, 사이에 가운뎃점 */
+.ins-rec .ins-tags {
+  gap: 0;
+}
+
+.ins-rec .ins-tags span {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--body);
+  font-size: 12.5px;
+}
+
+.ins-rec .ins-tags span + span::before {
+  content: '·';
+  margin: 0 7px;
+  color: var(--muted);
+}
+
 .ins-diseases {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px;
+  align-items: center;
 }
 
+/* 질병 이름: 상자 없이 흰 글자, 사이에 가운뎃점 */
 .ins-diseases i {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--c) 16%, transparent);
-  color: var(--c);
-  font-size: 11.5px;
+  color: #fff;
+  font-size: 12px;
   font-style: normal;
   font-weight: 700;
+}
+
+.ins-diseases i + i::before {
+  content: '·';
+  margin: 0 6px;
+  color: var(--muted);
 }
 
 .ins-price {
@@ -506,6 +533,7 @@ body:has(.ins-page) {
 }
 
 .ins-rec {
+  --accent: var(--teal);
   position: relative;
   padding: 16px 18px 14px 20px;
   border: 1px solid var(--line);
@@ -570,15 +598,15 @@ body:has(.ins-page) {
   gap: 10px;
 }
 
+/* 담기: 상자 없이 민트 글자 + 화살표 */
 .ins-add {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(94, 242, 230, 0.35);
-  border-radius: 999px;
-  background: rgba(94, 242, 230, 0.08);
+  padding: 0 4px;
+  border: 0;
+  background: none;
   color: var(--teal);
   font-size: 12.5px;
   font-weight: 700;
@@ -586,24 +614,13 @@ body:has(.ins-page) {
 }
 
 .ins-add:hover:not(:disabled) {
-  background: rgba(94, 242, 230, 0.18);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .ins-add:disabled {
-  border-color: var(--line);
-  background: none;
   color: var(--muted);
   cursor: default;
-}
-
-.ins-drag-hint {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.ins-drag-hint::after {
-  content: '·';
-  margin-left: 6px;
 }
 
 .ins-rec-detail {
@@ -611,7 +628,9 @@ body:has(.ins-page) {
   padding: 14px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
-  cursor: auto;
+  /* 끌기 대신 글자 선택(복사)이 되게 */
+  cursor: text;
+  user-select: text;
 }
 
 .ins-rec-detail h4 {
@@ -626,6 +645,17 @@ body:has(.ins-page) {
 
 .ins-rec-detail p {
   font-size: 13px;
+}
+
+/* 문장마다 한 줄, 단어 중간에서 끊지 않음 */
+.ins-sentences span {
+  display: block;
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+.ins-sentences span + span {
+  margin-top: 4px;
 }
 
 .ins-coverage-list {
@@ -709,9 +739,10 @@ body:has(.ins-page) {
   align-items: center;
   gap: 2px;
   padding: 10px 6px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
+  /* 안쪽 색 번짐 없이 카드 배경 그대로 */
+  background: none;
   text-align: center;
 }
 
@@ -725,28 +756,13 @@ body:has(.ins-page) {
   font-weight: 600;
 }
 
-/* 부족한 부분을 색으로 강조: 공백은 빨강, 확인 필요는 노랑, 채워진 것은 청록·초록 */
-.ins-risk-gap {
-  border-color: rgba(255, 107, 122, 0.45) !important;
-  background: rgba(255, 107, 122, 0.1) !important;
-}
-
+/* 테두리는 모두 같은 회색, 상태는 글자 색으로만 구분: 공백 빨강, 확인 필요 노랑, 채워진 것 청록·초록 */
 .ins-risk-gap span {
   color: var(--danger);
 }
 
-.ins-risk-check {
-  border-color: rgba(255, 211, 107, 0.4) !important;
-  background: rgba(255, 211, 107, 0.08) !important;
-}
-
 .ins-risk-check span {
   color: var(--caution);
-}
-
-.ins-risk-designed {
-  border-color: rgba(94, 242, 230, 0.4) !important;
-  background: rgba(94, 242, 230, 0.08) !important;
 }
 
 .ins-risk-designed span {
@@ -754,7 +770,7 @@ body:has(.ins-page) {
 }
 
 .ins-risk-owned span {
-  color: var(--good);
+  color: #fff;
 }
 
 .ins-designed-list {
@@ -764,6 +780,7 @@ body:has(.ins-page) {
 }
 
 .ins-designed {
+  --accent: var(--teal);
   position: relative;
   padding: 14px 16px 14px 18px;
   border: 1px solid rgba(94, 242, 230, 0.25);
@@ -797,45 +814,87 @@ body:has(.ins-page) {
   font-size: 12.5px;
 }
 
-/* 가입 링크가 있는 카드: 카드 전체가 링크 */
-.ins-designed.has-link {
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.ins-designed.has-link:hover {
-  border-color: var(--teal);
-  transform: translateY(-1px);
-}
-
-.ins-designed-link {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.ins-designed-link:focus-visible {
-  outline: 2px solid var(--teal);
-  outline-offset: 2px;
-}
-
-/* ⋯ 메뉴는 카드 링크보다 위에 있어야 눌림 */
+/* ⋯ 메뉴는 펼친 메뉴가 아래 카드 위로 보이게 */
 .ins-designed .ins-more {
+  position: relative;
   z-index: 2;
+}
+
+/* 추천 이유: 확인된 보장은 표처럼 한 줄씩, 설명은 그 아래. 왼쪽·오른쪽 카드 모두 같은 크기 */
+.ins-reason {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ins-reason .ins-reason-label {
+  margin-bottom: 6px !important;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ins-reason .ins-reason-notes {
+  font-size: 13px;
+}
+
+.ins-reason-items li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ins-reason-items li:last-child {
+  border-bottom: 0;
+}
+
+.ins-reason-items span {
+  color: var(--ink);
+}
+
+.ins-reason-items b {
+  flex: none;
+  max-width: 55%;
+  color: #fff;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ins-reason-notes {
+  margin-top: 10px !important;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.ins-designed-reason {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--body);
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: text;
+  user-select: text;
 }
 
 .ins-join {
   display: flex;
+  width: fit-content;
   align-items: center;
-  justify-content: flex-end;
   gap: 4px;
-  margin-top: 8px !important;
+  margin: 8px 0 0 auto !important;
   color: var(--teal);
   font-size: 12.5px;
   font-weight: 700;
+  text-decoration: none;
+}
+
+a.ins-join:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .ins-join.is-none {
@@ -856,14 +915,15 @@ body:has(.ins-page) {
   place-items: center;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--line);
+  padding: 0;
+  border: 1px solid rgba(94, 242, 230, 0.45);
   border-radius: 50%;
   background: none;
-  color: var(--muted);
+  color: var(--teal);
 }
 
 .ins-more > button:hover {
-  color: var(--ink);
+  background: rgba(94, 242, 230, 0.12);
 }
 
 .ins-more-menu {
@@ -961,14 +1021,6 @@ body:has(.ins-page) {
   animation: ins-rise 0.25s ease both;
 }
 
-/* 위쪽 청록→보라→분홍 띠 (피그마 팝업의 상단 그라데이션 선) */
-.ins-modal::before {
-  content: '';
-  height: 3px;
-  flex: none;
-  background: linear-gradient(90deg, var(--teal), var(--violet), #ff8aa0);
-}
-
 .ins-modal-head {
   display: flex;
   align-items: center;
@@ -1049,11 +1101,8 @@ body:has(.ins-page) {
 }
 
 .ins-badge {
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.07);
   color: var(--body);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1061,10 +1110,14 @@ body:has(.ins-page) {
   font-size: 15px;
 }
 
+/* 보장 분류(암 등): 상자 없이 흰 글자 */
 .ins-tags-cat span {
-  border-color: rgba(94, 224, 138, 0.3);
-  background: rgba(94, 224, 138, 0.08);
-  color: var(--good);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .ins-bullets {
@@ -1079,17 +1132,6 @@ body:has(.ins-page) {
   font-size: 12.5px;
 }
 
-.ins-bullets li::before {
-  content: '';
-  flex: none;
-  width: 5px;
-  height: 5px;
-  margin-right: 2px;
-  border-radius: 50%;
-  background: var(--teal);
-  transform: translateY(-2px);
-}
-
 .ins-bullets b {
   margin-left: auto;
   color: var(--ink);
@@ -1102,7 +1144,8 @@ body:has(.ins-page) {
 }
 
 .ins-features summary {
-  color: var(--muted);
+  /* 펼침 화살표와 '상품 특성 N개 보기'를 조금 더 밝게 */
+  color: rgba(238, 241, 248, 0.88);
   cursor: pointer;
 }
 
@@ -1179,16 +1222,43 @@ body:has(.ins-page) {
 }
 
 .ins-gap-title span {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--tone) 16%, transparent);
   color: var(--tone);
-  font-size: 11px;
+  font-size: 11.5px;
 }
 
 .ins-gap-current {
   margin-top: 4px !important;
   color: var(--muted);
+}
+
+/* ---------- 넓은 화면: 위(헤더·제목·보유 보험 요약)는 고정, 아래 왼쪽·오른쪽 칸은 각자 스크롤 ----------
+   보유 보험 요약을 계속 보면서 추천 목록과 설계 칸을 비교할 수 있게 함 */
+@media (min-width: 901px) {
+  .ins-page:has(.ins-layout) {
+    height: calc(100svh - 96px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ins-page:has(.ins-layout) .ins-wrap {
+    height: 100%;
+    padding-bottom: 24px;
+  }
+
+  .ins-page .ins-layout {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .ins-page .ins-left,
+  .ins-page .ins-right {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
 }
 
 /* ---------- 움직임 ---------- */
@@ -1228,9 +1298,17 @@ body:has(.ins-page) {
     position: static;
   }
 
-  .ins-owned-summary-head,
+  .ins-titlebar {
+    grid-template-columns: 1fr;
+  }
+
+  .ins-titlebar > .ins-owned-summary {
+    grid-column: 1;
+  }
+
   .ins-owned-summary-body {
     flex-wrap: wrap;
+    gap: 16px;
   }
 
   .ins-stats {
@@ -1242,9 +1320,6 @@ body:has(.ins-page) {
     border-top: 1px solid var(--line);
   }
 
-  .ins-drag-hint {
-    display: none;
-  }
 }
 
 /* ---------- 인쇄(리포트 다운로드) ---------- */

@@ -132,6 +132,11 @@
   box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
 }
 
+.dc-title-accent,
+.dc-title-accent b {
+  color: #5ef2e6;
+}
+
 .dc-text {
   margin-top: 12px;
   padding: 16px 18px;
@@ -145,6 +150,10 @@
 .dc-text b {
   font-weight: 700;
   color: #fff;
+}
+
+.dc-text p + p {
+  margin-top: 10px !important;
 }
 
 .dc-text ul {

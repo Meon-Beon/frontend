@@ -129,10 +129,10 @@ const FAQS: Faq[] = [
           <b>양호 · 위험 · 고위험</b> 3단계로 보여 드립니다.
         </p>
         <p>
-          질환마다 <b>DNA 선천위험도</b>와 <b>현재 질환 의심도</b>를 나란히 보여 주므로, 지금은 수치가 괜찮아도
+          질환마다 <b>DNA 선천위험도</b>와 <b>현재 질환 의심도</b>를 함께 보여 주므로, 지금은 수치가 괜찮아도
           유전적으로 주의가 필요한 부분까지 함께 확인할 수 있습니다.
         </p>
-        <p className="sc-note">리포트 하단의 리포트 PDF 저장 버튼으로 언제든 내려받을 수 있습니다.</p>
+        <p className="sc-note">PDF 저장 버튼으로 언제든 다운받을 수 있습니다.</p>
       </>
     ),
   },
@@ -213,7 +213,7 @@ const FAQS: Faq[] = [
     id: 'overdue',
     category: '보험계약',
     tag: '보험계약 · 유지관리',
-    question: '보험료를 연체하면 보장이 되나요?',
+    question: '보험료 연체 시 보장범위가 줄어드나요?',
     keywords: '보험료 연체 납입 유예 해지 부활',
     answer: (
       <>
@@ -499,9 +499,9 @@ function ServiceCenter() {
             <h2>추가 문의사항이 있으신가요?</h2>
             <p>평일 09:00 - 18:00 (점심시간 12:00 - 13:00, 공휴일 제외)</p>
           </div>
-          <a href="tel:1588-0921" className="sc-phone">
+          <a href="tel:0831-1214" className="sc-phone">
             <small>유전체 상담 전화</small>
-            1588-0921
+            0831-1214
           </a>
         </section>
       </main>
