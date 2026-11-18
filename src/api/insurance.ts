@@ -77,3 +77,36 @@ export async function fetchInsuranceDesign(userId: number) {
   const { data } = await client.get<InsuranceDesign>(`/api/insurance/design/${userId}`)
   return data
 }
+
+/** 저장한 설계의 상품 하나 (마이페이지에서 보여 줌) */
+export type SavedProduct = {
+  id: number
+  rec_rank: number
+  company_name: string
+  product_name: string
+  premium: number | null
+  target_diseases: string[]
+  join_url: string | null
+  coverages: { coverage_name: string; coverage_amount: string | null }[]
+}
+
+export type SavedDesign = {
+  /** 마지막으로 저장한 시각. 저장한 적이 없으면 null */
+  saved_at: string | null
+  total_premium: number
+  /** 설계 칸에 담은 순서 */
+  products: SavedProduct[]
+}
+
+export async function fetchSavedDesign(userId: number) {
+  const { data } = await client.get<SavedDesign>(`/api/insurance/saved/${userId}`)
+  return data
+}
+
+/** 설계 저장 (회원당 1개, 덮어씀). 빈 배열이면 저장한 설계를 비움 */
+export async function saveDesign(userId: number, recommendationIds: number[]) {
+  const { data } = await client.put<SavedDesign>(`/api/insurance/saved/${userId}`, {
+    recommendation_ids: recommendationIds,
+  })
+  return data
+}

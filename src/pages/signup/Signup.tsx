@@ -4,6 +4,7 @@ import { isAxiosError } from 'axios'
 import { client } from '../../api/client'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
 import styles from './style.module.css'
+import { loadPostcode } from '../../utils/postcode'
 
 const TERMS = [
   { key: 'service', label: '서비스 이용약관 동의' },
@@ -49,46 +50,6 @@ function isValidRrn(front: string, back: string) {
   // 13월, 2월 30일 같은 없는 날짜는 Date가 다른 날짜로 바꿔 버리므로 그대로인지 비교
   const date = new Date(year, month - 1, day)
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-}
-
-// ---------- 카카오(다음) 우편번호 서비스 ----------
-const POSTCODE_SCRIPT = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
-
-type PostcodeData = { zonecode: string; roadAddress: string; jibunAddress: string }
-type PostcodeConstructor = new (options: { oncomplete: (data: PostcodeData) => void }) => {
-  open: () => void
-}
-
-declare global {
-  interface Window {
-    kakao?: { Postcode?: PostcodeConstructor }
-    daum?: { Postcode?: PostcodeConstructor }
-  }
-}
-
-let postcodeLoading: Promise<PostcodeConstructor> | null = null
-
-/** 우편번호 스크립트를 처음 필요할 때 한 번만 불러옴 */
-function loadPostcode() {
-  const find = () => window.kakao?.Postcode ?? window.daum?.Postcode
-  const loaded = find()
-  if (loaded) return Promise.resolve(loaded)
-
-  postcodeLoading ??= new Promise<PostcodeConstructor>((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = POSTCODE_SCRIPT
-    script.onload = () => {
-      const Postcode = find()
-      if (Postcode) resolve(Postcode)
-      else reject(new Error('우편번호 서비스를 찾을 수 없습니다.'))
-    }
-    script.onerror = () => {
-      postcodeLoading = null // 다음에 누르면 다시 시도
-      reject(new Error('우편번호 스크립트를 불러오지 못했습니다.'))
-    }
-    document.head.appendChild(script)
-  })
-  return postcodeLoading
 }
 
 /** 입력칸 아래에 보여 주는 안내 문구. ok면 초록, 아니면 빨강 */

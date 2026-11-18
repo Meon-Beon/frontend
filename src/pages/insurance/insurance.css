@@ -995,6 +995,46 @@ a.ins-join:hover {
   font-weight: 600;
 }
 
+/* ---------- 설계 저장 ---------- */
+.ins-save {
+  margin-top: 14px;
+}
+
+.ins-save-btn {
+  width: 100%;
+}
+
+.ins-save-btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+  transform: none;
+}
+
+.ins-save-msg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 10px;
+  margin-top: 10px !important;
+  color: var(--good);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.ins-save-msg.is-error {
+  color: #ffb3bb;
+}
+
+.ins-save-msg a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* ---------- 팝업 ---------- */
 .ins-modal-backdrop {
   position: fixed;
