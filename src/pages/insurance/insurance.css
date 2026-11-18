@@ -797,6 +797,52 @@ body:has(.ins-page) {
   font-size: 12.5px;
 }
 
+/* 가입 링크가 있는 카드: 카드 전체가 링크 */
+.ins-designed.has-link {
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ins-designed.has-link:hover {
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+.ins-designed-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.ins-designed-link:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+/* ⋯ 메뉴는 카드 링크보다 위에 있어야 눌림 */
+.ins-designed .ins-more {
+  z-index: 2;
+}
+
+.ins-join {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px !important;
+  color: var(--teal);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.ins-join.is-none {
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .ins-designed-foot .ins-price strong {
   font-size: 16px;
 }

@@ -4,6 +4,8 @@ import { isAxiosError } from 'axios'
 import { client } from '../../api/client'
 import { saveUser, type SessionUser } from '../../auth/session'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
+import KakaoLoginButton from '../../components/KakaoLoginButton/KakaoLoginButton'
+import kakaoStyles from '../../components/KakaoLoginButton/style.module.css'
 import styles from './style.module.css'
 
 const SAVED_ID_KEY = 'gene:savedId'
@@ -170,6 +172,9 @@ function Login() {
             {loading ? '로그인 중…' : '로그인'}
             <Icon d={ICON.arrow} />
           </button>
+
+          <div className={kakaoStyles.divider}>또는</div>
+          <KakaoLoginButton redirectPath={redirectPath} />
 
           <nav className={styles.links} aria-label="계정 도움말">
             <Link to="/signup">회원가입</Link>

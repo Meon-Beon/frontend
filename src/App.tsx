@@ -10,6 +10,7 @@ import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
 import Main from './pages/main/Main'
+import KakaoCallback from './pages/oauth/KakaoCallback'
 import ReportCheck from './pages/report/Report'
 import ServiceCenter from './pages/service_center/service_center'
 import Signup from './pages/signup/Signup'
@@ -21,6 +22,8 @@ function App() {
         <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        {/* 카카오 로그인 후 돌아오는 주소. 카카오 앱에 등록한 리다이렉트 URI 와 같아야 함 */}
+        <Route path="/oauth/kakao" element={<KakaoCallback />} />
 
         {/* 서비스 메인부터는 공통 헤더 아래에 표시. 새 페이지는 여기에 추가 */}
         <Route element={<Layout />}>
