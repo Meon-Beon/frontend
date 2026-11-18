@@ -38,7 +38,6 @@ function useReveal() {
 
 const ICONS = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
-  pin: 'M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
   chevron: 'M9 6l6 6-6 6',
 }
 
@@ -59,20 +58,14 @@ function Icon({ d, className = 'lab-icon' }: { d: string; className?: string }) 
   )
 }
 
-/** 꽉 찬 민트 원 안의 남색 체크 (인증 배지 느낌) */
+/** 원 없이 민트 체크만 (인증 목록 앞 표시) */
 function CheckBadge() {
   return (
     <svg className="lab-check" viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="10" />
-      <path d="M5.8 10.4l2.8 2.8 5.6-6" />
+      <path d="M4.5 10.6l3.6 3.6 7.4-8.2" />
     </svg>
   )
 }
-
-const STATS = [
-  { value: '99.9', unit: '%', desc: '공인 임상 시퀀싱 일치율 보증' },
-  { value: '72', unit: 'H', desc: '검체 수거 후 리포트 발급 쾌속 파이프라인' },
-]
 
 const FACILITY = [
   { label: 'LOCATION', value: ['경기도 성남시 분당구', '판교로228번길 15'], desc: '판교세븐벤처밸리 1단지 제3동 8층' },
@@ -112,42 +105,28 @@ const CERTS = [
   'CAP 국제 숙련도 평가 프로그램 정기 참여',
 ]
 
+/** 연구진 및 의료 협력 네트워크: 역할 배치 예시 (실제 인물의 자격·소속·제휴를 확인한 내용 아님) */
 const RESEARCHERS = [
   {
+    org: '제노플랜코리아',
     name: '이도연 박사',
-    role: '제노플랜코리아 연구소',
+    role: '유전자 분석 연구진',
     photo: researcher1,
-    school: 'Harvard University',
-    career: [
-      '前 미국 국립인간유전체연구소(NHGRI) 방문연구원',
-      '한국인 질병 감수성 관련 SCI급 논문 45편 이상 게재',
-      '보건복지부 유전자분석 질평가 심의위원',
-    ],
-    field: '집단 유전학 · 질병 감수성 SNP 분석',
+    summary: '유전자 검사 및 분석 결과 제공',
   },
   {
+    org: '내진설계 데이터 분석팀',
     name: '박현수 수석연구원',
-    role: '바이오인포매틱스 랩',
+    role: '건강 데이터 분석 담당',
     photo: researcher2,
-    school: '서울대학교 유전체학 박사',
-    career: [
-      '대용량 초병렬 NGS 파이프라인 자동화 아키텍처 구축',
-      '머신러닝 기반 다인자 질병 위험도(PRS) 산출 모델 개발',
-      'ISO/IEC 27001 유전체 비식별화 보안 프로토콜 총괄',
-    ],
-    field: '알고리즘 파이프라인 · 유전체 암호화',
+    summary: '유전자·건강검진 데이터 통합 분석',
   },
   {
-    name: '김대현 내과전문의',
-    role: '메디컬 자문위원단',
+    org: '제휴 의료기관 · 서울',
+    name: '김대현 전문의',
+    role: '의료자문 담당',
     photo: researcher3,
-    school: 'Stanford University',
-    career: [
-      '대학병원 임상유전체 진료 및 임상시험 코디네이션 18년',
-      '한국인 유전 변이와 보험 언더라이팅 가이드라인 수립',
-      '대한진단유전의학회 정회원',
-    ],
-    field: '임상 판단 연계 · 위험도 의학 검증',
+    summary: '검사 전 진료 및 의학적 소견 제공',
   },
 ]
 
@@ -199,6 +178,10 @@ function LogisticsMap() {
             style={{ animationDelay: `${SHIP_MS - 100}ms` }}
           />
           <circle className="lab-map-hub" cx={HUB.x} cy={HUB.y} r="7" />
+          {/* 중앙 분석소 이름: 가운데 점 바로 아래 */}
+          <text className="lab-map-hub-name" x={HUB.x} y={HUB.y + 20}>
+            제노플랜코리아
+          </text>
 
           <circle key={`packet-${shot.n}`} className="lab-map-packet" r="3.5">
             <animateMotion
@@ -237,10 +220,6 @@ function LogisticsMap() {
             </g>
           ))}
         </svg>
-        <span className="lab-map-label">
-          <Icon d={ICONS.pin} />
-          제노플랜코리아 중앙 분석소
-        </span>
       </div>
       {/* 지도 위에 겹치면 잘 안 보여서 지도 바로 아래에 둠 */}
       <p className="lab-map-hint">지역을 눌러 검체를 보내 보세요</p>
@@ -266,19 +245,8 @@ function Laboratory() {
           </p>
         </section>
 
-        {/* ---------- 핵심 수치 + 시설 + 물류 ---------- */}
+        {/* ---------- 시설 + 물류 (두 카드가 한 줄을 반씩) ---------- */}
         <div className="lab-top">
-          <ul className="lab-stats">
-            {STATS.map((s, i) => (
-              <li key={s.value} className="lab-card lab-reveal" style={delay(120 + i * 90)}>
-                <strong className="lab-stat-num">
-                  {s.value}
-                  <small>{s.unit}</small>
-                </strong>
-                <span>{s.desc}</span>
-              </li>
-            ))}
-          </ul>
 
           <section className="lab-card lab-tall lab-reveal" style={delay(300)}>
             <h2 className="lab-card-title">제노플랜코리아 연구소</h2>
@@ -286,7 +254,7 @@ function Laboratory() {
               생물학적 오염을 원천 차단하는 클린룸(Class 1,000 등급)과 전용 비상 전력망, 항온항습 무진동 특수 설비를
               갖춘 R&amp;D 메디컬 첨단 클러스터입니다.
             </p>
-            <img className="lab-photo" src={labPhoto} alt="클린룸에서 연구원들이 분석 장비를 다루는 모습" />
+            <img className="lab-photo" src={labPhoto} alt="실험실에서 흰 가운을 입은 연구원들이 시료를 다루는 모습" />
             <ul className="lab-facts">
               {FACILITY.map((f) => (
                 <li key={f.label}>
@@ -379,44 +347,31 @@ function Laboratory() {
           </section>
         </div>
 
-        {/* ---------- 연구진 ---------- */}
+        {/* ---------- 연구진 및 의료 협력 네트워크 ---------- */}
         <section className="lab-card lab-reveal" style={delay(0)}>
-          <div className="lab-team-head">
-            <h2 className="lab-card-title">본사 연구진 및 메디컬 자문위원단</h2>
-            <p className="lab-card-sub">
-              유전체학 박사, 생물정보학(Bioinformatics) 엔지니어, 대학병원 전문의로 구성된 교차 검증단이 데이터의
-              신뢰성을 완성합니다.
-            </p>
-          </div>
+          <h2 className="lab-card-title">연구진 및 의료 협력 네트워크</h2>
           <ul className="lab-team">
             {RESEARCHERS.map((r, i) => (
               <li key={r.name} className="lab-reveal" style={delay(120 + i * 120)}>
                 <div className="lab-person">
                   <img className="lab-avatar" src={r.photo} alt={`${r.name} 프로필 사진`} />
                   <div>
-                    <p className="lab-role">{r.role}</p>
+                    <p className="lab-role">{r.org}</p>
                     <h3 className="lab-name">{r.name}</h3>
-                    <p className="lab-school">{r.school}</p>
+                    <p className="lab-school">{r.role}</p>
                   </div>
                 </div>
-                <ul className="lab-career">
-                  {r.career.map((c) => (
-                    <li key={c}>
-                      <span className="lab-dash" aria-hidden="true" />
-                      {c}
-                    </li>
-                  ))}
-                </ul>
-                <p className="lab-field">전문분야: {r.field}</p>
+                <p className="lab-summary">{r.summary}</p>
               </li>
             ))}
           </ul>
+          <p className="lab-team-note">역할 배치 예시이며 실제 인물의 자격·소속·제휴 현황을 확인한 내용은 아님.</p>
         </section>
 
         {/* ---------- 연결 배너 ---------- */}
         <section className="lab-cta lab-reveal" style={delay(0)}>
           <div className="lab-cta-body">
-            <p className="lab-cta-eyebrow">NEXT GENERATION INSURATECH PIPELINE</p>
+            <p className="lab-cta-eyebrow">NEXT GENERATION INSURATECH</p>
             <h2>암, 뇌, 심장 위험도도 볼 수 있어요</h2>
           </div>
           <Link to="/insurance" className="lab-cta-btn">

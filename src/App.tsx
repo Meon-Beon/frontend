@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './auth/RequireAuth'
 import Layout from './components/Layout/Layout'
 import Company from './pages/company/company'
+import GeneDataPrint from './components/GeneDataPrint/GeneDataPrint'
 import DnaApply from './pages/dna-apply/DnaApply'
 import EventPage from './pages/event/event'
 import HealthHistory from './pages/health-history/HealthHistory'
@@ -33,6 +34,15 @@ function App() {
           <Route path="/insurance" element={<Insurance />} />
           <Route path="/support" element={<ServiceCenter />} />
           <Route path="/event" element={<EventPage />} />
+          {/* TODO: 넣을 페이지가 정해지면 옮기기. 지금은 GENE DATA PRINT 카드 미리보기용 */}
+          <Route
+            path="/data-print"
+            element={
+              <div style={{ display: 'grid', placeItems: 'center', padding: '48px 16px' }}>
+                <GeneDataPrint />
+              </div>
+            }
+          />
           {/* TODO: 비회원 주문을 막기로 하면 아래 로그인 필요 그룹으로 옮기기 */}
           <Route path="/dna-apply" element={<DnaApply />} />
 

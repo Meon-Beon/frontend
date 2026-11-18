@@ -246,11 +246,7 @@
 }
 
 .product {
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(94, 242, 230, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.3);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--teal);
 }

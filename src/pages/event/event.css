@@ -165,14 +165,6 @@ body:has(.event-page) {
   font-weight: 700;
 }
 
-.event-month i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--risk);
-  box-shadow: 0 0 8px var(--risk);
-}
-
 .event-title {
   margin-top: 14px !important;
   font-size: clamp(36px, 4.6vw, 54px);

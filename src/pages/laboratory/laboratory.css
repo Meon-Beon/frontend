@@ -144,49 +144,12 @@ body:has(.lab-page) {
   }
 }
 
-/* ---------- 핵심 수치 + 시설 + 물류 (한 줄, 세로로 긴 카드) ---------- */
+/* ---------- 시설 + 물류 (한 줄, 세로로 긴 카드 두 개) ---------- */
 .lab-top {
   display: grid;
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: stretch;
-}
-
-.lab-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.lab-stats .lab-card {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 28px;
-}
-
-.lab-stats span {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.lab-stat-num {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-size: 52px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: #fff;
-}
-
-.lab-stat-num small {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--teal);
 }
 
 .lab-tall {
@@ -341,6 +304,15 @@ body:has(.lab-page) {
   fill: var(--ink);
 }
 
+/* 중앙 분석소 이름: 상자 없이 작은 민트 글자 */
+.lab-map-hub-name {
+  font-size: 7px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: var(--teal);
+  pointer-events: none;
+}
+
 .lab-map-hub {
   fill: var(--teal);
   stroke: rgba(94, 242, 230, 0.3);
@@ -380,27 +352,6 @@ body:has(.lab-page) {
   font-size: 13px;
   text-align: center;
   color: var(--body);
-}
-
-.lab-map-label {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(7, 13, 31, 0.7);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.lab-map-label .lab-icon {
-  width: 14px;
-  height: 14px;
-  color: var(--teal);
 }
 
 .lab-logistics {
@@ -563,38 +514,22 @@ body:has(.lab-page) {
   color: var(--ink);
 }
 
-/* 은은한 청록 원 안의 청록 체크 (빛 번짐 없이 차분하게) */
+/* 원 없이 민트 체크만 */
 .lab-check {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-}
-
-.lab-check circle {
-  fill: var(--teal);
+  width: 22px;
+  height: 22px;
 }
 
 .lab-check path {
   fill: none;
-  stroke: #0b1530;
-  stroke-width: 2.2;
+  stroke: var(--teal);
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 /* ---------- 연구진 ---------- */
-.lab-team-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.lab-team-head .lab-card-sub {
-  max-width: 420px;
-  text-align: right;
-}
-
 .lab-team {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -640,41 +575,23 @@ body:has(.lab-page) {
 }
 
 .lab-school {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
 }
 
-.lab-career {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* 카드 아래 한 줄 역할 요약 */
+.lab-summary {
   margin-top: 20px !important;
-}
-
-.lab-career li {
-  display: flex;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--body);
-}
-
-/* 경력 앞 짧은 대시 */
-.lab-dash {
-  flex-shrink: 0;
-  width: 8px;
-  height: 1.5px;
-  margin-top: 0.8em;
-  border-radius: 1px;
-  background: var(--teal);
-}
-
-.lab-field {
-  margin-top: 18px !important;
-  padding-top: 14px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lab-team-note {
+  margin-top: 16px !important;
+  font-size: 12.5px;
   color: var(--muted);
 }
 
@@ -685,11 +602,10 @@ body:has(.lab-page) {
   gap: 20px;
   padding: 28px 32px;
   border-radius: 20px;
-  background:
-    linear-gradient(120deg, rgba(47, 143, 134, 0.28) 0%, rgba(61, 111, 214, 0.2) 55%, rgba(123, 92, 224, 0.28) 100%),
-    var(--surface);
+  /* 그라데이션 번짐 없이 카드 배경색 그대로 */
+  background: var(--surface);
   box-shadow:
-    inset 0 0 0 1px rgba(180, 140, 255, 0.25),
+    inset 0 0 0 1px var(--glass-line),
     0 30px 60px -30px rgba(0, 0, 0, 0.7);
 }
 
@@ -774,9 +690,6 @@ body:has(.lab-page) {
     grid-template-columns: 1fr;
   }
 
-  .lab-stats {
-    flex-direction: row;
-  }
 
   .lab-grid,
   .lab-grid-wide {
@@ -790,15 +703,6 @@ body:has(.lab-page) {
   .lab-team {
     grid-template-columns: 1fr;
   }
-
-  .lab-team-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .lab-team-head .lab-card-sub {
-    text-align: left;
-  }
 }
 
 @media (max-width: 600px) {
@@ -808,10 +712,6 @@ body:has(.lab-page) {
 
   .lab-card {
     padding: 22px 18px;
-  }
-
-  .lab-stat-num {
-    font-size: 36px;
   }
 
   .lab-process {

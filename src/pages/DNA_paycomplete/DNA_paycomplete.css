@@ -27,27 +27,34 @@
 }
 
 /* ---------- 아이콘 ---------- */
+/* 결제 완료: 원 없이 큰 민트 체크만 */
 .pc-icon {
   display: grid;
   place-items: center;
   width: 64px;
   height: 64px;
-  border-radius: 50%;
-  background: rgba(94, 242, 230, 0.12);
   color: var(--teal);
-  box-shadow: inset 0 0 0 1px rgba(94, 242, 230, 0.35);
+  filter: drop-shadow(0 0 10px rgba(94, 242, 230, 0.35));
   animation: pc-pop 0.5s 0.15s cubic-bezier(0.22, 1.4, 0.36, 1) both;
 }
 
 .pc-icon svg {
-  width: 30px;
-  height: 30px;
+  width: 56px;
+  height: 56px;
 }
 
+/* 결제 실패 아이콘은 그대로 원 안에 */
 .pc-icon--error {
+  border-radius: 50%;
   background: rgba(255, 120, 120, 0.12);
   color: #ff8a8a;
   box-shadow: inset 0 0 0 1px rgba(255, 138, 138, 0.35);
+  filter: none;
+}
+
+.pc-icon--error svg {
+  width: 30px;
+  height: 30px;
 }
 
 @keyframes pc-pop {

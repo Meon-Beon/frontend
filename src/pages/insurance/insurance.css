@@ -293,6 +293,10 @@ body:has(.ins-page) {
   gap: 14px;
   padding: 22px 36px;
   overflow: hidden;
+  /* 테마색(민트 → 보라) 파스텔을 아주 옅게 깔기 */
+  background:
+    linear-gradient(120deg, rgba(94, 242, 230, 0.12) 0%, rgba(120, 170, 255, 0.07) 50%, rgba(180, 140, 255, 0.13) 100%),
+    linear-gradient(180deg, rgba(22, 36, 74, 0.72), rgba(16, 27, 53, 0.72));
 }
 
 .ins-owned-summary h2 {
@@ -345,9 +349,10 @@ body:has(.ins-page) {
   font-weight: 600;
 }
 
+/* 주요 보장(암)은 옆 '총 1건'과 같은 크기·굵기·색 */
 .ins-pill {
-  color: #fff;
-  font-size: 15px;
+  color: var(--ink);
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -355,6 +360,7 @@ body:has(.ins-page) {
 .ins-count strong {
   color: var(--ink);
   font-size: 18px;
+  font-weight: 700;
   line-height: 1.3;
 }
 
@@ -922,6 +928,11 @@ a.ins-join:hover {
   color: var(--teal);
 }
 
+/* 빼기(-) 선을 조금 더 두껍게 */
+.ins-more > button svg {
+  stroke-width: 2.6;
+}
+
 .ins-more > button:hover {
   background: rgba(94, 242, 230, 0.12);
 }
@@ -1251,13 +1262,42 @@ a.ins-join:hover {
     align-items: stretch;
   }
 
-  .ins-page .ins-left,
-  .ins-page .ins-right {
+  .ins-page .ins-right-scroll,
+  .ins-page .ins-left-scroll {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+
+  /* 왼쪽 칸: 제목·정렬은 위에 고정, 목록 영역만 스크롤 */
+  .ins-page .ins-left {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ins-page .ins-left .ins-panel-head,
+  .ins-page .ins-right .ins-panel-head {
+    flex: none;
+  }
+
+  /* 오른쪽 칸도 같은 방식: 제목·설명 고정, 그 아래만 스크롤 */
+  .ins-page .ins-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ins-page .ins-left-scroll,
+  .ins-page .ins-right-scroll {
+    flex: 1;
+    /* 카드가 살짝 떠오르는 효과·테두리가 잘리지 않게 여유 */
+    margin: -4px -6px 0;
+    padding: 4px 6px 0;
   }
 }
 
