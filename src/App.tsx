@@ -5,7 +5,7 @@ import Company from './pages/company/company'
 import DnaApply from './pages/dna-apply/DnaApply'
 import EventPage from './pages/event/event'
 import HealthHistory from './pages/health-history/HealthHistory'
-import InsuranceSetting from './pages/insurance_setting/insurance_setting'
+import Insurance from './pages/insurance/Insurance'
 import Intro from './pages/intro/Intro'
 import Laboratory from './pages/laboratory/laboratory'
 import Login from './pages/login/Login'
@@ -27,7 +27,7 @@ function App() {
           {/* 누구나 볼 수 있는 페이지 */}
           <Route path="/company" element={<Company />} />
           <Route path="/lab" element={<Laboratory />} />
-          <Route path="/insurance" element={<InsuranceSetting />} />
+          <Route path="/insurance" element={<Insurance />} />
           <Route path="/support" element={<ServiceCenter />} />
           <Route path="/event" element={<EventPage />} />
           {/* TODO: 비회원 주문을 막기로 하면 아래 로그인 필요 그룹으로 옮기기 */}

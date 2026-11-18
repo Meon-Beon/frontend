@@ -14,9 +14,9 @@ function Footer() {
               <GeneLogo className={styles.logo} />
             </p>
             <p className={styles.about}>
-              내진(GENE)설계는 유전자 분석 검사 데이터와 개인 건강검진 기록을 복합
-              분석하여 가장 최적화된 건강 포트폴리오 및 보험 설계를 제공하는 정밀 유전체
-              인슈어테크 기업입니다.
+              내진(GENE)설계는 유전자 분석 검사 데이터와 개인 건강검진 기록을 복합 분석하여
+              <br />
+              가장 최적화된 건강 포트폴리오 및 보험 설계를 제공하는 정밀 유전체 인슈어테크 기업입니다.
             </p>
             <p className={styles.info}>
               <span>대표이사: 지민</span>
@@ -34,7 +34,7 @@ function Footer() {
             <p className={styles.supportText}>
               평일 09:00 - 18:00 (점심시간 12:00 - 13:00)
               <br />
-              유전체 상담 전문 간호사 상시 배속
+              유전체 상담 전문 의료진 상시 대기
               <br />
               이메일: <a href="mailto:qlghsdosqlghs@gmail.com">qlghsdosqlghs@gmail.com</a>
             </p>

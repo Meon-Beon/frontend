@@ -75,7 +75,7 @@ const STATS = [
 ]
 
 const FACILITY = [
-  { label: 'LOCATION', value: '경기도 성남시 분당구 판교로228번길 15', desc: '판교세븐벤처밸리 1단지 제3동 8층' },
+  { label: 'LOCATION', value: ['경기도 성남시 분당구', '판교로228번길 15'], desc: '판교세븐벤처밸리 1단지 제3동 8층' },
   { label: 'CLEAN SYSTEM', value: 'HEPA H14 필터', desc: '교차오염 제로화 격벽 음압실' },
   { label: 'DATA ENCRYPTION', value: 'AES-256 GCM', desc: '원외 반출 불가 인트라넷 보관' },
   { label: 'POWER', value: '이중화 비상 전력망', desc: 'UPS · 발전기 연동 24시간 무중단 가동' },
@@ -86,7 +86,7 @@ const LOGISTICS = [
   ['입고 시간', '채취 후 24시간 내 중앙 연구소 입고'],
   ['배송 범위', '전국 병의원 및 다이렉트 키트 신청 고객'],
   ['위치 추적', '바코드 기반 검체 위치 실시간 확인'],
-  ['분석기관', '질병관리청 DTC 유전자검사기관 승인'],
+  ['분석기관', '보건복지부 DTC 유전자검사기관 승인'],
 ]
 
 const PROCESS = [
@@ -132,7 +132,7 @@ const RESEARCHERS = [
   },
   {
     name: '김대현 내과전문의',
-    role: '메디컬 자문의원단',
+    role: '메디컬 자문위원단',
     photo: researcher3,
     school: 'Stanford University',
     career: ['대학병원 임상유전체 진료 및 임상시험 코디네이션 18년', '한국인 유전 변이와 보험 언더라이팅 가이드라인 수립', '대한진단유전의학회 정회원'],
@@ -246,11 +246,11 @@ function Laboratory() {
             보건복지부 질병관리청 승인 공인 DTC 유전자검사기관
           </p>
           <h1 className="lab-title">
-            한국유전자정보센터 <em>연구소 소개</em>
+            제노플랜코리아 <em>연구소 소개</em>
           </h1>
           <p className="lab-lead">
-            제노플랜코리아 연구소에 최첨단 NGS 시퀀싱 인프라를 구축하여, 검체 수거부터 72시간 내
-            99.9% 신뢰도의 질병 감수성 변이(SNP) 분석을 완료합니다.
+            제노플랜코리아 연구소에 최첨단 NGS 시퀀싱 인프라를 구축하여, 검체 수거부터 72시간 내 99.9% 신뢰도의 질병
+            감수성 변이(SNP) 분석을 완료합니다.
           </p>
         </section>
 
@@ -279,7 +279,10 @@ function Laboratory() {
               {FACILITY.map((f) => (
                 <li key={f.label}>
                   <small>{f.label}</small>
-                  <strong>{f.value}</strong>
+                  <strong>
+                    {/* 주소처럼 미리 나눈 값은 줄마다 끊어 보여 줌 */}
+                    {Array.isArray(f.value) ? f.value.map((line) => <span key={line}>{line}</span>) : f.value}
+                  </strong>
                   <span>{f.desc}</span>
                 </li>
               ))}
@@ -370,7 +373,7 @@ function Laboratory() {
         {/* ---------- 연구진 ---------- */}
         <section className="lab-card lab-reveal" style={delay(0)}>
           <div className="lab-team-head">
-            <h2 className="lab-card-title">한국유전자정보센터 연구진 및 메디컬 자문의원단</h2>
+            <h2 className="lab-card-title">본사 연구진 및 메디컬 자문위원단</h2>
             <p className="lab-card-sub">
               유전체학 박사, 생물정보학(Bioinformatics) 엔지니어, 대학병원 전문의로 구성된 교차
               검증단이 데이터의 신뢰성을 완성합니다.
@@ -405,7 +408,7 @@ function Laboratory() {
         <section className="lab-cta lab-reveal" style={delay(0)}>
           <div className="lab-cta-body">
             <p className="lab-cta-eyebrow">NEXT GENERATION INSURATECH PIPELINE</p>
-            <h2>한국유전자정보센터의 초정밀 분석 데이터는 '내진설계' 엔진으로 직결됩니다</h2>
+            <h2>제노플랜코리아의 초정밀 분석 데이터는 '내진설계' 엔진으로 직결됩니다</h2>
           </div>
           <Link to="/insurance" className="lab-cta-btn">
             내 유전자 맞춤 보험 설계하기

@@ -132,10 +132,16 @@ body:has(.lab-page) {
 }
 
 .lab-lead {
-  max-width: 680px;
   margin-top: 12px !important;
   font-size: 15px;
   color: var(--body);
+}
+
+/* 넓은 화면에서는 한 줄로 */
+@media (min-width: 1000px) {
+  .lab-lead {
+    white-space: nowrap;
+  }
 }
 
 /* ---------- 핵심 수치 + 시설 + 물류 (한 줄, 세로로 긴 카드) ---------- */
@@ -222,9 +228,17 @@ body:has(.lab-page) {
 }
 
 .lab-facts strong {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--ink);
+  word-break: keep-all;
+}
+
+/* 나눠 둔 값(주소)은 한 줄씩 */
+.lab-facts strong span {
+  display: block;
+  font-size: inherit;
+  color: inherit;
 }
 
 .lab-facts span {

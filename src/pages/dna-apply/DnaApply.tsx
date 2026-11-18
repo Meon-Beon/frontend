@@ -279,11 +279,11 @@ function DnaApply() {
                   </li>
                 ))}
               </ul>
-              <p className={styles.source}>
-                보건복지부 DTC 인증기관 제노플랜코리아 분석 · 질환 위험도는 의료기관 연계 검사 기준
-              </p>
               <p className={styles.medical}>
                 “본 서비스는 의료기관의 진료를 대체할 수 없으며, 발병 여부를 확진하지 않습니다.”
+              </p>
+              <p className={styles.source}>
+                보건복지부 DTC 인증기관 제노플랜코리아 분석 · 질환 위험도는 의료기관 연계 검사 기준
               </p>
             </section>
           </div>
