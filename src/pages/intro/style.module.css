@@ -733,6 +733,9 @@
   font-size: 14px;
   line-height: 1.8;
   color: var(--body);
+  /* 단어 중간에서 끊지 않고, 마지막 줄에 한 단어만 남지 않도록 줄 길이를 고르게 */
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 /* ---------- 3단계 프로세스 ---------- */

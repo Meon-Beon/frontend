@@ -26,7 +26,6 @@ function Icon({ d, className = styles.icon }: { d: string; className?: string })
 const ICON = {
   download: 'M12 3v12M7 10l5 5 5-5M4 19h16',
   refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
-  clipboard: 'M9 4h6v3H9zM7 5.5H5.5v15h13v-15H17M8.5 12l2.5 2.5 4.5-5',
   shield: 'M12 2.8c2.4 1.5 5 2.2 7.6 2.2v6.3c0 5-3.3 8.6-7.6 10-4.3-1.4-7.6-5-7.6-10V5c2.6 0 5.2-.7 7.6-2.2z',
   clock: 'M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
   calendar: 'M4 6.5h16V20H4zM4 10h16M8 3.5v4M16 3.5v4',
@@ -50,7 +49,7 @@ function HealthHistory() {
         <section className={styles.hero}>
           <div>
             <h1 className={styles.title}>건강검진 이력</h1>
-            <p className={styles.subtitle}>건보공단 마이데이터로 10년 검진 기록을 한 번에</p>
+            <p className={styles.subtitle}>건강보험공단 마이데이터로 10년 검진 기록을 한 번에</p>
             <p className={styles.desc}>
               국가건강검진 결과를 불러와 유전자 검사 결과와 함께 분석해요.
               <br />
@@ -103,9 +102,6 @@ function HealthHistory() {
           </section>
         ) : (
           <section className={styles.empty}>
-            <span className={styles.emptyIcon}>
-              <Icon d={ICON.clipboard} className={styles.emptySvg} />
-            </span>
             <h2>아직 불러온 건강검진 내역이 없어요</h2>
             <p>위의 &lsquo;건강검진 내역 끌어오기&rsquo;를 누르고 본인 확인을 하면 바로 조회돼요.</p>
             <ul className={styles.chips}>

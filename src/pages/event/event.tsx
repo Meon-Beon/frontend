@@ -12,7 +12,7 @@ type Trait = {
   gts: [string, string, string]
   /** 한국인 유전형 비율(%) */
   kr: [number, number, number]
-  /** 세계 평균 데이터(미국·영국 PGP 참가자) 수 */
+  /** 서양인 분포 데이터(미국·영국 PGP 참가자) 수 */
   worldN: [number, number, number]
   verdicts: [string, string, string]
   descs: [string, string, string]
@@ -71,7 +71,7 @@ const TRAITS: Trait[] = [
   },
 ]
 
-/** 세계 평균 데이터 참가자의 실제 유전형 조합(술|니코틴|살)과 그 조합의 사람 수 */
+/** 서양인 분포 데이터 참가자의 실제 유전형 조합(술|니코틴|살)과 그 조합의 사람 수 */
 const WORLD_COMBOS: Record<string, number> = {
   'GG|AG|AA': 28,
   'GG|AG|AT': 71,
@@ -491,10 +491,10 @@ function EventPage() {
         {/* ---------- 한국인 vs 서양인 ---------- */}
         <section className="event-band is-alt">
           <div className="event-wrap">
-            <h2 className="event-h2">술은 한국인 체질, 담배와 살은 서양인 체질</h2>
+            <h2 className="event-h2">한국인, 세계인 유전형 분포</h2>
             <p className="event-lead">
-              같은 SNP라도 나라마다 흔한 유형이 다릅니다. 위 막대는 한국인 평균, 아래 막대는 세계 평균(참가자
-              411~418명)이에요.
+              같은 SNP라도 집단마다 흔한 유전형의 비율이 다릅니다. 위 막대는 한국인 분포, 아래 막대는 세계인 분포(미국·영국
+              PGP 참가자 411~418명)예요.
             </p>
             <div className="event-cmp">
               {TRAITS.map((t) => {
@@ -510,9 +510,9 @@ function EventPage() {
                     <h3>
                       {t.name} <span className="event-gene">{t.gene}</span>
                     </h3>
-                    <p className="event-cmp-label">한국인 평균</p>
+                    <p className="event-cmp-label">한국인 분포</p>
                     <div className="event-stackbar">{stack(t.kr)}</div>
-                    <p className="event-cmp-label">세계 평균 ({sum(t.worldN)}명)</p>
+                    <p className="event-cmp-label">세계인 분포</p>
                     <div className="event-stackbar">{stack(world)}</div>
                     <p className="event-twist">{t.twist}</p>
                   </div>
@@ -547,7 +547,7 @@ function EventPage() {
             <p className="event-src">
               출처: 한국인 ALDH2 유전형 비율 KoGES(Medicine 2021, PMC8284761) · CHRNA5 동아시아 빈도 약 3% gnomAD · FTO
               동아시아 빈도 12~20%, 효과크기 Li et al. Diabetologia 2012(PMC3296006) · 식도암 Choi et al. BMC Cancer
-              2021 · 세계 평균 수치는 Harvard PGP 367명·PGP-UK 57명 직접 집계. 한국인 CHRNA5·FTO 비율은 대립유전자
+              2021 · 세계인 분포는 Harvard PGP 367명·PGP-UK 57명 직접 집계. 한국인 CHRNA5·FTO 비율은 대립유전자
               빈도(3%, 15%)로 계산한 추정치예요. 이 페이지는 이벤트 시안이며 진단이 아닙니다.
             </p>
           </div>

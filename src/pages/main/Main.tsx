@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import Footer from '../../components/Footer/Footer'
-import pcrIcon from '../../assets/icons/pcr-test.png'
 import styles from './style.module.css'
 
 const ARROW = 'M5 12h14M13 6l6 6-6 6'
@@ -83,14 +82,28 @@ function ShieldIcon() {
   )
 }
 
-/** PNG 모양만 따서(마스크) 카드 색으로 칠함 */
-const pngIcon = (src: string) => (
-  <span
-    className={`${styles.stepIcon} ${styles.maskIcon}`}
-    style={{ WebkitMaskImage: `url(${src})`, maskImage: `url(${src})` }}
-    aria-hidden="true"
-  />
-)
+/** 검체 채취 면봉과 시험관. 카드 글자색(currentColor)을 따름 */
+function SwabTubeIcon() {
+  return (
+    <svg
+      className={styles.stepIcon}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* 면봉: 둥근 머리 + 손잡이 */}
+      <rect x="2.4" y="2.4" width="4.2" height="9" rx="2.1" />
+      <path d="M4.5 11.4v10.2" />
+      {/* 시험관: 뚜껑 + 아래가 둥근 관 + 눈금 */}
+      <rect x="11.2" y="2.4" width="10.4" height="3.6" rx="1.8" />
+      <path d="M13 6v11.6a3.4 3.4 0 0 0 6.8 0V6M13 15.2h6.8" />
+    </svg>
+  )
+}
 
 const STEPS: {
   icon: ReactNode
@@ -101,16 +114,16 @@ const STEPS: {
   final?: boolean
 }[] = [
   {
-    icon: pngIcon(pcrIcon),
+    icon: <SwabTubeIcon />,
     title: 'DNA 검사 신청',
-    desc: '제노플랜코리아 전문 연구소 안전 접수',
+    desc: '제노플랜코리아 전문 연구소 분석 의뢰',
     footer: '신청하기',
     to: '/dna-apply',
   },
   {
     icon: <StethoscopeIcon />,
     title: '건강검진기록 입력',
-    desc: '건보공단 10년 마이데이터 건강검진 이력 간편 등록',
+    desc: '건강보험공단 10년 마이데이터 건강검진 이력 간편 등록',
     footer: '마이데이터 연동',
     to: '/health-history',
   },
@@ -124,7 +137,7 @@ const STEPS: {
   {
     icon: <ShieldIcon />,
     title: 'GENE 보험설계',
-    desc: '불필요한 과다 보장은 배제하고 내 유전체 맞춤 보장만 약 50개사 비교 설계',
+    desc: '불필요한 보장은 줄이고 50개 사 비교분석을 통한 맞춤 설계',
     footer: 'GENE 맞춤 포트폴리오',
     to: '/insurance',
     final: true,
@@ -139,7 +152,7 @@ function Main() {
           <h1 className={styles.title}>신뢰를 바탕으로</h1>
           <p className={styles.subtitle}>유전자 데이터로 완성하는 초개인화 보험</p>
           <p className={styles.desc}>
-            비대면 타액(DNA) 검사와 건보공단 마이데이터 검진 이력을 결합해
+            비대면 타액(DNA) 검사와 건강보험공단 마이데이터 검진 이력을 결합해
             <br />
             불필요한 보장은 덜고, 꼭 필요한 질병 보장만 정밀 설계합니다.
           </p>
