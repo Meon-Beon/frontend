@@ -176,27 +176,18 @@
     0 30px 60px -32px rgba(0, 0, 0, 0.7);
 }
 
-.emptyIcon {
-  display: block;
-  color: var(--teal);
-}
-
-.emptySvg {
-  width: 48px;
-  height: 48px;
-}
-
 .empty h2 {
-  margin-top: 22px !important;
+  margin-top: 0 !important;
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--ink);
+  color: var(--teal);
 }
 
 .empty p {
-  margin-top: 8px !important;
+  margin-top: 10px !important;
   font-size: 15px;
+  color: #d3d9e4;
 }
 
 .chips {
@@ -216,7 +207,7 @@
   background: rgba(255, 255, 255, 0.04);
   box-shadow: inset 0 0 0 1px var(--line);
   font-size: 13px;
-  color: var(--body);
+  color: rgba(238, 241, 248, 0.92);
 }
 
 .chips .icon {
@@ -304,10 +295,6 @@
 .levelText {
   --tone: var(--good);
   color: var(--tone) !important;
-}
-
-.emptyIcon.risk {
-  color: var(--risk);
 }
 
 /* ---------- 반응형 ---------- */

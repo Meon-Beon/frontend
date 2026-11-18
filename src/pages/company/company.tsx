@@ -34,13 +34,14 @@ function useReveal() {
 
 const ICONS = {
   arrow: 'M5 12h14M13 6l6 6-6 6',
-  checkup:
-    'M9 3.5h6v3H9zM9 5H6.5A1.5 1.5 0 0 0 5 6.5v13A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17.5 5H15M7.5 14h2l1.5-3 2 5 1.5-2h2',
-  badge: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 12l2.5 2.5 4.5-5',
-  db: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  /* 표창 메달: 별이 들어간 메달 + 아래로 늘어진 리본 */
+  medal:
+    'M12 14.6a6.3 6.3 0 1 0 0-12.6 6.3 6.3 0 0 0 0 12.6zM8.6 13.6 7 22l5-2.8 5 2.8-1.6-8.4M12 5.4l.73 1.89 2.03.11-1.57 1.29.51 1.96L12 9.55l-1.7 1.1.51-1.96-1.57-1.29 2.03-.11z',
   bank: 'M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18',
   globe: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z',
-  shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5',
+  /* 법전: 표지에 저울이 그려진 책 */
+  lawbook:
+    'M6.8 2.5h12.7v15.8H6.8A1.8 1.8 0 0 0 5 20.1V4.3A1.8 1.8 0 0 1 6.8 2.5zM5 20.1a1.8 1.8 0 0 0 1.8 1.8h12.7v-3.6M12.25 6.2v7.6M9.2 7.6h6.1M8.2 11l1-3.4 1 3.4M14.3 11l1-3.4 1 3.4M10.6 13.8h3.3',
 }
 
 function Icon({ d }: { d: string }) {
@@ -136,18 +137,49 @@ const METRICS = [
   { label: ['파트너십', '보험사'], value: '50', unit: '사' },
 ]
 
+/** 건강검진 기록: 검진표(클립보드)와 심박 그래프 모두 로고와 같은 보라 → 민트 */
+function CheckupMark() {
+  const id = useId().replace(/:/g, '')
+  const grad = `company-board-${id}`
+  const pulse = `company-pulse-${id}`
+  return (
+    <svg className="company-icon" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <defs>
+        <linearGradient id={grad} gradientUnits="userSpaceOnUse" x1="3" y1="3" x2="21" y2="21">
+          <stop offset="0" stopColor="#c99cff" />
+          <stop offset="0.5" stopColor="#8d7dff" />
+          <stop offset="1" stopColor="#3fe0d6" />
+        </linearGradient>
+        <linearGradient id={pulse} gradientUnits="userSpaceOnUse" x1="7" y1="12" x2="17" y2="12">
+          <stop offset="0" stopColor="#c99cff" />
+          <stop offset="0.5" stopColor="#8d7dff" />
+          <stop offset="1" stopColor="#3fe0d6" />
+        </linearGradient>
+      </defs>
+      {/* 검진표 */}
+      <path
+        d="M9 3.5h6v2.6H9zM9 4.8H6.6A1.6 1.6 0 0 0 5 6.4v13A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.6-1.6v-13a1.6 1.6 0 0 0-1.6-1.6H15M8 17.6h4.5"
+        stroke={`url(#${grad})`}
+        strokeWidth="1.5"
+        opacity="0.75"
+      />
+      {/* 심박 그래프: 검진표 안쪽에 맞춤 */}
+      <path d="M7 12.5h2.1l.9-1.8 1.5 4.8 1.6-6 1.2 3H17" stroke={`url(#${pulse})`} strokeWidth="1.8" />
+    </svg>
+  )
+}
+
 /** 리포트를 만드는 두 가지 데이터 */
-const ANALYSIS: { icon: ReactNode; label: string; desc: string }[] = [
-  { icon: <HelixMark />, label: '유전자 분석', desc: '타고난 위험' },
-  { icon: <Icon d={ICONS.checkup} />, label: '건강검진 기록', desc: '지금의 건강 상태' },
+const ANALYSIS: { icon: ReactNode; label: string }[] = [
+  { icon: <HelixMark />, label: '유전자 분석' },
+  { icon: <CheckupMark />, label: '건강검진 기록' },
 ]
 
 const CERTS = [
-  { icon: ICONS.badge, label: '대통령 표창' },
-  { icon: ICONS.db, label: 'K-DATA 1위' },
+  { icon: ICONS.medal, label: '대통령 표창' },
   { icon: ICONS.bank, label: '50개 보험사' },
   { icon: ICONS.globe, label: 'APAC 글로벌 수출' },
-  { icon: ICONS.shield, label: '생명윤리법 준수' },
+  { icon: ICONS.lawbook, label: '생명윤리법 준수' },
 ]
 
 function Company() {
@@ -234,12 +266,11 @@ function Company() {
                       {a.icon}
                     </span>
                     <strong>{a.label}</strong>
-                    <small>{a.desc}</small>
                   </div>
                 ))}
               </div>
               <p className="company-blend-note">
-                두 데이터를 함께 봐야 지금은 괜찮아도 앞으로 주의할 위험까지 보입니다.
+                현재 상태와 유전적 소인을 함께 분석해, 앞으로의 위험까지 예측합니다.
               </p>
             </section>
 

@@ -82,7 +82,6 @@ const FACILITY = [
 ]
 
 const LOGISTICS = [
-  ['검체 이송', '콜드체인 실시간 온도 모니터링 (4°C ± 1°C 유지)'],
   ['입고 시간', '채취 후 24시간 내 중앙 연구소 입고'],
   ['배송 범위', '전국 병의원 및 다이렉트 키트 신청 고객'],
   ['위치 추적', '바코드 기반 검체 위치 실시간 확인'],
@@ -119,7 +118,11 @@ const RESEARCHERS = [
     role: '제노플랜코리아 연구소',
     photo: researcher1,
     school: 'Harvard University',
-    career: ['前 미국 국립인간유전체연구소(NHGRI) 방문연구원', '한국인 질병 감수성 관련 SCI급 논문 45편 이상 게재', '보건복지부 유전자분석 질평가 심의위원'],
+    career: [
+      '前 미국 국립인간유전체연구소(NHGRI) 방문연구원',
+      '한국인 질병 감수성 관련 SCI급 논문 45편 이상 게재',
+      '보건복지부 유전자분석 질평가 심의위원',
+    ],
     field: '집단 유전학 · 질병 감수성 SNP 분석',
   },
   {
@@ -127,7 +130,11 @@ const RESEARCHERS = [
     role: '바이오인포매틱스 랩',
     photo: researcher2,
     school: '서울대학교 유전체학 박사',
-    career: ['대용량 초병렬 NGS 파이프라인 자동화 아키텍처 구축', '머신러닝 기반 다인자 질병 위험도(PRS) 산출 모델 개발', 'ISO/IEC 27001 유전체 비식별화 보안 프로토콜 총괄'],
+    career: [
+      '대용량 초병렬 NGS 파이프라인 자동화 아키텍처 구축',
+      '머신러닝 기반 다인자 질병 위험도(PRS) 산출 모델 개발',
+      'ISO/IEC 27001 유전체 비식별화 보안 프로토콜 총괄',
+    ],
     field: '알고리즘 파이프라인 · 유전체 암호화',
   },
   {
@@ -135,7 +142,11 @@ const RESEARCHERS = [
     role: '메디컬 자문위원단',
     photo: researcher3,
     school: 'Stanford University',
-    career: ['대학병원 임상유전체 진료 및 임상시험 코디네이션 18년', '한국인 유전 변이와 보험 언더라이팅 가이드라인 수립', '대한진단유전의학회 정회원'],
+    career: [
+      '대학병원 임상유전체 진료 및 임상시험 코디네이션 18년',
+      '한국인 유전 변이와 보험 언더라이팅 가이드라인 수립',
+      '대한진단유전의학회 정회원',
+    ],
     field: '임상 판단 연계 · 위험도 의학 검증',
   },
 ]
@@ -171,66 +182,69 @@ function LogisticsMap() {
   const active = ROUTES[shot.route]
 
   return (
-    <div className="lab-map">
-      <svg viewBox="0 0 300 150" role="group" aria-label="전국에서 중앙 분석소로 이어지는 검체 이송 경로">
-        {ROUTES.map((r, i) => (
-          <path key={r.name} className={`lab-map-route${i === shot.route ? ' is-active' : ''}`} d={r.d} />
-        ))}
+    <>
+      <div className="lab-map">
+        <svg viewBox="0 0 300 150" role="group" aria-label="전국에서 중앙 분석소로 이어지는 검체 이송 경로">
+          {ROUTES.map((r, i) => (
+            <path key={r.name} className={`lab-map-route${i === shot.route ? ' is-active' : ''}`} d={r.d} />
+          ))}
 
-        {/* 도착할 때 중앙 분석소에서 퍼지는 고리 */}
-        <circle
-          key={`ring-${shot.n}`}
-          className="lab-map-ring"
-          cx={HUB.x}
-          cy={HUB.y}
-          r="7"
-          style={{ animationDelay: `${SHIP_MS - 100}ms` }}
-        />
-        <circle className="lab-map-hub" cx={HUB.x} cy={HUB.y} r="7" />
-
-        <circle key={`packet-${shot.n}`} className="lab-map-packet" r="3.5">
-          <animateMotion
-            ref={motion}
-            begin="indefinite"
-            dur={`${SHIP_MS}ms`}
-            path={active.d}
-            fill="freeze"
-            calcMode="spline"
-            keyTimes="0;1"
-            keySplines="0.45 0 0.25 1"
+          {/* 도착할 때 중앙 분석소에서 퍼지는 고리 */}
+          <circle
+            key={`ring-${shot.n}`}
+            className="lab-map-ring"
+            cx={HUB.x}
+            cy={HUB.y}
+            r="7"
+            style={{ animationDelay: `${SHIP_MS - 100}ms` }}
           />
-        </circle>
+          <circle className="lab-map-hub" cx={HUB.x} cy={HUB.y} r="7" />
 
-        {ROUTES.map((r, i) => (
-          <g
-            key={r.name}
-            className={`lab-map-stop${i === shot.route ? ' is-active' : ''}`}
-            role="button"
-            tabIndex={0}
-            aria-label={`${r.name}에서 검체 보내기`}
-            onClick={() => send(i)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                send(i)
-              }
-            }}
-          >
-            {/* 손가락으로 누르기 쉽게 넓은 투명 영역 */}
-            <circle className="lab-map-hit" cx={r.x} cy={r.y} r="14" />
-            <circle className="lab-map-node" cx={r.x} cy={r.y} r="4" />
-            <text className="lab-map-name" x={r.label.x} y={r.label.y}>
-              {r.name}
-            </text>
-          </g>
-        ))}
-      </svg>
-      <span className="lab-map-label">
-        <Icon d={ICONS.pin} />
-        제노플랜코리아 중앙 분석소
-      </span>
-      <span className="lab-map-hint">지역을 눌러 검체를 보내 보세요</span>
-    </div>
+          <circle key={`packet-${shot.n}`} className="lab-map-packet" r="3.5">
+            <animateMotion
+              ref={motion}
+              begin="indefinite"
+              dur={`${SHIP_MS}ms`}
+              path={active.d}
+              fill="freeze"
+              calcMode="spline"
+              keyTimes="0;1"
+              keySplines="0.45 0 0.25 1"
+            />
+          </circle>
+
+          {ROUTES.map((r, i) => (
+            <g
+              key={r.name}
+              className={`lab-map-stop${i === shot.route ? ' is-active' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label={`${r.name}에서 검체 보내기`}
+              onClick={() => send(i)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  send(i)
+                }
+              }}
+            >
+              {/* 손가락으로 누르기 쉽게 넓은 투명 영역 */}
+              <circle className="lab-map-hit" cx={r.x} cy={r.y} r="14" />
+              <circle className="lab-map-node" cx={r.x} cy={r.y} r="4" />
+              <text className="lab-map-name" x={r.label.x} y={r.label.y}>
+                {r.name}
+              </text>
+            </g>
+          ))}
+        </svg>
+        <span className="lab-map-label">
+          <Icon d={ICONS.pin} />
+          제노플랜코리아 중앙 분석소
+        </span>
+      </div>
+      {/* 지도 위에 겹치면 잘 안 보여서 지도 바로 아래에 둠 */}
+      <p className="lab-map-hint">지역을 눌러 검체를 보내 보세요</p>
+    </>
   )
 }
 
@@ -242,9 +256,7 @@ function Laboratory() {
       <main className="lab-main">
         {/* ---------- 소개 ---------- */}
         <section className="lab-card lab-intro lab-reveal" style={delay(0)}>
-          <p className="lab-eyebrow">
-            보건복지부 질병관리청 승인 공인 DTC 유전자검사기관
-          </p>
+          <p className="lab-eyebrow">보건복지부 질병관리청 승인 공인 DTC 유전자검사기관</p>
           <h1 className="lab-title">
             제노플랜코리아 <em>연구소 소개</em>
           </h1>
@@ -271,8 +283,8 @@ function Laboratory() {
           <section className="lab-card lab-tall lab-reveal" style={delay(300)}>
             <h2 className="lab-card-title">제노플랜코리아 연구소</h2>
             <p className="lab-card-sub">
-              생물학적 오염을 원천 차단하는 클린룸(Class 1,000 등급)과 전용 비상 전력망,
-              항온항습 무진동 특수 설비를 갖춘 R&amp;D 메디컬 첨단 클러스터입니다.
+              생물학적 오염을 원천 차단하는 클린룸(Class 1,000 등급)과 전용 비상 전력망, 항온항습 무진동 특수 설비를
+              갖춘 R&amp;D 메디컬 첨단 클러스터입니다.
             </p>
             <img className="lab-photo" src={labPhoto} alt="클린룸에서 연구원들이 분석 장비를 다루는 모습" />
             <ul className="lab-facts">
@@ -292,8 +304,8 @@ function Laboratory() {
           <section className="lab-card lab-tall lab-reveal" style={delay(400)}>
             <h2 className="lab-card-title">신속 검체 이송 및 방역 물류 허브</h2>
             <p className="lab-card-sub">
-              전국 병의원 및 다이렉트 키트 발송 고객을 위해 콜드체인(Cold-chain) 특수 운송망과
-              연계되어 검체 채취 즉시 24시간 내 중앙 연구소로 입고됩니다.
+              전국 병의원 및 다이렉트 키트 발송 고객을 위해 콜드체인(Cold-chain) 특수 운송망과 연계되어 검체 채취 즉시
+              24시간 내 중앙 연구소로 입고됩니다.
             </p>
             <LogisticsMap />
             <dl className="lab-logistics">
@@ -308,7 +320,7 @@ function Laboratory() {
         </div>
 
         {/* ---------- 연구 프로세스 ---------- */}
-        <section className="lab-card lab-reveal" style={delay(0)}>
+        <section className="lab-card lab-process-card lab-reveal" style={delay(0)}>
           <h2 className="lab-card-title">연구 프로세스 안내</h2>
           <ol className="lab-process">
             {PROCESS.map((p, i) => (
@@ -319,9 +331,7 @@ function Laboratory() {
                     <span key={line}>{line}</span>
                   ))}
                 </p>
-                {i < PROCESS.length - 1 && (
-                  <Icon d={ICONS.chevron} className="lab-icon lab-step-next" />
-                )}
+                {i < PROCESS.length - 1 && <Icon d={ICONS.chevron} className="lab-icon lab-step-next" />}
               </li>
             ))}
           </ol>
@@ -356,8 +366,7 @@ function Laboratory() {
           <section className="lab-card lab-reveal" style={delay(120)}>
             <h2 className="lab-card-title">정부 공인 및 글로벌 인증 체계</h2>
             <p className="lab-card-sub">
-              생명윤리 및 개인정보보호 법률을 빈틈없이 충족하는 3중 컴플라이언스 시스템을
-              운영합니다.
+              생명윤리 및 개인정보보호 법률을 빈틈없이 충족하는 3중 컴플라이언스 시스템을 운영합니다.
             </p>
             <ul className="lab-certs">
               {CERTS.map((c) => (
@@ -375,8 +384,8 @@ function Laboratory() {
           <div className="lab-team-head">
             <h2 className="lab-card-title">본사 연구진 및 메디컬 자문위원단</h2>
             <p className="lab-card-sub">
-              유전체학 박사, 생물정보학(Bioinformatics) 엔지니어, 대학병원 전문의로 구성된 교차
-              검증단이 데이터의 신뢰성을 완성합니다.
+              유전체학 박사, 생물정보학(Bioinformatics) 엔지니어, 대학병원 전문의로 구성된 교차 검증단이 데이터의
+              신뢰성을 완성합니다.
             </p>
           </div>
           <ul className="lab-team">
@@ -408,7 +417,7 @@ function Laboratory() {
         <section className="lab-cta lab-reveal" style={delay(0)}>
           <div className="lab-cta-body">
             <p className="lab-cta-eyebrow">NEXT GENERATION INSURATECH PIPELINE</p>
-            <h2>제노플랜코리아의 초정밀 분석 데이터는 '내진설계' 엔진으로 직결됩니다</h2>
+            <h2>암, 뇌, 심장 위험도도 볼 수 있어요</h2>
           </div>
           <Link to="/insurance" className="lab-cta-btn">
             내 유전자 맞춤 보험 설계하기

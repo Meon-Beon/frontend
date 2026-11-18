@@ -17,7 +17,7 @@ const stats = [
 
 const services = [
   { no: '01', title: 'DNA 검사 신청', desc: '타액 키트로 집에서 간편하게 신청하세요.', to: '/dna-apply' },
-  { no: '02', title: '건강검진 연동', desc: '건보공단 10년 검진 기록을 한 번에 불러와요.', to: '/health-history' },
+  { no: '02', title: '건강검진 연동', desc: '건강보험공단 10년 검진 기록을 한 번에 불러와요.', to: '/health-history' },
   { no: '03', title: '결과 리포트', desc: 'DNA와 검진을 종합한 위험도를 확인하세요.', to: '/report' },
   { no: '04', title: '체질 테스트', desc: '술·담배·살 체질을 유전형으로 알아봐요.', to: '/event' },
 ]
