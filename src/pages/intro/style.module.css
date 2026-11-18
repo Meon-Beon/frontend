@@ -213,7 +213,8 @@
 
 .nav {
   display: flex;
-  gap: 32px;
+  /* 서비스 메인 헤더와 같은 메뉴 간격 */
+  gap: 68px;
   font-size: 17px;
   font-weight: 700;
 }
