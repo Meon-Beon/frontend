@@ -119,14 +119,16 @@ const GAP_TITLE: Record<CoverageGap['status'], string> = {
   보장확인: '기존 보장 확인',
 }
 
-type SortKey = 'rank' | 'cheap'
+type SortKey = 'coverage' | 'cheap'
 const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'rank', label: '추천순' },
+  { key: 'coverage', label: '보장 많은순' },
   { key: 'cheap', label: '보험료 낮은순' },
 ]
+/** 같은 값이면 추천순위가 높은 상품이 앞 */
 function sortRecs(recs: Recommendation[], key: SortKey) {
   const price = (r: Recommendation) => r.premium ?? Number.POSITIVE_INFINITY
   const list = [...recs]
+  if (key === 'coverage') list.sort((a, b) => b.coverages.length - a.coverages.length || a.rec_rank - b.rec_rank)
   if (key === 'cheap') list.sort((a, b) => price(a) - price(b) || a.rec_rank - b.rec_rank)
   return list
 }
@@ -441,7 +443,7 @@ function Insurance() {
   const [existing, setExisting] = useState<ExistingInsurance | null>(null)
   const [design, setDesign] = useState<InsuranceDesign | null>(null)
   const [error, setError] = useState('')
-  const [sort, setSort] = useState<SortKey>('rank')
+  const [sort, setSort] = useState<SortKey>('coverage')
   // null 이면 아직 손대지 않은 상태 → AI 추천 조합을 보여 줌
   const [designedIds, setDesignedIds] = useState<number[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
