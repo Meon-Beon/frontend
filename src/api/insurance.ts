@@ -45,6 +45,8 @@ export type Recommendation = {
   reason: string | null
   checks: string | null
   fit_status: string | null
+  /** 보험사 가입 페이지 주소. 없으면 null */
+  join_url: string | null
   coverages: Coverage[]
 }
 

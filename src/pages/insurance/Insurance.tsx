@@ -153,6 +153,7 @@ const ICON = {
   drop: 'M12 4v12M7 11l5 5 5-5M4 20h16',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   reset: 'M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
 }
 
 function DiseaseChips({ diseases }: { diseases: string[] }) {
@@ -267,14 +268,27 @@ function RecommendCard({
 
 /* ---------- 오른쪽: 설계에 담긴 카드 ---------- */
 
+/** http(s) 주소만 링크로 씀 (서버에서도 거르지만 화면에서 한 번 더) */
+const safeUrl = (url: string | null) => (url && /^https?:\/\//i.test(url) ? url : null)
+
 function DesignedCard({ r, onRemove }: { r: Recommendation; onRemove: () => void }) {
   const [menu, setMenu] = useState(false)
+  const url = safeUrl(r.join_url)
+  const name = cleanName(r.product_name)
   return (
-    <li className="ins-designed" style={{ '--accent': colorOf(r.target_diseases[0] ?? '') } as CSSProperties}>
+    <li
+      className={`ins-designed${url ? ' has-link' : ''}`}
+      style={{ '--accent': colorOf(r.target_diseases[0] ?? '') } as CSSProperties}
+    >
+      {/* 카드 전체를 덮는 링크: 카드 아무 곳이나 누르면 보험사 가입 페이지가 새 탭으로 열림.
+          ⋯ 메뉴 버튼은 이 링크보다 위(z-index)에 있어서 따로 눌림 */}
+      {url && (
+        <a className="ins-designed-link" href={url} target="_blank" rel="noopener noreferrer" aria-label={`${r.company_name} ${name} 가입 페이지 (새 탭)`} />
+      )}
       <div className="ins-rec-top">
         <span className="ins-company">{r.company_name}</span>
         <div className="ins-more">
-          <button type="button" aria-label={`${cleanName(r.product_name)} 메뉴`} aria-expanded={menu} onClick={() => setMenu(!menu)}>
+          <button type="button" aria-label={`${name} 메뉴`} aria-expanded={menu} onClick={() => setMenu(!menu)}>
             <Icon d={ICON.more} />
           </button>
           {menu && (
@@ -286,12 +300,21 @@ function DesignedCard({ r, onRemove }: { r: Recommendation; onRemove: () => void
           )}
         </div>
       </div>
-      <p className="ins-name">{cleanName(r.product_name)}</p>
+      <p className="ins-name">{name}</p>
       <DiseaseChips diseases={r.target_diseases} />
       <div className="ins-designed-foot">
         <span>월 예상 보험료</span>
         <Price value={r.premium} />
       </div>
+      <p className={`ins-join${url ? '' : ' is-none'}`} aria-hidden="true">
+        {url ? (
+          <>
+            보험사에서 가입하기 <Icon d={ICON.external} />
+          </>
+        ) : (
+          '가입 링크 준비 중'
+        )}
+      </p>
     </li>
   )
 }
