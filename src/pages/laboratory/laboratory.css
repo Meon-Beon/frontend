@@ -581,8 +581,8 @@ body:has(.lab-page) {
 
 /* 카드 아래 한 줄 역할 요약 */
 .lab-summary {
-  margin-top: 20px !important;
-  padding-top: 16px;
+  margin-top: 14px !important;
+  padding-top: 22px;
   border-top: 1px solid var(--line);
   font-size: 14px;
   font-weight: 600;
