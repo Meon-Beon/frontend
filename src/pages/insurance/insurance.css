@@ -263,6 +263,12 @@ body:has(.ins-page) {
   font-size: 13px;
 }
 
+/* 오른쪽 AI 맞춤 추천 설계 박스 윗선 = 왼쪽 질환 박스(치매·암…) 윗선
+   위험 질환 제목 줄 높이(22px) + 제목과 박스 사이 간격(10px) 만큼 내림 */
+.ins-layout.has-risk > .ins-right {
+  margin-top: 32px;
+}
+
 /* ---------- 왼쪽 칸: 위험 질환 보장 현황 + 내 GENE에 적합한 보험 ---------- */
 .ins-left-col {
   display: flex;
@@ -770,6 +776,7 @@ body:has(.ins-page) {
   color: var(--ink);
   font-size: 15px;
   font-weight: 700;
+  line-height: 22px; /* 이 높이 + .ins-risk gap(10px) = 오른쪽 박스를 내리는 거리 */
 }
 
 .ins-risk ul {
@@ -1062,9 +1069,22 @@ a.ins-join:hover {
   font-weight: 600;
 }
 
-/* 기존 가입 보험 카드: 담은 보험 카드와 같은 모양, 왼쪽 줄만 회색 */
+/* 기존 가입 보험 카드: 담은 보험 카드와 같은 모양, 왼쪽 줄·테두리·(−) 버튼은 흰색 */
+.ins-owned-card.ins-designed {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .ins-owned-card.ins-designed::before {
-  background: rgba(255, 255, 255, 0.35);
+  background: #fff;
+}
+
+.ins-owned-card .ins-more > button {
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+}
+
+.ins-owned-card .ins-more > button:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .ins-owned-card .ins-company em {
@@ -1505,6 +1525,10 @@ a.ins-join:hover {
 
   .ins-layout {
     grid-template-columns: 1fr;
+  }
+
+  .ins-layout.has-risk > .ins-right {
+    margin-top: 0;
   }
 
   .ins-right {

@@ -604,6 +604,8 @@ function Insurance() {
   const [excludedOwned, setExcludedOwned] = useState<number[]>([])
   // 마지막으로 저장한(또는 불러온) 리포트의 상품 id. 같은 조합을 연달아 저장하지 않게 비교용. null 이면 없음
   const [savedIds, setSavedIds] = useState<number[] | null>(null)
+  // 마지막으로 저장한(또는 불러온) 리포트에 넣은 기존 보험 id
+  const [savedOwnedIds, setSavedOwnedIds] = useState<number[]>([])
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
@@ -625,6 +627,10 @@ function Insurance() {
           const ids = start.products.map((p) => p.id)
           setSavedIds(ids)
           setDesignedIds(ids)
+          // 그 리포트에 없던 기존 보험은 (−)로 뺀 상태로 시작
+          const kept = start.owned.map((o) => o.id)
+          setSavedOwnedIds(kept)
+          setExcludedOwned(e.products.map((p) => p.id).filter((id) => !kept.includes(id)))
         }
       })
       .catch((e) => {
@@ -645,6 +651,8 @@ function Insurance() {
   const ownedTotal = (existing?.products ?? [])
     .filter((p) => !excludedOwned.includes(p.id))
     .reduce((sum, p) => sum + p.premium, 0)
+  // 합계에 넣은 기존 보험 id (화면 순서)
+  const includedOwned = (existing?.products ?? []).map((p) => p.id).filter((id) => !excludedOwned.includes(id))
   const toggleOwned = (id: number) =>
     setExcludedOwned((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
   // 위험 질환 보장 현황: 보장 공백 → 확인 필요 → 설계로 보완 → 보유 보장 순 (같은 상태끼리는 원래 순서)
@@ -654,16 +662,18 @@ function Insurance() {
   const sorted = useMemo(() => sortRecs(recs, sort), [recs, sort])
   const isAiPick = designedIds === null
   // 지금 설계 칸이 마지막으로 저장한 리포트 조합과 같은지 (담은 순서는 상관없이 같은 상품이면 같음)
-  const isSaved = savedIds !== null && savedIds.length === ids.length && savedIds.every((id) => ids.includes(id))
+  const sameSet = (a: number[], b: number[]) => a.length === b.length && a.every((id) => b.includes(id))
+  const isSaved = savedIds !== null && sameSet(savedIds, ids) && sameSet(savedOwnedIds, includedOwned)
 
   const onSave = async () => {
     if (!user || saving) return
     setSaving(true)
     setSaveMsg(null)
     try {
-      const report = await createReport(user.id, ids)
+      const report = await createReport(user.id, ids, includedOwned)
       const savedList = report.products.map((p) => p.id)
       setSavedIds(savedList)
+      setSavedOwnedIds(report.owned.map((o) => o.id))
       setDesignedIds(savedList)
       setSaveMsg({ ok: true, text: '새 리포트로 저장했어요. 마이페이지에서 다른 리포트와 함께 볼 수 있어요.' })
     } catch (e) {
@@ -734,7 +744,8 @@ function Insurance() {
 
         {existing && design && (
           <>
-            <div className="ins-layout">
+            {/* has-risk: 오른쪽 AI 설계 박스를 위험 질환 제목 높이만큼 내려 질환 박스 윗선과 맞춤 */}
+            <div className={`ins-layout${riskDiseases.length > 0 ? ' has-risk' : ''}`}>
               {/* ---------- 왼쪽 칸: 위험 질환 보장 현황 + 추천 보험 ---------- */}
               <div className="ins-left-col">
               {riskDiseases.length > 0 && (

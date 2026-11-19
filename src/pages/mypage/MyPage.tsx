@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../api/dna'
-import { deleteReport, fetchReports, type SavedProduct, type SavedReport } from '../../api/insurance'
+import { deleteReport, fetchReports, type SavedOwned, type SavedProduct, type SavedReport } from '../../api/insurance'
 import { changePassword, fetchMe, fetchOrders, updateMe, type Me, type Order } from '../../api/me'
 import { readUser } from '../../auth/session'
 import { loadPostcode } from '../../utils/postcode'
@@ -426,6 +426,35 @@ function ReportProduct({ p }: { p: SavedProduct }) {
 const shortYmd = (s: string) => s.slice(2, 10).replace(/-/g, '.')
 /** 리포트에 담은 상품들이 대비하는 질병 (겹치는 건 한 번만) */
 const reportDiseases = (report: SavedReport) => [...new Set(report.products.flatMap((p) => p.target_diseases))]
+/** 리포트 월 보험료 합계: 담은 추천 보험 + 저장할 때 넣어 둔 기존 가입 보험 */
+const reportTotal = (report: SavedReport) => report.total_premium + report.owned_total
+
+/** 상세 리포트의 기존 가입 보험 카드 */
+function OwnedProduct({ o }: { o: SavedOwned }) {
+  return (
+    <li className="mp-owned">
+      <div className="mp-saved-top">
+        <span className="mp-company">
+          <em>기존 가입 보험</em>
+          {o.company_name}
+        </span>
+        <span className="mp-chips">
+          {o.categories.slice(0, 3).map((c) => (
+            <i key={c}>{c}</i>
+          ))}
+        </span>
+      </div>
+      <p className="mp-product">{cleanName(o.product_name)}</p>
+      <div className="mp-saved-foot">
+        <span>
+          월 보험료 <strong>{won(o.premium)}</strong> 원
+        </span>
+        <span className="mp-muted">보유 중</span>
+      </div>
+    </li>
+  )
+}
+
 /** 압축 카드에는 상품을 이만큼만, 나머지는 "외 n건" */
 const PREVIEW_COUNT = 4
 
@@ -446,8 +475,13 @@ function ReportSlide({
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const diseases = reportDiseases(report)
-  const preview = report.products.slice(0, PREVIEW_COUNT)
-  const rest = report.products.length - preview.length
+  // 기존 가입 보험을 먼저, 그 뒤에 담은 추천 보험 (보험설계 화면 오른쪽 칸과 같은 순서)
+  const rows = [
+    ...report.owned.map((o) => ({ key: `o${o.id}`, owned: true, company: o.company_name, name: o.product_name, premium: o.premium as number | null })),
+    ...report.products.map((p) => ({ key: `p${p.id}`, owned: false, company: p.company_name, name: p.product_name, premium: p.premium })),
+  ]
+  const preview = rows.slice(0, PREVIEW_COUNT)
+  const rest = rows.length - preview.length
 
   const remove = async () => {
     setDeleting(true)
@@ -484,22 +518,24 @@ function ReportSlide({
       <h3 className="mp-report-title">{shortYmd(report.saved_at)} 설계안</h3>
       <p className="mp-report-sub">
         {diseases.length > 0 ? `${diseases.join('·')} 대비 · ` : ''}보험 {report.products.length}건 조합
+        {report.owned.length > 0 && ` + 기존 ${report.owned.length}건`}
       </p>
 
       <div className="mp-report-total">
         <p>월 예상 납입료</p>
         <p>
-          <strong>{won(report.total_premium)}</strong> 원 / 월
+          <strong>{won(reportTotal(report))}</strong> 원 / 월
         </p>
       </div>
 
       <div className="mp-report-items">
-        <p>담긴 상품 (총 {report.products.length}건)</p>
+        <p>담긴 상품 (총 {rows.length}건)</p>
         <ul>
           {preview.map((p) => (
-            <li key={p.id}>
-              <span title={`${p.company_name} ${cleanName(p.product_name)}`}>
-                {p.company_name} {cleanName(p.product_name)}
+            <li key={p.key} className={p.owned ? 'is-owned' : ''}>
+              <span title={`${p.company} ${cleanName(p.name)}`}>
+                {p.owned && <em>기존</em>}
+                {p.company} {cleanName(p.name)}
               </span>
               <b>{p.premium == null ? '-' : `${won(p.premium)}원`}</b>
             </li>
@@ -553,12 +589,15 @@ function ReportDetailModal({ report, no, onClose }: { report: SavedReport; no: n
           <dl className="mp-saved-sum">
             <div>
               <dt>담은 보험</dt>
-              <dd>총 {report.products.length}건</dd>
+              <dd>
+                총 {report.products.length}건
+                {report.owned.length > 0 && <small> + 기존 가입 {report.owned.length}건</small>}
+              </dd>
             </div>
             <div>
-              <dt>예상 월 보험료 합계</dt>
+              <dt>예상 월 보험료 합계{report.owned.length > 0 && ' (기존 가입 포함)'}</dt>
               <dd>
-                <strong>{won(report.total_premium)}</strong> 원
+                <strong>{won(reportTotal(report))}</strong> 원
               </dd>
             </div>
             {diseases.length > 0 && (
@@ -574,6 +613,9 @@ function ReportDetailModal({ report, no, onClose }: { report: SavedReport; no: n
           </dl>
 
           <ul className="mp-saved">
+            {report.owned.map((o) => (
+              <OwnedProduct key={`o${o.id}`} o={o} />
+            ))}
             {report.products.map((p) => (
               <ReportProduct key={p.id} p={p} />
             ))}

@@ -90,13 +90,27 @@ export type SavedProduct = {
   coverages: { coverage_name: string; coverage_amount: string | null }[]
 }
 
+/** 리포트에 함께 넣은 기존 가입 보험 하나 */
+export type SavedOwned = {
+  id: number
+  company_name: string
+  product_name: string
+  premium: number
+  /** 보장명으로 분류한 카테고리, 많은 순 (암, 상해 …) */
+  categories: string[]
+}
+
 /** 저장한 보험 설계 리포트 하나 = 보험설계 화면에서 "리포트로 저장"을 한 번 누른 결과 */
 export type SavedReport = {
   id: number
   saved_at: string
+  /** 담은 추천 보험의 월 보험료 합계 (기존 가입 보험 제외) */
   total_premium: number
   /** 설계 칸에 담은 순서 */
   products: SavedProduct[]
+  /** 저장할 때 합계에 넣어 둔 기존 가입 보험 ((−)로 뺀 것은 없음) */
+  owned: SavedOwned[]
+  owned_total: number
 }
 
 /** 저장한 리포트 목록 (최근에 저장한 것부터) */
@@ -105,10 +119,11 @@ export async function fetchReports(userId: number) {
   return data.reports
 }
 
-/** 지금 설계 조합을 새 리포트로 추가 (예전 리포트는 그대로 남음) */
-export async function createReport(userId: number, recommendationIds: number[]) {
+/** 지금 설계 조합(담은 추천 보험 + 합계에 넣은 기존 보험)을 새 리포트로 추가 (예전 리포트는 그대로 남음) */
+export async function createReport(userId: number, recommendationIds: number[], ownedInsuranceIds: number[]) {
   const { data } = await client.post<SavedReport>(`/api/insurance/reports/${userId}`, {
     recommendation_ids: recommendationIds,
+    owned_insurance_ids: ownedInsuranceIds,
   })
   return data
 }
