@@ -95,6 +95,11 @@ function pickAiDesign(recs: Recommendation[], gaps: CoverageGap[]): number[] {
   return best.ids
 }
 
+/** 위험 질환 보장 현황에서 빼는 질병 */
+const HIDDEN_RISK = new Set(['고혈압'])
+/** 위험 질환 보장 현황에 보여 줄 이름 (데이터는 그대로 두고 화면 이름만 바꿈) */
+const RISK_LABEL: Record<string, string> = { 대장암: '암' }
+
 type DiseaseState = { label: string; tone: 'owned' | 'designed' | 'gap' | 'check' }
 
 /** 오른쪽 "위험 질환 보장 현황" 칩: 부족한 부분은 색으로 강조 */
@@ -624,7 +629,7 @@ function Insurance() {
   const designedTotal = designed.reduce((sum, r) => sum + (r.premium ?? 0), 0)
   // 위험 질환 보장 현황: 보장 공백 → 확인 필요 → 설계로 보완 → 보유 보장 순 (같은 상태끼리는 원래 순서)
   const riskDiseases = gaps
-    .filter((g) => g.at_risk)
+    .filter((g) => g.at_risk && !HIDDEN_RISK.has(g.disease))
     .sort((a, b) => TONE_ORDER[diseaseState(a, designed).tone] - TONE_ORDER[diseaseState(b, designed).tone])
   const sorted = useMemo(() => sortRecs(recs, sort), [recs, sort])
   const isAiPick = designedIds === null
@@ -688,40 +693,9 @@ function Insurance() {
   return (
     <div className="ins-page">
       <div className="ins-wrap">
+        {/* 제목은 맨 위 한 줄 */}
         <div className="ins-titlebar">
-          <div className="ins-title-left">
-            <h1>내 GENE 보험설계</h1>
-          </div>
-          {existing && design && (
-            /* ---------- 현재 보유 보험 분석: 제목 줄 오른쪽에 한 줄로 ---------- */
-            <section className="ins-card ins-owned-summary">
-              <h2>
-                <u>{name}</u> 님의 현재 보유 보험
-              </h2>
-              <div className="ins-owned-summary-body">
-                <div className="ins-total">
-                  <p>월 납입 보험료</p>
-                  <strong>
-                    {won(existing.total_premium)}
-                    <small>원</small>
-                  </strong>
-                </div>
-                {existing.main_category && (
-                  <div className="ins-main-cat">
-                    <p>주요 보장</p>
-                    <span className="ins-pill">{existing.main_category}</span>
-                  </div>
-                )}
-                <div className="ins-count">
-                  <p>유지 계약</p>
-                  <strong>총 {existing.products.length}건</strong>
-                </div>
-                <button type="button" className="ins-detail-link" onClick={() => setModalOpen(true)}>
-                  보험 상세보기 <Icon d={ICON.arrow} />
-                </button>
-              </div>
-            </section>
-          )}
+          <h1>내 GENE 보험설계</h1>
         </div>
 
         {error && <p className="ins-status ins-status-error">{error}</p>}
@@ -729,6 +703,55 @@ function Insurance() {
 
         {existing && design && (
           <>
+            {/* ---------- 요약 줄: 아래 두 칸과 같은 폭으로 나눔 → 보유 보험은 왼쪽 칸 위, 위험 질환은 오른쪽 칸 위 ---------- */}
+            <div className="ins-summary-row">
+              {/* 왼쪽: 현재 보유 보험 (내 GENE에 적합한 보험 칸 위) */}
+              <section className="ins-card ins-owned-summary">
+                <h2>
+                  <u>{name}</u> 님의 현재 보유 보험
+                </h2>
+                <div className="ins-owned-summary-body">
+                  <div className="ins-total">
+                    <p>월 납입 보험료</p>
+                    <strong>
+                      {won(existing.total_premium)}
+                      <small>원</small>
+                    </strong>
+                  </div>
+                  {existing.main_category && (
+                    <div className="ins-main-cat">
+                      <p>주요 보장</p>
+                      <span className="ins-pill">{existing.main_category}</span>
+                    </div>
+                  )}
+                  <div className="ins-count">
+                    <p>유지 계약</p>
+                    <strong>총 {existing.products.length}건</strong>
+                  </div>
+                  <button type="button" className="ins-detail-link" onClick={() => setModalOpen(true)}>
+                    보험 상세보기 <Icon d={ICON.arrow} />
+                  </button>
+                </div>
+              </section>
+
+              {/* 오른쪽: 위험 질환 보장 현황 (AI 맞춤 추천 설계 칸 위, 보유 보험 바로 오른쪽) */}
+              {riskDiseases.length > 0 && (
+                <section className="ins-card ins-risk" aria-labelledby="ins-risk-title">
+                  <h2 id="ins-risk-title">위험 질환 보장 현황</h2>
+                  <ul>
+                    {riskDiseases.map((g) => {
+                      const s = diseaseState(g, designed)
+                      return (
+                        <li key={g.disease} className={`ins-risk-${s.tone}`} title={g.gap_detail ?? undefined}>
+                          <b>{RISK_LABEL[g.disease] ?? g.disease}</b>
+                          <span>{s.label}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              )}
+            </div>
 
             <div className="ins-layout">
               {/* ---------- 왼쪽: 추천 보험 ---------- */}
@@ -793,22 +816,6 @@ function Insurance() {
                   <span>왼쪽 상품을 드래그해 원하는 보험을 추가하세요.</span>
                 </div>
 
-                {riskDiseases.length > 0 && (
-                  <div className="ins-risk">
-                    <h3>위험 질환 보장 현황</h3>
-                    <ul>
-                      {riskDiseases.map((g) => {
-                        const s = diseaseState(g, designed)
-                        return (
-                          <li key={g.disease} className={`ins-risk-${s.tone}`} title={g.gap_detail ?? undefined}>
-                            <b>{g.disease}</b>
-                            <span>{s.label}</span>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                )}
 
                 {designed.length === 0 ? (
                   <p className="ins-empty">아직 담은 보험이 없어요.</p>
