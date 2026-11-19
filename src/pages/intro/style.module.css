@@ -697,20 +697,16 @@
 }
 
 /* 아이콘: 빛 없이 차분한 유리 칸 */
+/* 협력 구조 아이콘: 감싸는 상자 없이 아이콘만 */
 .partnerIcon {
-  display: grid;
-  place-items: center;
+  display: block;
   align-self: flex-start;
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 0 0 1px rgba(170, 195, 255, 0.16);
 }
 
 .partnerIcon svg {
-  width: 32px;
-  height: 32px;
+  display: block;
+  width: 40px;
+  height: 40px;
 }
 
 .partnerCategory {

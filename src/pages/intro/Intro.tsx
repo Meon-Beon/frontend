@@ -77,13 +77,8 @@ type PartnerIconName = 'lab' | 'team' | 'building'
 
 /** 협력 구조 카드 아이콘: 선 여러 개로 그린 그림 */
 const partnerIconPaths: Record<PartnerIconName, string[]> = {
-  // 공인 검증기관: 플라스크 안에 이중나선
-  lab: [
-    'M9 3h6M10 3v5.5L4.8 17.6A2.3 2.3 0 0 0 6.8 21h10.4a2.3 2.3 0 0 0 2-3.4L14 8.5V3',
-    'M7.6 12.6h8.8',
-    'M8 16.6c1.3-2.2 2.7-2.2 4 0s2.7 2.2 4 0M8 16.6c1.3 2.2 2.7 2.2 4 0s2.7-2.2 4 0',
-    'M10 15.6v2M14 15.6v2',
-  ],
+  // 공인 검증기관: 삼각 플라스크 (안은 비움)
+  lab: ['M9 3h6M10 3v5.5L4.8 17.6A2.3 2.3 0 0 0 6.8 21h10.4a2.3 2.3 0 0 0 2-3.4L14 8.5V3'],
   // 설계단: 가운데 사람과 양옆 동료
   team: [
     'M12 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z',
@@ -271,12 +266,8 @@ function Globe({ className }: { className?: string }) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
-    // 위도·경도 → 화면 좌표 (중심 경도 lam0, 북쪽으로 tilt 만큼 기울여 한국이 정면 가까이 오게)
-    const tilt = 32 * RAD
-    /** 지구본 확대 배율: 카드보다 크게 그리고 한국 쪽을 가운데로 끌어와 동아시아가 크게 보이게 */
-    const ZOOM = 1.75
-    /** 좌우로 흔들리는 폭(도). 확대한 만큼 줄여서 한국이 화면 밖으로 나가지 않게 */
-    const SWING = 14
+    // 위도·경도 → 화면 좌표 (중심 경도 lam0, 북쪽으로 tilt 만큼 기울여 한국이 잘 보이게)
+    const tilt = 28 * RAD
     const project = (phi: number, lam: number, lam0: number, r: number, cx: number, cy: number) => {
       const x0 = Math.cos(phi) * Math.sin(lam - lam0)
       const y0 = Math.sin(phi)
@@ -288,12 +279,10 @@ function Globe({ className }: { className?: string }) {
 
     const draw = (t: number) => {
       ctx.clearRect(0, 0, width, height)
-      const r = Math.min(width * 0.46, height * 0.42) * ZOOM
-      // 흔들리지 않을 때 연구소가 카드의 가운데(조금 위)에 오도록 지구본 중심을 옮김
-      const rest = project(HQ.lat * RAD, HQ.lng * RAD, (HQ.lng - 4) * RAD, r, 0, 0)
-      const cx = width / 2 - rest.x
-      const cy = height * 0.42 - rest.y
-      const lam0 = (HQ.lng - 4 + Math.sin(t * 0.35) * SWING) * RAD
+      const r = Math.min(width * 0.46, height * 0.42)
+      const cx = width / 2
+      const cy = height * 0.46
+      const lam0 = (HQ.lng - 10 + Math.sin(t * 0.35) * 35) * RAD
 
       // 바다: 은은한 구
       const ocean = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r)
@@ -314,7 +303,7 @@ function Globe({ className }: { className?: string }) {
         if (q.z <= 0) continue
         ctx.globalAlpha = 0.25 + q.z * 0.7
         ctx.beginPath()
-        ctx.arc(q.x, q.y, 0.9 + q.z * 1.6, 0, Math.PI * 2)
+        ctx.arc(q.x, q.y, 0.7 + q.z * 1.1, 0, Math.PI * 2)
         ctx.fill()
       }
       ctx.globalAlpha = 1

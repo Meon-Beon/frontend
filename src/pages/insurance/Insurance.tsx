@@ -748,18 +748,21 @@ function Insurance() {
                     </select>
                   </label>
                 </div>
-                {recs.length === 0 ? (
-                  <p className="ins-empty">아직 추천 결과가 없어요. 유전자 분석이 끝나면 여기에 표시돼요.</p>
-                ) : (
-                  <ul className="ins-recs">
-                    {sorted.map((r, i) => (
-                      <RecommendCard key={r.id} r={r} index={i} added={ids.includes(r.id)} onAdd={() => add(r.id)} />
-                    ))}
-                  </ul>
-                )}
-                {recs.length > 0 && (
-                  <p className="ins-footnote">보험료는 보험사 공시 기준 예시 금액(남자 40세 등)이며 본인 견적이 아니에요.</p>
-                )}
+                {/* 제목·정렬은 고정, 이 아래 목록만 스크롤 */}
+                <div className="ins-left-scroll">
+                  {recs.length === 0 ? (
+                    <p className="ins-empty">아직 추천 결과가 없어요. 유전자 분석이 끝나면 여기에 표시돼요.</p>
+                  ) : (
+                    <ul className="ins-recs">
+                      {sorted.map((r, i) => (
+                        <RecommendCard key={r.id} r={r} index={i} added={ids.includes(r.id)} onAdd={() => add(r.id)} />
+                      ))}
+                    </ul>
+                  )}
+                  {recs.length > 0 && (
+                    <p className="ins-footnote">보험료는 보험사 공시 기준 예시 금액(남자 40세 등)이며 본인 견적이 아니에요.</p>
+                  )}
+                </div>
               </section>
 
               {/* ---------- 오른쪽: AI 맞춤 추천 설계 ---------- */}
@@ -782,6 +785,8 @@ function Insurance() {
                   )}
                 </div>
 
+                {/* 제목·설명은 고정, 이 아래(끌어놓기 칸~합계)만 스크롤 */}
+                <div className="ins-right-scroll">
                 <div className="ins-dropzone" aria-hidden="true">
                   <Icon d={ICON.drop} />
                   <p>드래그하여 보험 상품 추가</p>
@@ -831,6 +836,7 @@ function Insurance() {
                     <dd>{won(designedTotal + existing.total_premium)} 원</dd>
                   </div>
                 </dl>
+                </div>
 
                 {/* 리포트로 저장: 누를 때마다 리포트가 하나씩 쌓임. 마이페이지 > 보험 설계 보러가기 에서 옆으로 넘겨 봄 */}
                 <div className="ins-save">

@@ -35,7 +35,7 @@ const TRAITS: Trait[] = [
       '분해 효소가 거의 일을 안 해요. 소주 반 잔에도 심장이 쿵쾅거리는 체질.',
     ],
     stamps: ['무난', '경고', '판정 완료'],
-    twist: '서양인 418명 중 술에 약한 유전자를 가진 사람은 단\u00a01명. 한국인은 10명 중 약\u00a03명이에요.',
+    twist: '세계인 중 술에 약한 유전자(AG·AA)를 가진 사람은 단\u00a00.2%. 한국인은 약\u00a029.2%예요.',
   },
   {
     id: 'nic',
@@ -134,8 +134,8 @@ const BRIDGE = [
 
 const sum = (a: number[]) => a.reduce((s, x) => s + x, 0)
 const share = (n: number, all: number[]) => (sum(all) ? (n / sum(all)) * 100 : 0)
-/** 1% 미만은 소수점 한 자리, 나머지는 반올림 */
-const fmt = (x: number) => (x < 1 && x > 0 ? x.toFixed(1) : String(Math.round(x)))
+/** 1% 미만·99% 초과(반올림하면 0%·100%로 보이는 값)는 소수점 한 자리, 나머지는 반올림 (예: GG 99.8%) */
+const fmt = (x: number) => ((x < 1 && x > 0) || (x > 99 && x < 100) ? x.toFixed(1) : String(Math.round(x)))
 
 /** 가장 많은 유형의 자리 */
 const mostCommon = (weights: number[]) => weights.indexOf(Math.max(...weights))
@@ -386,7 +386,7 @@ function EventPage() {
             <div className="event-top">
               <div>
                 <span className="event-month">
-                  <i /> 11월의 이벤트 · 11.1. ~ 11.30.
+                  11월의 이벤트 · 11.1. ~ 11.30.
                 </span>
                 <h1 className="event-title">내 GENE 체질 테스트</h1>
                 <p className="event-lead">

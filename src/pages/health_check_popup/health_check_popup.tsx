@@ -273,7 +273,9 @@ function PopupBody({ onClose, onResult, initialLookup, defaultName = '' }: Omit<
                 <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
                 <span className="health-check-popup__check" aria-hidden="true" />
                 <span>
-                  <b>[필수]</b> 건강검진 내역 조회를 위한 개인정보 수집·이용에 동의합니다.
+                  <b>[필수]</b> 건강검진 내역 조회를 위한
+                  <br />
+                  개인정보 수집·이용에 동의합니다.
                 </span>
               </label>
               {errors.agree && <span className="health-check-popup__error">{errors.agree}</span>}
