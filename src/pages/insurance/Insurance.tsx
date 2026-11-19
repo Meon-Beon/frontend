@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../api/dna'
 import {
+  createReport,
   fetchExistingInsurance,
   fetchInsuranceDesign,
-  fetchSavedDesign,
-  saveDesign,
+  fetchReports,
   type Coverage,
   type CoverageGap,
   type ExistingInsurance,
@@ -21,6 +21,8 @@ import './insurance.css'
  * - 왼쪽: 내 GENE에 적합한 추천 보험 목록 (끌어서 오른쪽에 놓거나 "담기")
  * - 오른쪽: AI 맞춤 추천 설계. 처음엔 AI가 공백 질환을 가장 싸게 채우는 조합으로 미리 채워 둠
  * 데이터: 보유 보험 /api/insurance/existing, 추천·공백 /api/insurance/design (모두 로그인한 회원 기준)
+ * 저장: "리포트로 저장"을 누를 때마다 지금 조합이 리포트 하나로 추가됨 (마이페이지에서 옆으로 넘겨 봄)
+ * ?report=리포트id 로 들어오면 그 리포트의 조합에서 시작 (마이페이지 "이 조합으로 다시 설계")
  */
 
 const won = (n: number) => n.toLocaleString('ko-KR')
@@ -569,6 +571,8 @@ function OwnedModal({
 function Insurance() {
   const user = readUser()
   const location = useLocation()
+  const [params] = useSearchParams()
+  const startReportId = Number(params.get('report')) || null
   const name = user?.name ?? '회원'
 
   const [existing, setExisting] = useState<ExistingInsurance | null>(null)
@@ -579,7 +583,7 @@ function Insurance() {
   const [designedIds, setDesignedIds] = useState<number[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  // 마지막으로 저장한 설계의 상품 id. null 이면 저장한 적 없음
+  // 마지막으로 저장한(또는 불러온) 리포트의 상품 id. 같은 조합을 연달아 저장하지 않게 비교용. null 이면 없음
   const [savedIds, setSavedIds] = useState<number[] | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -587,14 +591,19 @@ function Insurance() {
   useEffect(() => {
     if (!user) return
     let ignore = false // 화면을 떠난 뒤 늦게 온 응답은 무시
-    Promise.all([fetchExistingInsurance(user.id), fetchInsuranceDesign(user.id), fetchSavedDesign(user.id)])
-      .then(([e, d, saved]) => {
+    Promise.all([
+      fetchExistingInsurance(user.id),
+      fetchInsuranceDesign(user.id),
+      // 특정 리포트에서 다시 설계할 때만 리포트 목록을 불러옴. 평소엔 AI 추천 조합으로 시작
+      startReportId ? fetchReports(user.id) : Promise.resolve([]),
+    ])
+      .then(([e, d, reports]) => {
         if (ignore) return
         setExisting(e)
         setDesign(d)
-        // 저장한 설계가 있으면 AI 추천 대신 그 조합으로 시작
-        if (saved.saved_at && saved.products.length > 0) {
-          const ids = saved.products.map((p) => p.id)
+        const start = reports.find((r) => r.id === startReportId)
+        if (start && start.products.length > 0) {
+          const ids = start.products.map((p) => p.id)
           setSavedIds(ids)
           setDesignedIds(ids)
         }
@@ -605,7 +614,7 @@ function Insurance() {
     return () => {
       ignore = true
     }
-  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id, startReportId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const recs = useMemo(() => design?.recommendations ?? [], [design])
   const gaps = useMemo(() => design?.gaps ?? [], [design])
@@ -619,7 +628,7 @@ function Insurance() {
     .sort((a, b) => TONE_ORDER[diseaseState(a, designed).tone] - TONE_ORDER[diseaseState(b, designed).tone])
   const sorted = useMemo(() => sortRecs(recs, sort), [recs, sort])
   const isAiPick = designedIds === null
-  // 지금 설계 칸이 저장한 조합과 같은지 (담은 순서는 상관없이 같은 상품이면 같음)
+  // 지금 설계 칸이 마지막으로 저장한 리포트 조합과 같은지 (담은 순서는 상관없이 같은 상품이면 같음)
   const isSaved = savedIds !== null && savedIds.length === ids.length && savedIds.every((id) => ids.includes(id))
 
   const onSave = async () => {
@@ -627,13 +636,13 @@ function Insurance() {
     setSaving(true)
     setSaveMsg(null)
     try {
-      const saved = await saveDesign(user.id, ids)
-      const savedList = saved.products.map((p) => p.id)
+      const report = await createReport(user.id, ids)
+      const savedList = report.products.map((p) => p.id)
       setSavedIds(savedList)
       setDesignedIds(savedList)
-      setSaveMsg({ ok: true, text: '설계를 저장했어요. 마이페이지에서 다시 볼 수 있어요.' })
+      setSaveMsg({ ok: true, text: '새 리포트로 저장했어요. 마이페이지에서 다른 리포트와 함께 볼 수 있어요.' })
     } catch (e) {
-      setSaveMsg({ ok: false, text: errorMessage(e, '설계를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.') })
+      setSaveMsg({ ok: false, text: errorMessage(e, '리포트를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.') })
     } finally {
       setSaving(false)
     }
@@ -823,7 +832,7 @@ function Insurance() {
                   </div>
                 </dl>
 
-                {/* 설계 저장: 회원당 설계 1개, 저장하면 덮어씀. 마이페이지 > 보험 설계 보러가기 에서 보여 줌 */}
+                {/* 리포트로 저장: 누를 때마다 리포트가 하나씩 쌓임. 마이페이지 > 보험 설계 보러가기 에서 옆으로 넘겨 봄 */}
                 <div className="ins-save">
                   <button
                     type="button"
@@ -832,14 +841,14 @@ function Insurance() {
                     disabled={saving || designed.length === 0 || isSaved}
                   >
                     <Icon d={isSaved ? ICON.check : ICON.save} />
-                    {saving ? '저장하는 중…' : isSaved ? '저장된 설계예요' : savedIds ? '변경한 설계 저장' : '설계 저장'}
+                    {saving ? '저장하는 중…' : isSaved ? '리포트로 저장된 조합이에요' : savedIds ? '바꾼 조합을 새 리포트로 저장' : '리포트로 저장'}
                   </button>
                   {saveMsg && (
                     <p role="status" className={`ins-save-msg${saveMsg.ok ? '' : ' is-error'}`}>
                       {saveMsg.text}
                       {saveMsg.ok && (
                         <Link to="/mypage?tab=insurance">
-                          마이페이지에서 보기 <Icon d={ICON.arrow} />
+                          리포트 보러가기 <Icon d={ICON.arrow} />
                         </Link>
                       )}
                     </p>

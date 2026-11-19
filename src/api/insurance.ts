@@ -78,7 +78,7 @@ export async function fetchInsuranceDesign(userId: number) {
   return data
 }
 
-/** 저장한 설계의 상품 하나 (마이페이지에서 보여 줌) */
+/** 리포트에 담은 상품 하나 (마이페이지에서 보여 줌) */
 export type SavedProduct = {
   id: number
   rec_rank: number
@@ -90,23 +90,29 @@ export type SavedProduct = {
   coverages: { coverage_name: string; coverage_amount: string | null }[]
 }
 
-export type SavedDesign = {
-  /** 마지막으로 저장한 시각. 저장한 적이 없으면 null */
-  saved_at: string | null
+/** 저장한 보험 설계 리포트 하나 = 보험설계 화면에서 "리포트로 저장"을 한 번 누른 결과 */
+export type SavedReport = {
+  id: number
+  saved_at: string
   total_premium: number
   /** 설계 칸에 담은 순서 */
   products: SavedProduct[]
 }
 
-export async function fetchSavedDesign(userId: number) {
-  const { data } = await client.get<SavedDesign>(`/api/insurance/saved/${userId}`)
-  return data
+/** 저장한 리포트 목록 (최근에 저장한 것부터) */
+export async function fetchReports(userId: number) {
+  const { data } = await client.get<{ reports: SavedReport[] }>(`/api/insurance/reports/${userId}`)
+  return data.reports
 }
 
-/** 설계 저장 (회원당 1개, 덮어씀). 빈 배열이면 저장한 설계를 비움 */
-export async function saveDesign(userId: number, recommendationIds: number[]) {
-  const { data } = await client.put<SavedDesign>(`/api/insurance/saved/${userId}`, {
+/** 지금 설계 조합을 새 리포트로 추가 (예전 리포트는 그대로 남음) */
+export async function createReport(userId: number, recommendationIds: number[]) {
+  const { data } = await client.post<SavedReport>(`/api/insurance/reports/${userId}`, {
     recommendation_ids: recommendationIds,
   })
   return data
+}
+
+export async function deleteReport(userId: number, reportId: number) {
+  await client.delete(`/api/insurance/reports/${userId}/${reportId}`)
 }
