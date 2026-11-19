@@ -73,23 +73,27 @@ function keyCoverages(r: Recommendation, limit = 3) {
 /** 공백을 채워야 하는 질병: 잠재 위험 대상이면서 기존 보험으로 보장이 확인되지 않은 것 */
 const needsCover = (g: CoverageGap) => g.at_risk && g.status !== '보장확인'
 
+/** AI가 미리 담아 주는 보험 수 (추천 상품이 이보다 적으면 있는 만큼) */
+const AI_PICK_COUNT = 3
+
 /**
- * AI 미리 채우기: 채울 수 있는 공백 질병을 최대한 많이, 같으면 월 보험료 합계가 가장 적게, 같으면 상품 수가 적게.
- * 추천 상품은 많아야 열 개 남짓이라 모든 조합(2^n)을 다 따져 보는 완전탐색으로 정확한 답을 구한다.
+ * AI 미리 채우기: 정확히 AI_PICK_COUNT 개를 골라서
+ * 채울 수 있는 공백 질병을 최대한 많이, 같으면 월 보험료 합계가 가장 적게.
+ * 추천 상품은 많아야 열 개 남짓이라 크기가 3인 조합을 전부 따져 보는 완전탐색으로 정확한 답을 구한다 (9개면 9C3 = 84가지).
  * (한 번에 가장 많이 채우는 상품부터 고르는 "탐욕법"은 비싼 상품 하나를 고르는 실수를 할 수 있음)
  */
 function pickAiDesign(recs: Recommendation[], gaps: CoverageGap[]): number[] {
   const targets = gaps.filter(needsCover).map((g) => g.disease)
   const pool = recs.slice(0, 12)
-  let best = { covered: 0, cost: 0, ids: [] as number[] }
+  const size = Math.min(AI_PICK_COUNT, pool.length)
+  let best = { covered: -1, cost: 0, ids: [] as number[] }
   for (let mask = 1; mask < 1 << pool.length; mask++) {
     const picked = pool.filter((_, i) => mask & (1 << i))
+    if (picked.length !== size) continue // 정확히 3개짜리 조합만
     const covered = targets.filter((d) => picked.some((r) => r.target_diseases.includes(d))).length
     // 보험료가 없는 상품은 비교할 수 없으니 아주 비싼 것으로 취급
     const cost = picked.reduce((sum, r) => sum + (r.premium ?? 1e9), 0)
-    const better =
-      covered > best.covered ||
-      (covered === best.covered && covered > 0 && (cost < best.cost || (cost === best.cost && picked.length < best.ids.length)))
+    const better = covered > best.covered || (covered === best.covered && cost < best.cost)
     if (better) best = { covered, cost, ids: picked.map((r) => r.id) }
   }
   return best.ids
