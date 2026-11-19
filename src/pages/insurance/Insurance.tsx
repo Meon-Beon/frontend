@@ -4,6 +4,8 @@ import { errorMessage } from '../../api/dna'
 import {
   fetchExistingInsurance,
   fetchInsuranceDesign,
+  fetchSavedDesign,
+  saveDesign,
   type Coverage,
   type CoverageGap,
   type ExistingInsurance,
@@ -231,6 +233,7 @@ const ICON = {
   more: 'M7 12h10',
   reset: 'M4 12a8 8 0 1 0 2.4-5.7M4 4v4h4',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  save: 'M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6',
 }
 
 function DiseaseChips({ diseases }: { diseases: string[] }) {
@@ -576,15 +579,25 @@ function Insurance() {
   const [designedIds, setDesignedIds] = useState<number[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  // 마지막으로 저장한 설계의 상품 id. null 이면 저장한 적 없음
+  const [savedIds, setSavedIds] = useState<number[] | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
     if (!user) return
     let ignore = false // 화면을 떠난 뒤 늦게 온 응답은 무시
-    Promise.all([fetchExistingInsurance(user.id), fetchInsuranceDesign(user.id)])
-      .then(([e, d]) => {
+    Promise.all([fetchExistingInsurance(user.id), fetchInsuranceDesign(user.id), fetchSavedDesign(user.id)])
+      .then(([e, d, saved]) => {
         if (ignore) return
         setExisting(e)
         setDesign(d)
+        // 저장한 설계가 있으면 AI 추천 대신 그 조합으로 시작
+        if (saved.saved_at && saved.products.length > 0) {
+          const ids = saved.products.map((p) => p.id)
+          setSavedIds(ids)
+          setDesignedIds(ids)
+        }
       })
       .catch((e) => {
         if (!ignore) setError(errorMessage(e, '보험 정보를 불러오지 못했어요. 서버가 켜져 있는지 확인해 주세요.'))
@@ -606,6 +619,25 @@ function Insurance() {
     .sort((a, b) => TONE_ORDER[diseaseState(a, designed).tone] - TONE_ORDER[diseaseState(b, designed).tone])
   const sorted = useMemo(() => sortRecs(recs, sort), [recs, sort])
   const isAiPick = designedIds === null
+  // 지금 설계 칸이 저장한 조합과 같은지 (담은 순서는 상관없이 같은 상품이면 같음)
+  const isSaved = savedIds !== null && savedIds.length === ids.length && savedIds.every((id) => ids.includes(id))
+
+  const onSave = async () => {
+    if (!user || saving) return
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const saved = await saveDesign(user.id, ids)
+      const savedList = saved.products.map((p) => p.id)
+      setSavedIds(savedList)
+      setDesignedIds(savedList)
+      setSaveMsg({ ok: true, text: '설계를 저장했어요. 마이페이지에서 다시 볼 수 있어요.' })
+    } catch (e) {
+      setSaveMsg({ ok: false, text: errorMessage(e, '설계를 저장하지 못했어요. 잠시 후 다시 시도해 주세요.') })
+    } finally {
+      setSaving(false)
+    }
+  }
   // 팝업의 useEffect 가 렌더마다 다시 돌지 않도록 같은 함수를 계속 넘김
   const closeModal = useCallback(() => setModalOpen(false), [])
 
@@ -795,6 +827,28 @@ function Insurance() {
                     <dd>{won(designedTotal + existing.total_premium)} 원</dd>
                   </div>
                 </dl>
+
+                {/* 설계 저장: 회원당 설계 1개, 저장하면 덮어씀. 마이페이지 > 보험 설계 보러가기 에서 보여 줌 */}
+                <div className="ins-save">
+                  <button
+                    type="button"
+                    className="ins-cta ins-save-btn"
+                    onClick={onSave}
+                    disabled={saving || designed.length === 0 || isSaved}
+                  >
+                    <Icon d={isSaved ? ICON.check : ICON.save} />
+                    {saving ? '저장하는 중…' : isSaved ? '저장된 설계예요' : savedIds ? '변경한 설계 저장' : '설계 저장'}
+                  </button>
+                  {saveMsg && (
+                    <p role="status" className={`ins-save-msg${saveMsg.ok ? '' : ' is-error'}`}>
+                      {saveMsg.text}
+                      {saveMsg.ok && (
+                        <Link to="/mypage?tab=insurance">
+                          마이페이지에서 보기 <Icon d={ICON.arrow} />
+                        </Link>
+                      )}
+                    </p>
+                  )}
                 </div>
               </section>
             </div>
