@@ -1,7 +1,17 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { errorMessage } from '../../api/dna'
-import { fetchSavedDesign, type SavedDesign } from '../../api/insurance'
+import { deleteReport, fetchReports, type SavedProduct, type SavedReport } from '../../api/insurance'
 import { changePassword, fetchMe, fetchOrders, updateMe, type Me, type Order } from '../../api/me'
 import { readUser } from '../../auth/session'
 import { loadPostcode } from '../../utils/postcode'
@@ -11,7 +21,7 @@ import './mypage.css'
  * 마이페이지 (피그마 "마이페이지" 화면을 다른 페이지와 같은 남색 테마로)
  * 왼쪽 메뉴: 회원 기본 정보(탭) / 건강리포트 보러가기(/report 로 이동) / 보험 설계 보러가기(탭)
  * - 회원 기본 정보: 회원 정보 + 정보 수정(연락처·주소), 비밀번호 변경, 결제 내역
- * - 보험 설계 보러가기: 보험설계 화면에서 "설계 저장"한 상품들
+ * - 보험 설계 보러가기: 보험설계 화면에서 "리포트로 저장"한 리포트들 (리포트 1개 = 보험 여러 개 조합, 옆으로 끌어서 넘김)
  * 주소의 ?tab=insurance 로 바로 열 수 있음 (보험설계 화면의 저장 완료 링크)
  */
 
@@ -78,6 +88,10 @@ const ICON = {
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
   arrow: 'M5 12h14M13 6l6 6-6 6',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
+  left: 'M15 6l-6 6 6 6',
+  plus: 'M12 5v14M5 12h14',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  close: 'M6 6l12 12M18 6L6 18',
 }
 
 function Card({ title, desc, action, children, className = '' }: { title: string; desc?: string; action?: ReactNode; children: ReactNode; className?: string }) {
@@ -366,14 +380,405 @@ function OrdersCard({ orders }: { orders: Order[] }) {
   )
 }
 
-/* ---------- 보험 설계 보러가기 (저장한 설계) ---------- */
+/* ---------- 보험 설계 보러가기 (저장한 리포트, 옆으로 끌어서 넘김) ---------- */
 
-function SavedDesignCard({ saved }: { saved: SavedDesign }) {
-  if (!saved.saved_at || saved.products.length === 0) {
+/** 리포트 하나 안의 상품 카드 */
+function ReportProduct({ p }: { p: SavedProduct }) {
+  const url = safeUrl(p.join_url)
+  const coverages = keyCoverages(p.coverages, p.target_diseases)
+  return (
+    <li>
+      <div className="mp-saved-top">
+        <span className="mp-company">{p.company_name}</span>
+        <span className="mp-chips">
+          {p.target_diseases.map((d) => (
+            <i key={d}>{d}</i>
+          ))}
+        </span>
+      </div>
+      <p className="mp-product">{cleanName(p.product_name)}</p>
+      <ul className="mp-cov">
+        {coverages.slice(0, 3).map((c, i) => (
+          <li key={`${c.coverage_name}-${i}`}>
+            {c.coverage_name}
+            {c.coverage_amount && <b>{c.coverage_amount}</b>}
+          </li>
+        ))}
+        {p.coverages.length > 3 && <li className="mp-more">외 보장 {p.coverages.length - 3}개</li>}
+      </ul>
+      <div className="mp-saved-foot">
+        <span>
+          월 예상 보험료 <strong>{p.premium == null ? '-' : won(p.premium)}</strong> 원
+        </span>
+        {url ? (
+          <a className="mp-link" href={url} target="_blank" rel="noopener noreferrer" draggable={false}>
+            보험사에서 가입하기 <Icon d={ICON.external} />
+          </a>
+        ) : (
+          <span className="mp-muted">가입 링크 준비 중</span>
+        )}
+      </div>
+    </li>
+  )
+}
+
+/** "2026-11-19 10:26:00" → "26.11.19" (피그마 카드 제목용 짧은 날짜) */
+const shortYmd = (s: string) => s.slice(2, 10).replace(/-/g, '.')
+/** 리포트에 담은 상품들이 대비하는 질병 (겹치는 건 한 번만) */
+const reportDiseases = (report: SavedReport) => [...new Set(report.products.flatMap((p) => p.target_diseases))]
+/** 압축 카드에는 상품을 이만큼만, 나머지는 "외 n건" */
+const PREVIEW_COUNT = 4
+
+/** 리포트 카드 하나 = "리포트로 저장" 한 번. 상품명·가격만 압축해서 보여 주고, 자세한 건 "상세 리포트 열기" */
+function ReportSlide({
+  report,
+  no,
+  total,
+  onDelete,
+  onOpen,
+}: {
+  report: SavedReport
+  no: number
+  total: number
+  onDelete: () => Promise<void>
+  onOpen: () => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const diseases = reportDiseases(report)
+  const preview = report.products.slice(0, PREVIEW_COUNT)
+  const rest = report.products.length - preview.length
+
+  const remove = async () => {
+    setDeleting(true)
+    try {
+      await onDelete()
+    } finally {
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
+
+  return (
+    <li className="mp-report" aria-roledescription="slide" aria-label={`리포트 ${no} (전체 ${total}개 중)`}>
+      <div className="mp-report-top">
+        <p className="mp-report-no">
+          REPORT {String(no).padStart(2, '0')} · {report.saved_at.slice(11, 16)}
+        </p>
+        {confirming ? (
+          <div className="mp-report-confirm">
+            <button type="button" className="mp-danger" onClick={remove} disabled={deleting}>
+              {deleting ? '지우는 중…' : '삭제'}
+            </button>
+            <button type="button" onClick={() => setConfirming(false)} disabled={deleting}>
+              취소
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="mp-icon-btn" onClick={() => setConfirming(true)} aria-label={`리포트 ${no} 삭제`}>
+            <Icon d={ICON.trash} />
+          </button>
+        )}
+      </div>
+
+      <h3 className="mp-report-title">{shortYmd(report.saved_at)} 설계안</h3>
+      <p className="mp-report-sub">
+        {diseases.length > 0 ? `${diseases.join('·')} 대비 · ` : ''}보험 {report.products.length}건 조합
+      </p>
+
+      <div className="mp-report-total">
+        <p>월 예상 납입료</p>
+        <p>
+          <strong>{won(report.total_premium)}</strong> 원 / 월
+        </p>
+      </div>
+
+      <div className="mp-report-items">
+        <p>담긴 상품 (총 {report.products.length}건)</p>
+        <ul>
+          {preview.map((p) => (
+            <li key={p.id}>
+              <span title={`${p.company_name} ${cleanName(p.product_name)}`}>
+                {p.company_name} {cleanName(p.product_name)}
+              </span>
+              <b>{p.premium == null ? '-' : `${won(p.premium)}원`}</b>
+            </li>
+          ))}
+          {rest > 0 && <li className="mp-report-rest">외 {rest}건</li>}
+        </ul>
+      </div>
+
+      <button type="button" className="mp-report-open" onClick={onOpen}>
+        상세 리포트 열기 <Icon d={ICON.arrow} />
+      </button>
+    </li>
+  )
+}
+
+/** 상세 리포트 팝업: 담은 보험마다 핵심 보장·대비 질환·가입 링크, 이 조합으로 다시 설계 */
+function ReportDetailModal({ report, no, onClose }: { report: SavedReport; no: number; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const diseases = reportDiseases(report)
+
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    const onKey = (e: globalThis.KeyboardEvent) => e.key === 'Escape' && onClose()
+    document.addEventListener('keydown', onKey)
+    // 팝업이 떠 있는 동안 뒤 화면은 스크롤되지 않게
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+      opener?.focus() // 닫으면 "상세 리포트 열기" 버튼으로 초점을 돌려줌
+    }
+  }, [onClose])
+
+  return (
+    <div className="mp-modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="mp-modal" role="dialog" aria-modal="true" aria-labelledby="mp-modal-title">
+        <header className="mp-modal-head">
+          <div>
+            <p className="mp-report-no">REPORT {String(no).padStart(2, '0')}</p>
+            <h2 id="mp-modal-title">{shortYmd(report.saved_at)} 설계안 상세 리포트</h2>
+            <p className="mp-muted">{ymdhm(report.saved_at)} 저장</p>
+          </div>
+          <button ref={closeRef} type="button" className="mp-round" aria-label="닫기" onClick={onClose}>
+            <Icon d={ICON.close} />
+          </button>
+        </header>
+
+        <div className="mp-modal-body">
+          <dl className="mp-saved-sum">
+            <div>
+              <dt>담은 보험</dt>
+              <dd>총 {report.products.length}건</dd>
+            </div>
+            <div>
+              <dt>예상 월 보험료 합계</dt>
+              <dd>
+                <strong>{won(report.total_premium)}</strong> 원
+              </dd>
+            </div>
+            {diseases.length > 0 && (
+              <div className="mp-report-diseases">
+                <dt>대비하는 질환</dt>
+                <dd className="mp-chips">
+                  {diseases.map((d) => (
+                    <i key={d}>{d}</i>
+                  ))}
+                </dd>
+              </div>
+            )}
+          </dl>
+
+          <ul className="mp-saved">
+            {report.products.map((p) => (
+              <ReportProduct key={p.id} p={p} />
+            ))}
+          </ul>
+        </div>
+
+        <footer className="mp-modal-foot">
+          <button type="button" className="mp-ghost" onClick={onClose}>
+            닫기
+          </button>
+          <Link to={`/insurance?report=${report.id}`} className="mp-cta">
+            <Icon d={ICON.edit} /> 이 조합으로 다시 설계
+          </Link>
+        </footer>
+      </div>
+    </div>
+  )
+}
+
+/** 끌기로 인정하는 최소 이동 거리(px). 이보다 적게 움직이면 클릭으로 봄 */
+const DRAG_THRESHOLD = 6
+
+/**
+ * 리포트 캐러셀
+ * - 터치: 브라우저 기본 가로 스크롤 + scroll-snap 으로 카드 단위로 멈춤
+ * - 마우스: 누른 채로 좌우로 끌면 scrollLeft 를 직접 바꿈 (pointer 이벤트). 놓으면 가까운 카드로 맞춤
+ * - 키보드: 목록에 초점을 두고 ←/→, 또는 아래 화살표 버튼·점
+ */
+function ReportCarousel({
+  reports,
+  onDelete,
+  onOpen,
+}: {
+  reports: SavedReport[]
+  onDelete: (id: number) => Promise<void>
+  onOpen: (id: number) => void
+}) {
+  const trackRef = useRef<HTMLUListElement>(null)
+  const drag = useRef<{ id: number; x: number; left: number; moved: boolean } | null>(null)
+  const [active, setActive] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  // 끌기를 막 끝냈는지. pointerup 바로 뒤에 오는 click 을 막는 데 씀 (state 는 click 전에 이미 false 로 바뀔 수 있어 ref 로)
+  const justDragged = useRef(false)
+  const total = reports.length
+  // 멈출 수 있는 위치 수. 넓은 화면에선 카드가 2장씩 보여 "리포트 수 - 1" 이 됨 (화면 폭이 바뀌면 다시 계산)
+  const [pages, setPages] = useState(total)
+
+  /** 카드 사이 간격까지 포함한 한 칸 너비 */
+  const step = () => {
+    const el = trackRef.current
+    const [a, b] = [el?.children[0] as HTMLElement | undefined, el?.children[1] as HTMLElement | undefined]
+    if (!a) return 1
+    return b ? b.offsetLeft - a.offsetLeft : a.offsetWidth
+  }
+  const indexNow = () => Math.round((trackRef.current?.scrollLeft ?? 0) / step())
+
+  const goTo = (i: number) => {
+    const el = trackRef.current
+    if (!el) return
+    const next = Math.max(0, Math.min(pages - 1, i))
+    el.scrollTo({ left: next * step(), behavior: 'smooth' })
+    setActive(next)
+  }
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+    const measure = () => setPages(Math.max(1, Math.round((el.scrollWidth - el.clientWidth) / step()) + 1))
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [total])
+
+  // 리포트를 지우거나 화면이 넓어져 위치 수가 줄면 현재 번호가 범위를 넘지 않게
+  useEffect(() => {
+    if (active > pages - 1) goTo(pages - 1)
+  }, [pages]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onScroll = () => {
+    if (!drag.current) setActive(Math.max(0, Math.min(pages - 1, indexNow())))
+  }
+
+  const onPointerDown = (e: PointerEvent<HTMLUListElement>) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return // 터치는 브라우저 스크롤에 맡김
+    drag.current = { id: e.pointerId, x: e.clientX, left: e.currentTarget.scrollLeft, moved: false }
+  }
+  const onPointerMove = (e: PointerEvent<HTMLUListElement>) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x
+    if (!d.moved) {
+      if (Math.abs(dx) < DRAG_THRESHOLD) return
+      // 실제로 끌기 시작했을 때만 포인터를 붙잡음 (처음부터 붙잡으면 버튼·링크 클릭이 안 먹음)
+      d.moved = true
+      e.currentTarget.setPointerCapture(e.pointerId)
+      setDragging(true)
+    }
+    e.currentTarget.scrollLeft = d.left - dx
+  }
+  const endDrag = (e: PointerEvent<HTMLUListElement>) => {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    drag.current = null
+    if (!d.moved) return
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+    setDragging(false)
+    justDragged.current = true
+    setTimeout(() => (justDragged.current = false), 0)
+    // 조금만 끌어도 넘어가게: 끈 방향으로 한 칸 (40px 미만이면 제자리)
+    const dx = e.clientX - d.x
+    const from = Math.round(d.left / step())
+    goTo(Math.abs(dx) < 40 ? from : from + (dx < 0 ? 1 : -1))
+  }
+  /** 끌기가 끝난 직후의 클릭(링크 열기 등)은 막음 */
+  const onClickCapture = (e: MouseEvent<HTMLUListElement>) => {
+    if (justDragged.current) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+  const onKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
+    if (e.target !== e.currentTarget) return // 안쪽 버튼·링크에서 누른 키는 그대로
+    if (e.key === 'ArrowRight') goTo(active + 1)
+    else if (e.key === 'ArrowLeft') goTo(active - 1)
+    else return
+    e.preventDefault()
+  }
+
+  return (
+    <div className="mp-carousel" role="region" aria-roledescription="carousel" aria-label="저장한 보험 설계 리포트">
+      {pages > 1 && (
+        <div className="mp-carousel-bar">
+          <span className="mp-carousel-count">
+            {/* 맨 왼쪽에 보이는 리포트가 몇 번째인지 / 전체 리포트 수 */}
+            <b>{active + 1}</b> / {total}
+          </span>
+          <div className="mp-carousel-nav">
+            <button type="button" className="mp-round" onClick={() => goTo(active - 1)} disabled={active === 0} aria-label="이전 리포트">
+              <Icon d={ICON.left} />
+            </button>
+            <button type="button" className="mp-round" onClick={() => goTo(active + 1)} disabled={active === pages - 1} aria-label="다음 리포트">
+              <Icon d={ICON.chevron} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ul
+        ref={trackRef}
+        className={`mp-track${dragging ? ' is-dragging' : ''}${total === 1 ? ' is-single' : ''}${pages === 1 ? ' is-static' : ''}`}
+        tabIndex={0}
+        onScroll={onScroll}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={onClickCapture}
+        onDragStart={(e) => e.preventDefault()}
+        onKeyDown={onKeyDown}
+      >
+        {reports.map((r, i) => (
+          // 오래된 리포트가 01번. 목록은 최근 것부터 오므로 번호는 거꾸로
+          <ReportSlide
+            key={r.id}
+            report={r}
+            no={total - i}
+            total={total}
+            onDelete={() => onDelete(r.id)}
+            onOpen={() => onOpen(r.id)}
+          />
+        ))}
+      </ul>
+
+      {pages > 1 && (
+        <div className="mp-dots">
+          {Array.from({ length: pages }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              className={i === active ? 'is-active' : ''}
+              aria-label={`${i + 1}번째 위치로 이동`}
+              aria-current={i === active ? 'true' : undefined}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SavedReportsCard({ reports, onDelete }: { reports: SavedReport[]; onDelete: (id: number) => Promise<void> }) {
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  // 상세 리포트 팝업으로 연 리포트 id. null 이면 닫힘
+  const [openId, setOpenId] = useState<number | null>(null)
+  // 팝업의 useEffect 가 렌더마다 다시 돌지 않도록 같은 함수를 계속 넘김
+  const closeDetail = useCallback(() => setOpenId(null), [])
+  const openIndex = reports.findIndex((r) => r.id === openId)
+
+  if (reports.length === 0) {
     return (
-      <Card title="내가 저장한 보험 설계">
+      <Card title="내가 저장한 보험 설계 리포트">
         <div className="mp-empty">
-          <p>아직 저장한 설계가 없어요. GENE 보험설계에서 마음에 드는 보험을 담고 "설계 저장"을 눌러 주세요.</p>
+          <p>아직 저장한 리포트가 없어요. GENE 보험설계에서 마음에 드는 보험들을 담고 "리포트로 저장"을 눌러 주세요.</p>
           <Link to="/insurance" className="mp-cta">
             보험 설계하러 가기 <Icon d={ICON.arrow} />
           </Link>
@@ -382,71 +787,30 @@ function SavedDesignCard({ saved }: { saved: SavedDesign }) {
     )
   }
 
+  const remove = async (id: number) => {
+    setMsg(null)
+    try {
+      await onDelete(id)
+    } catch (e) {
+      setMsg({ ok: false, text: errorMessage(e, '리포트를 지우지 못했어요. 잠시 후 다시 시도해 주세요.') })
+    }
+  }
+
   return (
     <Card
-      title="내가 저장한 보험 설계"
-      desc={`${ymdhm(saved.saved_at)}에 저장한 설계예요.`}
+      title="내가 저장한 보험 설계 리포트"
+      desc={reports.length > 1 ? `설계안 ${reports.length}개 · 옆으로 끌어서 넘겨 보세요.` : '보험설계에서 저장한 조합이에요.'}
       action={
         <Link to="/insurance" className="mp-ghost">
-          <Icon d={ICON.edit} /> 보험설계에서 수정하기
+          <Icon d={ICON.plus} /> 새 리포트 만들기
         </Link>
       }
     >
-      <dl className="mp-saved-sum">
-        <div>
-          <dt>설계된 보험</dt>
-          <dd>총 {saved.products.length}건</dd>
-        </div>
-        <div>
-          <dt>예상 월 보험료 합계</dt>
-          <dd>
-            <strong>{won(saved.total_premium)}</strong> 원
-          </dd>
-        </div>
-      </dl>
-
-      <ul className="mp-saved">
-        {saved.products.map((p) => {
-          const url = safeUrl(p.join_url)
-          const coverages = keyCoverages(p.coverages, p.target_diseases)
-          return (
-            <li key={p.id}>
-              <div className="mp-saved-top">
-                <span className="mp-company">{p.company_name}</span>
-                <span className="mp-chips">
-                  {p.target_diseases.map((d) => (
-                    <i key={d}>
-                      {d}
-                    </i>
-                  ))}
-                </span>
-              </div>
-              <p className="mp-product">{cleanName(p.product_name)}</p>
-              <ul className="mp-cov">
-                {coverages.slice(0, 3).map((c, i) => (
-                  <li key={`${c.coverage_name}-${i}`}>
-                    {c.coverage_name}
-                    {c.coverage_amount && <b>{c.coverage_amount}</b>}
-                  </li>
-                ))}
-                {p.coverages.length > 3 && <li className="mp-more">외 보장 {p.coverages.length - 3}개</li>}
-              </ul>
-              <div className="mp-saved-foot">
-                <span>
-                  월 예상 보험료 <strong>{p.premium == null ? '-' : won(p.premium)}</strong> 원
-                </span>
-                {url ? (
-                  <a className="mp-link" href={url} target="_blank" rel="noopener noreferrer">
-                    보험사에서 가입하기 <Icon d={ICON.external} />
-                  </a>
-                ) : (
-                  <span className="mp-muted">가입 링크 준비 중</span>
-                )}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
+      <Status msg={msg} />
+      <ReportCarousel reports={reports} onDelete={remove} onOpen={setOpenId} />
+      {openIndex >= 0 && (
+        <ReportDetailModal report={reports[openIndex]} no={reports.length - openIndex} onClose={closeDetail} />
+      )}
     </Card>
   )
 }
@@ -460,23 +824,29 @@ function MyPage() {
 
   const [me, setMe] = useState<Me | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
-  const [saved, setSaved] = useState<SavedDesign | null>(null)
+  const [reports, setReports] = useState<SavedReport[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let ignore = false
-    Promise.all([fetchMe(user.id), fetchOrders(user.id), fetchSavedDesign(user.id)])
-      .then(([m, o, s]) => {
+    Promise.all([fetchMe(user.id), fetchOrders(user.id), fetchReports(user.id)])
+      .then(([m, o, r]) => {
         if (ignore) return
         setMe(m)
         setOrders(o)
-        setSaved(s)
+        setReports(r)
       })
       .catch((e) => !ignore && setError(errorMessage(e, '회원 정보를 불러오지 못했어요. 서버가 켜져 있는지 확인해 주세요.')))
     return () => {
       ignore = true
     }
   }, [user.id])
+
+  // 서버에서 지운 뒤에 목록에서 뺌 (실패하면 목록은 그대로, 에러는 카드에서 보여 줌)
+  const removeReport = async (id: number) => {
+    await deleteReport(user.id, id)
+    setReports((list) => list?.filter((r) => r.id !== id) ?? null)
+  }
 
   const go = (t: Tab) => setParams(t === 'info' ? {} : { tab: t }, { replace: true })
 
@@ -509,9 +879,9 @@ function MyPage() {
 
           <div className="mp-main">
             {error && <p className="mp-msg">{error}</p>}
-            {!error && (!me || !saved) && <p className="mp-loading">회원 정보를 불러오는 중이에요.</p>}
+            {!error && (!me || !reports) && <p className="mp-loading">회원 정보를 불러오는 중이에요.</p>}
 
-            {me && saved && tab === 'info' && (
+            {me && reports && tab === 'info' && (
               <>
                 <ProfileCard me={me} onSaved={setMe} />
                 <div className="mp-grid">
@@ -520,7 +890,7 @@ function MyPage() {
                 </div>
               </>
             )}
-            {me && saved && tab === 'insurance' && <SavedDesignCard saved={saved} />}
+            {me && reports && tab === 'insurance' && <SavedReportsCard reports={reports} onDelete={removeReport} />}
           </div>
         </div>
       </div>
