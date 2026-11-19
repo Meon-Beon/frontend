@@ -10,6 +10,7 @@ import {
   type CoverageGap,
   type ExistingInsurance,
   type InsuranceDesign,
+  type OwnedProduct,
   type Recommendation,
 } from '../../api/insurance'
 import { readUser } from '../../auth/session'
@@ -35,39 +36,11 @@ const cleanName = (name: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/** 태그용 짧은 보장 이름: 괄호 설명·갱신 표시는 덜어 냄 */
-const shortName = (name: string) =>
-  name
-    .replace(/^갱\)/, '')
-    .replace(/\[.*?\]|\(.*?\)/g, '')
-    .trim()
-
 /** "2000만원" → "2,000만원". 조건이 붙은 금액은 그대로 */
 const prettyAmount = (amount: string | null) => {
   if (!amount) return ''
   const m = amount.replace(/\s/g, '').match(/^(\d+)만원$/)
   return m ? `${won(Number(m[1]))}만원` : amount
-}
-
-/** 추천 카드 태그: 대상 질병마다 관련 보장을 하나씩 먼저 보여 줌 (KB처럼 보장이 28개인 상품도 당뇨·심장·뇌혈관이 다 보이게) */
-const DISEASE_KEYWORDS: Record<string, string[]> = {
-  심장: ['심장', '심근', '협심증'],
-  뇌혈관: ['뇌'],
-  당뇨: ['당뇨'],
-  고혈압: ['고혈압'],
-  치매: ['치매', '장기요양'],
-  대장암: ['암'],
-}
-function keyCoverages(r: Recommendation, limit = 3) {
-  const names = r.coverages.map((c) => shortName(c.coverage_name))
-  const picked: string[] = []
-  for (const d of r.target_diseases) {
-    const words = DISEASE_KEYWORDS[d] ?? [d]
-    const hit = names.find((n) => !picked.includes(n) && words.some((w) => n.includes(w)))
-    if (hit) picked.push(hit)
-  }
-  for (const n of names) if (!picked.includes(n)) picked.push(n) // 남는 자리는 앞쪽 보장으로
-  return picked.slice(0, limit)
 }
 
 /** 공백을 채워야 하는 질병: 잠재 위험 대상이면서 기존 보험으로 보장이 확인되지 않은 것 */
@@ -303,11 +276,6 @@ function RecommendCard({
         <DiseaseChips diseases={r.target_diseases} />
       </div>
       <p className="ins-name">{cleanName(r.product_name)}</p>
-      <div className="ins-tags">
-        {keyCoverages(r).map((t) => (
-          <span key={t}>{t}</span>
-        ))}
-      </div>
       <div className="ins-rec-foot">
         <Price value={r.premium} />
         <div className="ins-rec-actions">
@@ -428,6 +396,46 @@ function DesignedCard({ r, onRemove }: { r: Recommendation; onRemove: () => void
       ) : (
         <p className="ins-join is-none">가입 링크 준비 중</p>
       )}
+    </li>
+  )
+}
+
+/* ---------- 오른쪽: 기존 가입 보험 카드 (설계 칸 맨 위) ---------- */
+
+/** (−)를 누르면 합계에서 빠지고, 빠진 상태에선 "다시 넣기"로 되돌림 (해지했다고 가정해 보는 용도) */
+function OwnedCard({ p, excluded, onToggle }: { p: OwnedProduct; excluded: boolean; onToggle: () => void }) {
+  const name = cleanName(p.product_name)
+  if (excluded) {
+    return (
+      <li className="ins-owned-card is-excluded">
+        <span>
+          <em>기존 가입 보험</em> {p.company_name} {name}
+        </span>
+        <button type="button" className="ins-text-btn" onClick={onToggle}>
+          <Icon d={ICON.plus} /> 다시 넣기
+        </button>
+      </li>
+    )
+  }
+  return (
+    <li className="ins-designed ins-owned-card">
+      <div className="ins-rec-top">
+        <span className="ins-company">
+          <em>기존 가입 보험</em>
+          {p.company_name}
+        </span>
+        <div className="ins-more">
+          <button type="button" aria-label={`${name} 합계에서 빼기`} onClick={onToggle}>
+            <Icon d={ICON.more} />
+          </button>
+        </div>
+      </div>
+      <p className="ins-name">{name}</p>
+      <DiseaseChips diseases={p.categories.slice(0, 3)} />
+      <div className="ins-designed-foot">
+        <span className="ins-owned-label">보유 보장</span>
+        <Price value={p.premium} />
+      </div>
     </li>
   )
 }
@@ -592,6 +600,8 @@ function Insurance() {
   const [designedIds, setDesignedIds] = useState<number[] | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  // 오른쪽 설계 칸에서 (−)로 합계에서 뺀 기존 가입 보험 id
+  const [excludedOwned, setExcludedOwned] = useState<number[]>([])
   // 마지막으로 저장한(또는 불러온) 리포트의 상품 id. 같은 조합을 연달아 저장하지 않게 비교용. null 이면 없음
   const [savedIds, setSavedIds] = useState<number[] | null>(null)
   const [saving, setSaving] = useState(false)
@@ -631,6 +641,12 @@ function Insurance() {
   const ids = designedIds ?? aiIds
   const designed = ids.map((id) => recs.find((r) => r.id === id)).filter((r): r is Recommendation => !!r)
   const designedTotal = designed.reduce((sum, r) => sum + (r.premium ?? 0), 0)
+  // 합계에 넣는 기존 가입 보험료 ((−)로 뺀 것은 제외)
+  const ownedTotal = (existing?.products ?? [])
+    .filter((p) => !excludedOwned.includes(p.id))
+    .reduce((sum, p) => sum + p.premium, 0)
+  const toggleOwned = (id: number) =>
+    setExcludedOwned((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
   // 위험 질환 보장 현황: 보장 공백 → 확인 필요 → 설계로 보완 → 보유 보장 순 (같은 상태끼리는 원래 순서)
   const riskDiseases = gaps
     .filter((g) => g.at_risk && !HIDDEN_RISK.has(g.disease))
@@ -697,9 +713,20 @@ function Insurance() {
   return (
     <div className="ins-page">
       <div className="ins-wrap">
-        {/* 제목은 맨 위 한 줄 */}
+        {/* 제목 줄: 왼쪽 제목, 오른쪽 현재 가입 보험 한 줄 요약 (보기 → 보유 보험 상세 팝업) */}
         <div className="ins-titlebar">
           <h1>내 GENE 보험설계</h1>
+          {existing && (
+            <div className="ins-owned-pill">
+              <span>현재 가입 보험</span>
+              <b>{existing.products.length}건</b>
+              {existing.main_category && <b>{existing.main_category}</b>}
+              <b>월 {won(existing.total_premium)}원</b>
+              <button type="button" className="ins-detail-link" onClick={() => setModalOpen(true)}>
+                보기 <Icon d={ICON.arrow} />
+              </button>
+            </div>
+          )}
         </div>
 
         {error && <p className="ins-status ins-status-error">{error}</p>}
@@ -707,58 +734,26 @@ function Insurance() {
 
         {existing && design && (
           <>
-            {/* ---------- 요약 줄: 아래 두 칸과 같은 폭으로 나눔 → 보유 보험은 왼쪽 칸 위, 위험 질환은 오른쪽 칸 위 ---------- */}
-            <div className="ins-summary-row">
-              {/* 왼쪽: 현재 보유 보험 (내 GENE에 적합한 보험 칸 위) */}
-              <section className="ins-card ins-owned-summary">
-                <h2>
-                  <u>{name}</u> 님의 현재 보유 보험
-                </h2>
-                <div className="ins-owned-summary-body">
-                  <div className="ins-total">
-                    <p>월 납입 보험료</p>
-                    <strong>
-                      {won(existing.total_premium)}
-                      <small>원</small>
-                    </strong>
-                  </div>
-                  {existing.main_category && (
-                    <div className="ins-main-cat">
-                      <p>주요 보장</p>
-                      <span className="ins-pill">{existing.main_category}</span>
-                    </div>
-                  )}
-                  <div className="ins-count">
-                    <p>유지 계약</p>
-                    <strong>총 {existing.products.length}건</strong>
-                  </div>
-                  <button type="button" className="ins-detail-link" onClick={() => setModalOpen(true)}>
-                    보험 상세보기 <Icon d={ICON.arrow} />
-                  </button>
-                </div>
-              </section>
-
-              {/* 오른쪽: 위험 질환 보장 현황 (AI 맞춤 추천 설계 칸 위, 보유 보험 바로 오른쪽) */}
+            <div className="ins-layout">
+              {/* ---------- 왼쪽 칸: 위험 질환 보장 현황 + 추천 보험 ---------- */}
+              <div className="ins-left-col">
               {riskDiseases.length > 0 && (
-                <section className="ins-card ins-risk" aria-labelledby="ins-risk-title">
+                <section className="ins-risk" aria-labelledby="ins-risk-title">
                   <h2 id="ins-risk-title">위험 질환 보장 현황</h2>
                   <ul>
                     {riskDiseases.map((g) => {
-                      const s = diseaseState(g, designed)
+                      const st = diseaseState(g, designed)
                       return (
-                        <li key={g.disease} className={`ins-risk-${s.tone}`} title={g.gap_detail ?? undefined}>
+                        <li key={g.disease} className={`ins-risk-${st.tone}`} title={g.gap_detail ?? undefined}>
                           <b>{RISK_LABEL[g.disease] ?? g.disease}</b>
-                          <span>{s.label}</span>
+                          <span>{st.label}</span>
                         </li>
                       )
                     })}
                   </ul>
                 </section>
               )}
-            </div>
 
-            <div className="ins-layout">
-              {/* ---------- 왼쪽: 추천 보험 ---------- */}
               <section className="ins-card ins-left" aria-labelledby="ins-left-title">
                 <div className="ins-panel-head">
                   <div>
@@ -791,6 +786,7 @@ function Insurance() {
                   )}
                 </div>
               </section>
+              </div>
 
               {/* ---------- 오른쪽: AI 맞춤 추천 설계 ---------- */}
               <section
@@ -803,7 +799,6 @@ function Insurance() {
                 <div className="ins-panel-head">
                   <div>
                     <h2 id="ins-right-title">AI 맞춤 추천 설계</h2>
-                    <p>{isAiPick ? 'AI가 보장 공백을 가장 적은 보험료로 채우는 조합을 담아 두었어요.' : '기존 보험의 보장 공백을 분석해 추천한 맞춤형 보험 포트폴리오'}</p>
                   </div>
                   {!isAiPick && (
                     <button type="button" className="ins-text-btn" onClick={() => setDesignedIds(null)}>
@@ -812,42 +807,40 @@ function Insurance() {
                   )}
                 </div>
 
-                {/* 제목·설명은 고정, 이 아래(끌어놓기 칸~합계)만 스크롤 */}
+                {/* 제목은 고정, 이 아래(기존 보험~합계)만 스크롤 */}
                 <div className="ins-right-scroll">
-                <div className="ins-dropzone" aria-hidden="true">
-                  <Icon d={ICON.drop} />
-                  <p>드래그하여 보험 상품 추가</p>
-                  <span>왼쪽 상품을 드래그해 원하는 보험을 추가하세요.</span>
+                  {/* 기존 가입 보험 (−)로 합계에서 뺄 수 있음 */}
+                  {existing.products.length > 0 && (
+                    <ul className="ins-designed-list">
+                      {existing.products.map((p) => (
+                        <OwnedCard key={p.id} p={p} excluded={excludedOwned.includes(p.id)} onToggle={() => toggleOwned(p.id)} />
+                      ))}
+                    </ul>
+                  )}
+
+                  {designed.length === 0 ? (
+                    <p className="ins-empty">아직 담은 보험이 없어요.</p>
+                  ) : (
+                    <ul className="ins-designed-list">
+                      {designed.map((r) => (
+                        <DesignedCard key={r.id} r={r} onRemove={() => remove(r.id)} />
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="ins-dropzone" aria-hidden="true">
+                    <Icon d={ICON.drop} />
+                    <p>드래그하여 보험 상품 추가</p>
+                  </div>
                 </div>
 
-
-                {designed.length === 0 ? (
-                  <p className="ins-empty">아직 담은 보험이 없어요.</p>
-                ) : (
-                  <ul className="ins-designed-list">
-                    {designed.map((r) => (
-                      <DesignedCard key={r.id} r={r} onRemove={() => remove(r.id)} />
-                    ))}
-                  </ul>
-                )}
-
-                <dl className="ins-design-total">
-                  <div>
-                    <dt>설계된 보험 건수</dt>
-                    <dd>총 {designed.length}건</dd>
-                  </div>
-                  <div>
-                    <dt>예상 월 보험료 합계</dt>
-                    <dd>
-                      <strong>{won(designedTotal)}</strong> 원
-                    </dd>
-                  </div>
-                  <div className="ins-design-total-all">
-                    <dt>기존 가입 보험료 포함</dt>
-                    <dd>{won(designedTotal + existing.total_premium)} 원</dd>
-                  </div>
-                </dl>
-                </div>
+                {/* 합계: 담은 보험 + 기존 가입 보험(뺀 것 제외) */}
+                <p className="ins-design-sum">
+                  <span>예상 월 보험료 합계</span>
+                  <strong>
+                    {won(designedTotal + ownedTotal)} <small>원</small>
+                  </strong>
+                </p>
 
                 {/* 리포트로 저장: 누를 때마다 리포트가 하나씩 쌓임. 마이페이지 > 보험 설계 보러가기 에서 옆으로 넘겨 봄 */}
                 <div className="ins-save">

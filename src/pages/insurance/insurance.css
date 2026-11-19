@@ -229,18 +229,46 @@ body:has(.ins-page) {
   font-size: 26px;
 }
 
-/* ---------- 제목 줄: 제목만 맨 위에 ---------- */
+/* ---------- 제목 줄: 왼쪽 제목, 오른쪽 현재 가입 보험 한 줄 요약 ---------- */
 .ins-titlebar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
 }
 
-/* ---------- 요약 줄: 아래 두 칸(.ins-layout)과 같은 비율로 나눠 칸 위에 하나씩 ---------- */
-.ins-summary-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  gap: 24px;
-  align-items: stretch; /* 두 카드 높이를 맞춤 */
+.ins-owned-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 18px;
+  border: 1px solid var(--glass-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* 항목 사이 얇은 세로줄 */
+.ins-owned-pill > b {
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.ins-owned-pill .ins-detail-link {
+  font-size: 13px;
+}
+
+/* ---------- 왼쪽 칸: 위험 질환 보장 현황 + 내 GENE에 적합한 보험 ---------- */
+.ins-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
 }
 
 .ins-title-left {
@@ -698,10 +726,11 @@ body:has(.ins-page) {
 /* ---------- 오른쪽 설계 칸 ---------- */
 .ins-dropzone {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 16px;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px;
   border: 1.5px dashed rgba(94, 242, 230, 0.4);
   border-radius: 14px;
   background: rgba(94, 242, 230, 0.04);
@@ -719,23 +748,27 @@ body:has(.ins-page) {
   font-weight: 700;
 }
 
+.ins-dropzone svg {
+  width: 16px;
+  height: 16px;
+}
+
 .ins-dropzone span {
   color: var(--muted);
   font-size: 12px;
 }
 
-/* 위험 질환 보장 현황: 이제 보유 보험 오른쪽의 별도 카드 */
+/* 위험 질환 보장 현황: 왼쪽 칸 맨 위, 카드 없이 제목 + 칩 줄 */
 .ins-risk {
   display: flex;
+  flex: none;
   flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  padding: 22px 24px;
+  gap: 10px;
 }
 
 .ins-risk h2 {
   color: var(--ink);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -789,6 +822,12 @@ body:has(.ins-page) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* 기존 가입 보험 목록 바로 아래 담은 보험 목록이 붙을 때 간격 */
+.ins-designed-list + .ins-designed-list,
+.ins-designed-list + .ins-empty {
+  margin-top: 10px;
 }
 
 .ins-designed {
@@ -1007,6 +1046,75 @@ a.ins-join:hover {
 }
 
 .ins-design-total-all dd {
+  color: var(--body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 기존 가입 보험 카드: 담은 보험 카드와 같은 모양, 왼쪽 줄만 회색 */
+.ins-owned-card.ins-designed::before {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.ins-owned-card .ins-company em {
+  margin-right: 8px;
+  padding-right: 8px;
+  border-right: 1px solid var(--line);
+  color: var(--body);
+  font-style: normal;
+}
+
+.ins-owned-label {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* 합계에서 뺀 기존 보험: 한 줄로 접고 다시 넣기 버튼 */
+.ins-owned-card.is-excluded {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px dashed var(--glass-line);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.ins-owned-card.is-excluded > span {
+  overflow: hidden;
+  text-decoration: line-through;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ins-owned-card.is-excluded em {
+  margin-right: 6px;
+  font-style: normal;
+  text-decoration: none;
+}
+
+/* 예상 월 보험료 합계: 한 줄 (담은 보험 + 기존 가입 보험) */
+.ins-design-sum {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 14px !important;
+  padding: 12px 4px 0 !important;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.ins-design-sum strong {
+  color: var(--teal);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ins-design-sum small {
   color: var(--body);
   font-size: 13px;
   font-weight: 600;
@@ -1325,6 +1433,14 @@ a.ins-join:hover {
     overflow: hidden;
   }
 
+  .ins-page .ins-left-col {
+    min-height: 0;
+  }
+
+  .ins-page .ins-left-col .ins-left {
+    flex: 1;
+  }
+
   .ins-page .ins-left .ins-panel-head,
   .ins-page .ins-right .ins-panel-head {
     flex: none;
@@ -1384,8 +1500,10 @@ a.ins-join:hover {
     position: static;
   }
 
-  .ins-summary-row {
-    grid-template-columns: 1fr;
+  .ins-owned-pill {
+    flex-wrap: wrap;
+    white-space: normal;
+    border-radius: 16px;
   }
 
   .ins-owned-summary-body {
