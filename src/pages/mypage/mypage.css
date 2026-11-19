@@ -1087,6 +1087,42 @@ body:has(.mp-page) {
   display: none;
 }
 
+/* ---------- 리포트 안의 기존 가입 보험 ---------- */
+/* 압축 카드 목록: 앞에 작은 "기존" 표시 */
+.mp-report-items li.is-owned em {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* 상세 리포트 카드: 추천 보험 카드와 같은 모양, 왼쪽 줄만 흰색 */
+.mp-saved > li.mp-owned {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.mp-saved > li.mp-owned::before {
+  background: #fff;
+}
+
+.mp-owned .mp-company em {
+  margin-right: 8px;
+  padding-right: 8px;
+  border-right: 1px solid var(--line);
+  color: var(--body);
+  font-style: normal;
+}
+
+.mp-saved-sum small {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
 /* ---------- 좁은 화면 ---------- */
 @media (max-width: 960px) {
   .mp-wrap {
