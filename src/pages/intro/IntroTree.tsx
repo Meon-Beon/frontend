@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import bgmSrc from '../../assets/intro-bgm.mp3'
+import bgmSrc from '../../assets/intro-bgm2.mp3'
 import styles from './IntroTree.module.css'
 
 /**
@@ -12,15 +12,17 @@ const GENS = 13 // 2^13 = 8,192명
 const YEAR_NOW = 2026
 const YEARS_PER_GEN = 27
 
-// 음악 박자 맞춤 — 배경음악(Hensonn "Sahara")을 분석한 값
-const BEAT_MS = 521.4 // 한 박 길이 (약 115 BPM)
+// 음악 박자 맞춤 — 배경음악(intro-bgm2.mp3)을 분석한 값
+const BPM = 116.0
+const BEAT_MS = 60000 / BPM // 한 박 길이 (≈ 517.2ms) — 반올림 오차가 쌓이지 않도록 BPM에서 계산
 const BEATS_PER_GEN = 2 // 2박마다 한 세대씩 올라감
 const GEN_MS = BEAT_MS * BEATS_PER_GEN
 const SHOOT = 0.5 // 박이 시작되면 세대 시간의 앞 50% 동안 가지가 뻗고, 나머지는 멈춰서 다음 박을 기다림
-const MUSIC_START = 21.97 // 곡의 이 지점(초)부터 재생 → 13세대째가 끝나는 순간이 곡의 드롭(35.53초)
+const MUSIC_START = 45.0 // 곡의 이 지점(초)부터 재생
+const LEAD_MS = 4800 // 드롭의 실제 어택(49.90초)까지 기다리는 시간 → 드롭에 첫 가지가 뻗고, 13세대째가 강한 킥(63.37초)에 닿음
 
 // 타임라인 (ms)
-const GROW = GENS * GEN_MS // 가지가 아래(당신)에서 위(조상)로 타고 올라가는 시간 (≈ 13.6초)
+const GROW = LEAD_MS + GENS * GEN_MS // 대기 시간 + 가지가 아래(당신)에서 위(조상)로 타고 올라가는 시간 (≈ 4.9초 + 13.4초)
 const BLOOM = 2800 // 다 올라간 뒤 나무 전체가 빛나는 시간 → 이후 DNA가 솟아 클릭을 기다림
 const LAST_CAPTION_HOLD = 1300 // 마지막 자막을 다 올라간 뒤에도 더 보여주는 시간
 
@@ -309,7 +311,7 @@ export default function IntroTree({ onDone }: { onDone: () => void }) {
       elRef.current = el
 
       // 올라간 세대 수 (0 ~ GENS): 박마다 '툭' 뻗고 멈췄다가 다음 박에 또 뻗음
-      const step = Math.max(0, el / GEN_MS)
+      const step = Math.max(0, (el - LEAD_MS) / GEN_MS) // LEAD_MS 전까지는 0 → '1명'과 첫 자막만 보임
       const beatGen = Math.floor(step)
       const f = beatGen >= GENS ? GENS : beatGen + clamp01((step - beatGen) / SHOOT)
       const done = Math.floor(f)
