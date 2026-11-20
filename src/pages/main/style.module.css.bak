@@ -1,0 +1,276 @@
+/* 서비스 메인 — 인트로·로그인과 같은 남색 테마 */
+.page {
+  --surface: #101b35;
+  --line: rgba(255, 255, 255, 0.08);
+  --glass-line: rgba(170, 195, 255, 0.12);
+  --ink: #e4e8ef;
+  --body: #b3bccb;
+  --muted: #8892a5;
+  --teal: #5ef2e6;
+  --violet: #b48cff;
+
+  /* #root 너비 제한을 넘어 화면 전체를 채움 */
+  width: 100vw;
+  min-height: calc(100svh - 96px);
+  margin-inline: calc(50% - 50vw);
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(45% 50% at 12% 30%, rgba(94, 242, 230, 0.1), transparent 70%),
+    radial-gradient(40% 45% at 88% 85%, rgba(180, 140, 255, 0.12), transparent 70%),
+    linear-gradient(180deg, #0b1530 0%, #070d1f 100%);
+  color: var(--body);
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  text-align: left;
+}
+
+:global(body):has(.page) {
+  overflow-x: hidden;
+  background: #070d1f;
+}
+
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page h1,
+.page h2,
+.page p,
+.page ul {
+  margin: 0;
+  padding: 0;
+}
+
+.page ul {
+  list-style: none;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* ---------- 본문 ---------- */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 56px;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 72px 40px 96px;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: clamp(40px, 4.4vw, 60px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin-top: 18px !important;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(100deg, var(--teal) 0%, #9fd8ff 50%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 넓은 화면에서는 <br> 기준으로 딱 두 줄 */
+.desc {
+  white-space: nowrap;
+  margin-top: 24px !important;
+  /* 두 열 화면이 좁아져도 두 줄이 칸을 넘지 않도록 글자를 살짝 줄임 */
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.8;
+  color: var(--body);
+}
+
+/* ---------- 단계 카드 ---------- */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card {
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-line),
+    0 30px 60px -32px rgba(0, 0, 0, 0.7);
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s;
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    inset 0 0 0 1px rgba(94, 242, 230, 0.35),
+    0 30px 60px -24px rgba(94, 242, 230, 0.22);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.cardLink {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 26px 26px 22px;
+  box-sizing: border-box;
+  border-radius: inherit;
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 3px;
+}
+
+/* 칸 없이 아이콘만, 카드의 청록색으로 */
+.iconBox {
+  display: block;
+  align-self: flex-start;
+  color: var(--teal);
+}
+
+.stepIcon {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+.maskIcon {
+  background: currentColor;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* 마지막 카드는 흰 아이콘 */
+.final .iconBox {
+  color: #fff;
+}
+
+.cardTitle {
+  margin-top: 22px !important;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.cardDesc {
+  flex: 1;
+  margin-top: 8px !important;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--body);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.cardFooter .icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.25s;
+}
+
+.card:hover .cardFooter .icon {
+  transform: translateX(4px);
+}
+
+/* 마지막 목표 카드는 나선 색 그라데이션으로 강조 */
+.final {
+  background:
+    linear-gradient(140deg, rgba(47, 143, 134, 0.35) 0%, rgba(61, 111, 214, 0.28) 55%, rgba(123, 92, 224, 0.38) 100%),
+    var(--surface);
+  box-shadow:
+    inset 0 0 0 1px rgba(180, 140, 255, 0.35),
+    0 30px 60px -28px rgba(123, 92, 224, 0.5);
+}
+
+
+.final .cardTitle {
+  color: #fff;
+}
+
+.final .cardDesc {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.final .cardFooter {
+  border-top-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1024px) {
+  .main {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 56px 24px 72px;
+  }
+
+  .desc {
+    white-space: normal;
+    font-size: 18px;
+  }
+
+  .desc br {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 40px 16px 56px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .desc {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

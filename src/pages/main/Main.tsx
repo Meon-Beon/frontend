@@ -149,8 +149,10 @@ function Main() {
     <div className={styles.page}>
       <main className={styles.main}>
         <section className={styles.hero}>
-          <h1 className={styles.title}>신뢰를 바탕으로</h1>
-          <p className={styles.subtitle}>유전자 데이터로 완성하는 초개인화 보험</p>
+          <div className={styles.heroText}>
+            <h1 className={styles.title}>신뢰를 바탕으로</h1>
+            <p className={styles.subtitle}>유전자 데이터로 완성하는 초개인화 보험</p>
+          </div>
           <p className={styles.desc}>
             비대면 타액(DNA) 검사와 건강보험공단 마이데이터 검진 이력을 결합해
             <br />
