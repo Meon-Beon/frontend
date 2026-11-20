@@ -237,6 +237,105 @@ function CountUp({ value }: { value: string }) {
   return <span ref={ref}>{value}</span>
 }
 
+/* ---------- 3) 데이터가 모여 만드는 지문 ---------- */
+
+/**
+ * 흩어진 점이 모여 지문이 되는 영상을 캔버스에 그림.
+ * 영상의 검은 배경은 밝기에 따라 투명하게 바꿔, 카드의 유리 배경이 그대로 비치게 함.
+ * (영상 태그로 바로 넣으면 검은 네모가 보이기 때문) 화면에 보일 때만 재생
+ */
+function DataFingerprint({ className }: { className?: string }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = ref.current
+    const ctx = canvas?.getContext('2d', { willReadFrequently: true })
+    if (!canvas || !ctx) return
+
+    const video = document.createElement('video')
+    video.src = fingerprintVideo
+    video.muted = true
+    video.loop = true
+    video.playsInline = true
+    video.preload = 'auto'
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas.width = Math.round(canvas.clientWidth * dpr)
+      canvas.height = Math.round(canvas.clientHeight * dpr)
+    }
+
+    const draw = () => {
+      if (video.readyState < 2) return
+      const cw = canvas.width
+      const ch = canvas.height
+      // 정사각형 영상을 카드 위쪽 가운데에 맞춤 (아래는 문구 자리)
+      const size = Math.round(Math.min(cw, ch * 0.82))
+      const x = Math.round((cw - size) / 2)
+      const y = Math.max(0, Math.round(ch * 0.4 - size / 2))
+      ctx.clearRect(0, 0, cw, ch)
+      ctx.drawImage(video, x, y, size, size)
+      const img = ctx.getImageData(x, y, size, size)
+      const d = img.data
+      for (let i = 0; i < d.length; i += 4) {
+        const m = Math.max(d[i], d[i + 1], d[i + 2])
+        if (m < 6) {
+          d[i + 3] = 0
+          continue
+        }
+        // 검은 바탕 위의 빛 → 밝은 만큼 불투명하게, 색은 원래 밝기로 되돌림
+        const a = Math.min(1, m / 200)
+        d[i] = Math.min(255, d[i] / a)
+        d[i + 1] = Math.min(255, d[i + 1] / a)
+        d[i + 2] = Math.min(255, d[i + 2] / a)
+        d[i + 3] = a * 255
+      }
+      ctx.putImageData(img, x, y)
+    }
+
+    const reduced = prefersReducedMotion()
+    let frame = 0
+    let visible = false
+    const tick = () => {
+      draw()
+      if (visible) frame = requestAnimationFrame(tick)
+    }
+
+    resize()
+    if (reduced) {
+      // 움직임 줄이기: 지문이 완성된 장면 한 장만 보여 줌
+      video.addEventListener('loadeddata', () => (video.currentTime = 3.5), { once: true })
+      video.addEventListener('seeked', draw)
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      cancelAnimationFrame(frame)
+      if (reduced) return
+      if (visible) {
+        video.play().catch(() => {})
+        frame = requestAnimationFrame(tick)
+      } else {
+        video.pause()
+      }
+    })
+    observer.observe(canvas)
+    const onResize = () => {
+      resize()
+      draw()
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', onResize)
+      video.pause()
+      video.removeAttribute('src')
+      video.load()
+    }
+  }, [])
+  return <canvas ref={ref} className={className} aria-hidden="true" />
+}
+
 /* ---------- 숫자 카드 회전 ---------- */
 
 /** 칸을 시계방향(큰 칸 → 아래 오른쪽 → 아래 가운데 → 아래 왼쪽)으로 셌을 때, 처음 각 칸에 있는 숫자 번호 */
@@ -386,15 +485,7 @@ function Intro() {
           <div className={styles.numbers}>
             {/* 왼쪽: 흩어진 데이터가 모여 지문이 되는 영상 (나만의 분석 결과) */}
             <div className={`${styles.glass} ${styles.globeCard}`} data-reveal>
-              <video
-                className={styles.globe}
-                src={fingerprintVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
-                aria-hidden="true"
-              />
+              <DataFingerprint className={styles.globe} />
               <div className={styles.globeInfo}>
                 <span className={styles.globeTag}>RESEARCH LAB</span>
                 <strong>
@@ -402,11 +493,6 @@ function Intro() {
                   <br />
                   오직 나만의 분석 결과가 됩니다
                 </strong>
-                <span>
-                  지문처럼 같은 결과는 없습니다.
-                  <br />
-                  내 유전·건강 데이터가 만드는 고유한 분석이에요.
-                </span>
               </div>
             </div>
 
