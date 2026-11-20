@@ -4,7 +4,7 @@ import DnaFlow from './DnaFlow'
 import { Link } from 'react-router-dom'
 import DnaHelix from '../../components/dna-helix/DnaHelix'
 import GeneLogo from '../../components/GeneLogo/GeneLogo'
-import { LAND_POINTS } from './landPoints'
+import fingerprintVideo from '../../assets/data-fingerprint.mp4'
 import styles from './style.module.css'
 
 /** 숫자로 보는 내진설계. 첫 항목은 오른쪽 위에 크게, 나머지는 그 아래 작은 칸 */
@@ -237,146 +237,6 @@ function CountUp({ value }: { value: string }) {
   return <span ref={ref}>{value}</span>
 }
 
-/* ---------- 3) 세계 지도 지구본 ---------- */
-
-/** 연구소 위치: 경기도 성남시 분당구 판교 */
-const HQ = { lat: 37.4, lng: 127.11 }
-
-/**
- * 육지 점으로 그린 지구본. 한국 경도를 중심으로 좌우로 천천히 흔들리며 돌고,
- * 연구소(판교) 자리에 분홍 표시가 맥박처럼 퍼짐. 화면에 보일 때만 움직임
- */
-function Globe({ className }: { className?: string }) {
-  const ref = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const canvas = ref.current
-    const ctx = canvas?.getContext('2d')
-    if (!canvas || !ctx) return
-    const RAD = Math.PI / 180
-    const land = LAND_POINTS.map(([lat, lng]) => ({ phi: lat * RAD, lam: lng * RAD }))
-
-    let width = 0
-    let height = 0
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      width = canvas.clientWidth
-      height = canvas.clientHeight
-      canvas.width = Math.round(width * dpr)
-      canvas.height = Math.round(height * dpr)
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-
-    // 위도·경도 → 화면 좌표 (중심 경도 lam0, 북쪽으로 tilt 만큼 기울여 한국이 잘 보이게)
-    const tilt = 28 * RAD
-    const project = (phi: number, lam: number, lam0: number, r: number, cx: number, cy: number) => {
-      const x0 = Math.cos(phi) * Math.sin(lam - lam0)
-      const y0 = Math.sin(phi)
-      const z0 = Math.cos(phi) * Math.cos(lam - lam0)
-      const y = y0 * Math.cos(tilt) - z0 * Math.sin(tilt)
-      const z = y0 * Math.sin(tilt) + z0 * Math.cos(tilt)
-      return { x: cx + x0 * r, y: cy - y * r, z }
-    }
-
-    const draw = (t: number) => {
-      ctx.clearRect(0, 0, width, height)
-      const r = Math.min(width * 0.46, height * 0.42)
-      const cx = width / 2
-      const cy = height * 0.46
-      const lam0 = (HQ.lng - 10 + Math.sin(t * 0.35) * 35) * RAD
-
-      // 바다: 은은한 구
-      const ocean = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r)
-      ocean.addColorStop(0, 'rgba(94, 242, 230, 0.12)')
-      ocean.addColorStop(1, 'rgba(19, 37, 74, 0.55)')
-      ctx.fillStyle = ocean
-      ctx.beginPath()
-      ctx.arc(cx, cy, r, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.strokeStyle = 'rgba(94, 242, 230, 0.25)'
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      // 육지 점: 앞쪽일수록 크고 진하게
-      ctx.fillStyle = '#5ef2e6'
-      for (const p of land) {
-        const q = project(p.phi, p.lam, lam0, r, cx, cy)
-        if (q.z <= 0) continue
-        ctx.globalAlpha = 0.25 + q.z * 0.7
-        ctx.beginPath()
-        ctx.arc(q.x, q.y, 0.7 + q.z * 1.1, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      ctx.globalAlpha = 1
-
-      // 연구소 표시
-      const hq = project(HQ.lat * RAD, HQ.lng * RAD, lam0, r, cx, cy)
-      if (hq.z > 0) {
-        const pulse = (t * 0.9) % 1
-        ctx.strokeStyle = `rgba(170, 102, 255, ${1 - pulse})`
-        ctx.lineWidth = 2.4
-        ctx.beginPath()
-        ctx.arc(hq.x, hq.y, 6 + pulse * 22, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.fillStyle = '#aa66ff'
-        ctx.shadowColor = 'rgba(170, 102, 255, 0.95)'
-        ctx.shadowBlur = 14
-        ctx.beginPath()
-        ctx.arc(hq.x, hq.y, 5.5, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.shadowBlur = 0
-        // 이름표: 오른쪽 끝에 닿으면 표시의 왼쪽에 붙임
-        ctx.font = '700 13px Pretendard, sans-serif'
-        const labelW = ctx.measureText('제노플랜코리아 연구소').width
-        const toLeft = hq.x + 20 + labelW > width - 12
-        const dir = toLeft ? -1 : 1
-        const lx = hq.x + dir * 16
-        const ly = hq.y - 26
-        ctx.strokeStyle = 'rgba(170, 102, 255, 0.7)'
-        ctx.lineWidth = 1
-        ctx.beginPath()
-        ctx.moveTo(hq.x + dir * 4, hq.y - 4)
-        ctx.lineTo(lx, ly + 6)
-        ctx.stroke()
-        ctx.textAlign = toLeft ? 'right' : 'left'
-        ctx.fillStyle = '#ffffff'
-        ctx.fillText('제노플랜코리아 연구소', lx + dir * 4, ly)
-        ctx.font = '500 11px Pretendard, sans-serif'
-        ctx.fillStyle = 'rgba(228, 232, 239, 0.7)'
-        ctx.fillText('PANGYO · KOREA', lx + dir * 4, ly + 15)
-        ctx.textAlign = 'left'
-      }
-    }
-
-    resize()
-    draw(0)
-    const reduced = prefersReducedMotion()
-    let frame = 0
-    let visible = false
-    const start = performance.now()
-    const tick = (now: number) => {
-      draw((now - start) / 1000)
-      if (visible) frame = requestAnimationFrame(tick)
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting
-      cancelAnimationFrame(frame)
-      if (visible && !reduced) frame = requestAnimationFrame(tick)
-    })
-    observer.observe(canvas)
-    const onResize = () => {
-      resize()
-      draw((performance.now() - start) / 1000)
-    }
-    window.addEventListener('resize', onResize)
-    return () => {
-      observer.disconnect()
-      cancelAnimationFrame(frame)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [])
-  return <canvas ref={ref} className={className} aria-label="판교에 있는 제노플랜코리아 연구소를 표시한 지구본" role="img" />
-}
-
 /* ---------- 숫자 카드 회전 ---------- */
 
 /** 칸을 시계방향(큰 칸 → 아래 오른쪽 → 아래 가운데 → 아래 왼쪽)으로 셌을 때, 처음 각 칸에 있는 숫자 번호 */
@@ -524,13 +384,29 @@ function Intro() {
             <span className={styles.sectionSub}>연구 결과와 분석 실적</span>
           </h2>
           <div className={styles.numbers}>
-            {/* 왼쪽: 지구본과 연구소 위치 */}
+            {/* 왼쪽: 흩어진 데이터가 모여 지문이 되는 영상 (나만의 분석 결과) */}
             <div className={`${styles.glass} ${styles.globeCard}`} data-reveal>
-              <Globe className={styles.globe} />
+              <video
+                className={styles.globe}
+                src={fingerprintVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-hidden="true"
+              />
               <div className={styles.globeInfo}>
                 <span className={styles.globeTag}>RESEARCH LAB</span>
-                <strong>제노플랜코리아 연구소</strong>
-                <span>경기도 성남시 분당구 판교로228번길 15 판교세븐벤처밸리1단지 제3동 8층</span>
+                <strong>
+                  데이터가 모여,
+                  <br />
+                  오직 나만의 분석 결과가 됩니다
+                </strong>
+                <span>
+                  지문처럼 같은 결과는 없습니다.
+                  <br />
+                  내 유전·건강 데이터가 만드는 고유한 분석이에요.
+                </span>
               </div>
             </div>
 
