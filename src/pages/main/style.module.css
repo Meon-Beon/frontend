@@ -59,15 +59,23 @@
 /* ---------- 본문 ---------- */
 .main {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: 56px;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 72px 40px 96px;
   box-sizing: border-box;
+}
+
+/* 위쪽: 제목(왼쪽) · 설명(오른쪽) */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
 }
 
 .title {
@@ -92,7 +100,8 @@
 /* 넓은 화면에서는 <br> 기준으로 딱 두 줄 */
 .desc {
   white-space: nowrap;
-  margin-top: 24px !important;
+  margin-top: 10px !important;
+  text-align: right;
   /* 두 열 화면이 좁아져도 두 줄이 칸을 넘지 않도록 글자를 살짝 줄임 */
   font-size: clamp(15px, 1.5vw, 18px);
   line-height: 1.8;
@@ -100,9 +109,10 @@
 }
 
 /* ---------- 단계 카드 ---------- */
+/* 아래쪽: 카드 4개 한 줄 */
 .steps {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -240,14 +250,24 @@
 /* ---------- 반응형 ---------- */
 @media (max-width: 1024px) {
   .main {
-    grid-template-columns: 1fr;
     gap: 40px;
     padding: 56px 24px 72px;
   }
 
+  .hero {
+    flex-direction: column;
+    gap: 0;
+  }
+
   .desc {
     white-space: normal;
+    text-align: left;
+    margin-top: 24px !important;
     font-size: 18px;
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .desc br {

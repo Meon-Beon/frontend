@@ -67,14 +67,6 @@ body:has(.mp-page) {
   padding: 36px 40px 72px;
 }
 
-.mp-title {
-  margin-bottom: 24px !important;
-  color: var(--ink);
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
 .mp-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -417,6 +409,56 @@ body:has(.mp-page) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/*
+ * 결제 내역 박스는 높이 고정 → 안쪽 목록만 스크롤
+ * contain: size 로 박스 자체 내용 높이를 0으로 취급하게 해서,
+ * 줄 높이는 옆의 비밀번호 변경 카드가 정하고 이 카드는 그 높이에 맞춰 늘어남(stretch)
+ */
+.mp-grid:has(.mp-orders-card) {
+  align-items: stretch;
+}
+
+.mp-orders-card {
+  display: flex;
+  flex-direction: column;
+  contain: size;
+  min-height: 460px; /* 카카오 회원처럼 왼쪽 카드가 짧아도 너무 납작해지지 않게 */
+}
+
+.mp-orders-card .mp-orders {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain; /* 목록 끝에 닿아도 페이지 전체가 같이 내려가지 않게 */
+  margin-right: -10px;
+  padding-right: 10px;
+  /* 어두운 화면에 맞춘 은은한 스크롤바 (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(170, 195, 255, 0.22) transparent;
+}
+
+/* 크롬·엣지·사파리 스크롤바 */
+.mp-orders-card .mp-orders::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mp-orders-card .mp-orders::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mp-orders-card .mp-orders::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(170, 195, 255, 0.22);
+}
+
+.mp-orders-card .mp-orders::-webkit-scrollbar-thumb:hover {
+  background: rgba(170, 195, 255, 0.4);
+}
+
+.mp-orders-card .mp-orders > li {
+  flex-shrink: 0; /* 목록이 좁아져도 항목이 찌그러지지 않고 스크롤되게 */
 }
 
 .mp-orders > li {
@@ -1137,6 +1179,13 @@ body:has(.mp-page) {
 
   .mp-side {
     position: static;
+  }
+
+  /* 한 줄로 쌓이면 옆 카드가 없으니 높이를 직접 정함 */
+  .mp-orders-card {
+    contain: none;
+    min-height: 0;
+    max-height: 520px;
   }
 
   .mp-report,

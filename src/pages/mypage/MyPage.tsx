@@ -326,7 +326,7 @@ function PasswordCard({ me }: { me: Me }) {
 function OrdersCard({ orders }: { orders: Order[] }) {
   const total = orders.reduce((sum, o) => sum + o.amount, 0)
   return (
-    <Card title="결제 내역" desc="내진(GENE)설계에서 결제한 DNA 검사 내역이에요.">
+    <Card title="결제 내역" desc="내진(GENE)설계에서 결제한 DNA 검사 내역이에요." className="mp-orders-card">
       {orders.length === 0 ? (
         <div className="mp-empty">
           <p>아직 결제 내역이 없어요.</p>
@@ -895,8 +895,6 @@ function MyPage() {
   return (
     <div className="mp-page">
       <div className="mp-wrap">
-        <h1 className="mp-title">마이페이지</h1>
-
         <div className="mp-layout">
           <aside className="mp-card mp-side" aria-label="마이 메뉴">
             <p className="mp-side-title">마이 메뉴</p>

@@ -102,32 +102,46 @@
 }
 
 /* ---------- 검사 절차 ---------- */
+/* 세로로 한 줄씩 */
 .steps {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-top: 20px !important;
 }
 
+/* 왼쪽 칸: STEP 라벨 + 제목 / 오른쪽 칸: 설명 */
 .steps li {
   position: relative;
-  padding: 20px;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-areas:
+    'label desc'
+    'title desc';
+  grid-template-rows: auto 1fr;
+  column-gap: 20px;
+  align-items: start;
+  padding: 18px 20px 18px 22px;
   border-radius: 14px;
   background: var(--surface-soft);
   overflow: hidden;
 }
 
-/* 단계 카드 위쪽 빛줄기 */
+/* 단계 카드 왼쪽 빛줄기 */
 .steps li::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 20px;
-  right: 20px;
-  height: 2px;
-  border-radius: 1px;
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
   background: var(--teal);
   opacity: 0.7;
+}
+
+.steps .stepLabel {
+  grid-area: label;
 }
 
 .stepLabel {
@@ -140,14 +154,17 @@
 }
 
 .steps h3 {
-  margin-top: 8px !important;
+  grid-area: title;
+  margin-top: 4px !important;
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
 }
 
 .steps p {
-  margin-top: 8px !important;
+  grid-area: desc;
+  align-self: center;
+  margin-top: 0 !important;
   font-size: 13px;
   line-height: 1.7;
   color: var(--body);
@@ -367,8 +384,18 @@
     padding: 24px 18px;
   }
 
-  .steps {
+  /* 좁은 화면: 라벨 → 제목 → 설명 위아래로 */
+  .steps li {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      'label'
+      'title'
+      'desc';
+    grid-template-rows: auto;
+  }
+
+  .steps p {
+    margin-top: 8px !important;
   }
 
   .amount {
